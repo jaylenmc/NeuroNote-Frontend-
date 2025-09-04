@@ -571,10 +571,12 @@ export default function DeckContent() {
           <div className="deck-header-content">
             {/* Left Side - Deck Info and Stats */}
             <div className="deck-info-section">
-              <Book className="deck-emoji" />
               <div className="deck-header-info">
                 <div className="deck-title-section">
-                  <h1 className="deck-title">{deck?.title || 'Deck'}</h1>
+                  <div className="deck-title-with-icon">
+                    <Book className="deck-emoji" />
+                    <h1 className="deck-title">{deck?.title || 'Deck'}</h1>
+                  </div>
                   <span className="deck-subject">{deck?.subject || 'No subject'}</span>
                   <div className="deck-subtitle">{cards.length} cards · Last updated 2 days ago</div>
                   {/* Micro Stats Chips */}

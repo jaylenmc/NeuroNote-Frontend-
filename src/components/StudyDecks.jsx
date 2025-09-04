@@ -81,7 +81,7 @@ const DeckSkeleton = () => (
 );
 
 // Empty State Component
-const EmptyState = () => (
+const EmptyState = ({ onOpenCreateModal }) => (
   <div className="empty-state">
     <div className="empty-state-icon">
       <Book size={48} />
@@ -90,7 +90,7 @@ const EmptyState = () => (
     <p className="empty-state-description">
       Create your first deck to start studying and track your progress.
     </p>
-    <button className="empty-state-btn" onClick={handleOpenCreateModal}>
+    <button className="empty-state-btn" onClick={onOpenCreateModal}>
       <Plus size={20} />
       Create Your First Deck
     </button>
@@ -545,7 +545,7 @@ const StudyDecks = () => {
                         </div>
                        ))
                    ) : (
-                       <EmptyState />
+                       <EmptyState onOpenCreateModal={handleOpenCreateModal} />
                    )}
                 </div>
             )}

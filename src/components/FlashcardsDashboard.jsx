@@ -42,6 +42,85 @@ const FlashcardsDashboard = ({
         progressPercentage: progress
     };
 
+    const stats = {
+        studyStreak: 7 // Mock data for now
+    };
+
+    // Generate motivational message based on user progress
+    const getMotivationalMessage = () => {
+        const xpToNextLevel = userProgress.xpForNextLevel - userProgress.currentXP;
+        const correctCards = reviewProgress.last7Days.correct;
+        const masteredCards = reviewProgress.last7Days.incorrect; // Using incorrect as mastered for demo
+        
+        // Level up messages
+        if (xpToNextLevel <= 10) {
+            return {
+                message: `Almost there! Just ${xpToNextLevel} XP to Level ${userProgress.level + 1} 🎉`,
+                type: 'level-up'
+            };
+        } else if (xpToNextLevel <= 20) {
+            return {
+                message: `Keep it up, you're only ${xpToNextLevel} XP away from Level ${userProgress.level + 1} 🎉`,
+                type: 'level-up'
+            };
+        }
+        
+        // Achievement messages
+        if (correctCards >= 15) {
+            return {
+                message: `Incredible! ${correctCards} cards mastered — you're a study champion! 👑`,
+                type: 'achievement'
+            };
+        } else if (correctCards >= 10) {
+            return {
+                message: `You mastered ${masteredCards} cards — almost leaderboard ready 👑`,
+                type: 'achievement'
+            };
+        }
+        
+        // Streak messages
+        if (stats.studyStreak >= 7) {
+            return {
+                message: `Wow! ${stats.studyStreak} days strong — you're unstoppable! 🔥`,
+                type: 'streak'
+            };
+        } else if (stats.studyStreak >= 3) {
+            return {
+                message: `Amazing ${stats.studyStreak}-day streak! You're on fire 🔥`,
+                type: 'streak'
+            };
+        }
+        
+        // Motivation messages
+        if (dueTodayCount >= 10) {
+            return {
+                message: `Big day ahead! ${dueTodayCount} cards waiting — let's dominate! 💪`,
+                type: 'motivation'
+            };
+        } else if (dueTodayCount > 0) {
+            return {
+                message: `You have ${dueTodayCount} cards due today — let's crush them! 💪`,
+                type: 'motivation'
+            };
+        }
+        
+        // Encouragement messages
+        const encouragementMessages = [
+            "Ready to level up your learning? Let's dive in! 🚀",
+            "Time to unlock your potential — let's study! ⭐",
+            "Your brain is a muscle — let's flex it! 🧠",
+            "Every card mastered is a step closer to greatness! 🌟"
+        ];
+        
+        const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+        return {
+            message: randomMessage,
+            type: 'encouragement'
+        };
+    };
+
+    const motivationalData = getMotivationalMessage();
+
     const handleStudyRoomClick = () => {
         navigate('/study-room');
     };
@@ -49,9 +128,14 @@ const FlashcardsDashboard = ({
         <div className="nightowl-flashcards-bg">
             <div className="nightowl-flashcards-content">
                 <div className="nightowl-header-row">
-                    <div>
+                    <div className="nightowl-header-content">
                         <h1 className="nightowl-header-title">Night Owl Flashcards 🦉</h1>
-                        <p className="nightowl-header-sub">Study smarter, not harder</p>
+                        <div className="nightowl-header-subtitle-row">
+                            <p className="nightowl-header-sub">Study smarter, not harder</p>
+                            <span className="nightowl-streak-badge">
+                                🔥 {stats.studyStreak} day streak
+                            </span>
+                        </div>
                     </div>
                     <button 
                         className="nightowl-studyroom-btn"
@@ -61,90 +145,193 @@ const FlashcardsDashboard = ({
                     </button>
                 </div>
 
-                <div className="nightowl-status-widget">
-                    <div className="nightowl-level-info">
-                        <div className="nightowl-level-badge">
-                            <span className="level-number">{userProgress.level}</span>
-                            <span className="level-label">Level</span>
+                <div className="nightowl-motivation-section">
+                    <div className={`nightowl-motivation-card nightowl-motivation-${motivationalData.type}`}>
+                        <div className="nightowl-motivation-icon">
+                            {motivationalData.type === 'level-up' && '🎉'}
+                            {motivationalData.type === 'achievement' && '✨'}
+                            {motivationalData.type === 'streak' && '🔥'}
+                            {motivationalData.type === 'motivation' && '💪'}
+                            {motivationalData.type === 'encouragement' && '🚀'}
                         </div>
-                        <div className="nightowl-xp-info">
-                            <div className="nightowl-xp-bar">
-                                <div 
-                                    className="nightowl-xp-fill" 
-                                    style={{ width: `${userProgress.progressPercentage}%` }}
-                                ></div>
+                        <div className="nightowl-motivation-content">
+                            <p className="nightowl-motivation-message">{motivationalData.message}</p>
+                        </div>
+                        <div className="nightowl-motivation-flourish">
+                            {motivationalData.type === 'achievement' && '👑'}
+                        </div>
+                    </div>
+                    
+                    <div className="nightowl-sticky-notes">
+                        <div className="nightowl-sticky-note nightowl-sticky-due">
+                            <div className="nightowl-sticky-header">
+                                <span className="nightowl-sticky-icon">📚</span>
+                                <span className="nightowl-sticky-title">Due today</span>
                             </div>
-                            <div className="nightowl-xp-label">
-                                <span className="current-xp">{userProgress.currentXP}</span>
-                                <span className="xp-separator">/</span>
-                                <span className="next-level-xp">{userProgress.xpForNextLevel}</span>
-                                <span className="xp-label">XP</span>
+                            <div className="nightowl-sticky-value">{dueTodayCount}</div>
+                        </div>
+                        
+                        <div className="nightowl-sticky-note nightowl-sticky-upcoming">
+                            <div className="nightowl-sticky-header">
+                                <span className="nightowl-sticky-icon">⏰</span>
+                                <span className="nightowl-sticky-title">Upcoming</span>
                             </div>
+                            <div className="nightowl-sticky-value">{upcomingCards.length}</div>
+                        </div>
+                        
+                        <div className="nightowl-sticky-note nightowl-sticky-correct">
+                            <div className="nightowl-sticky-header">
+                                <span className="nightowl-sticky-icon">✅</span>
+                                <span className="nightowl-sticky-title">Correct</span>
+                            </div>
+                            <div className="nightowl-sticky-value">{reviewProgress.last7Days.correct}</div>
+                        </div>
+                        
+                        <div className="nightowl-sticky-note nightowl-sticky-mastered">
+                            <div className="nightowl-sticky-header">
+                                <span className="nightowl-sticky-icon">🏆</span>
+                                <span className="nightowl-sticky-title">Mastered</span>
+                            </div>
+                            <div className="nightowl-sticky-value">{reviewProgress.last7Days.incorrect}</div>
                         </div>
                     </div>
                 </div>
 
-                <div className="nightowl-panel-grid">
-                    <div className="nightowl-panel">
-                        <div className="nightowl-panel-icon">📚</div>
-                        <div className="nightowl-panel-value">{dueTodayCount}</div>
-                        <div className="nightowl-panel-label">Due Today</div>
-                    </div>
-                    <div className="nightowl-panel">
-                        <div className="nightowl-panel-icon">⏰</div>
-                        <div className="nightowl-panel-value">{upcomingCards.length}</div>
-                        <div className="nightowl-panel-label">Upcoming</div>
-                    </div>
-                    <div className="nightowl-panel">
-                        <div className="nightowl-panel-icon">✅</div>
-                        <div className="nightowl-panel-value">{reviewProgress.last7Days.correct}</div>
-                        <div className="nightowl-panel-label">Correct</div>
-                    </div>
-                    <div className="nightowl-panel">
-                        <div className="nightowl-panel-icon">🏆</div>
-                        <div className="nightowl-panel-value">{reviewProgress.last7Days.incorrect}</div>
-                        <div className="nightowl-panel-label">Mastered</div>
-                    </div>
-                </div>
 
-                <div className="nightowl-chart-container">
-                    <div className="chart-header">
-                        <h3>Cards Reviewed This Week</h3>
-                        <span className="chart-subtitle">Total: 247 cards • Avg: 35/day</span>
+
+
+
+                <div className="nightowl-section">
+                    <div className="nightowl-section-header">
+                        <h2 className="nightowl-section-title">🎯 Progress</h2>
+                        <p className="nightowl-section-subtitle">Track your learning journey</p>
                     </div>
-                    <div className="chart-content">
-                        <div className="chart-bars">
-                            {[
-                                { day: 'Mon', cards: 28, isToday: false, isBest: false },
-                                { day: 'Tue', cards: 35, isToday: false, isBest: false },
-                                { day: 'Wed', cards: 42, isToday: false, isBest: true },
-                                { day: 'Thu', cards: 31, isToday: false, isBest: false },
-                                { day: 'Fri', cards: 38, isToday: false, isBest: false },
-                                { day: 'Sat', cards: 25, isToday: false, isBest: false },
-                                { day: 'Sun', cards: 48, isToday: true, isBest: false }
-                            ].map((data, index) => (
-                                <div key={index} className="chart-bar-group">
-                                    <div 
-                                        className={`chart-bar ${data.isToday ? 'today' : ''} ${data.isBest ? 'best' : ''}`}
-                                        style={{ 
-                                            height: `${Math.max((data.cards / 60) * 140, 8)}px`,
-                                            animationDelay: `${index * 0.1}s`
+                    <div className="nightowl-xp-section">
+                        <div className="nightowl-xp-container">
+                            <div className="nightowl-xp-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle className="nightowl-xp-ring-bg" cx="50" cy="50" r="45" />
+                                    <circle 
+                                        className="nightowl-xp-ring-progress" 
+                                        cx="50" 
+                                        cy="50" 
+                                        r="45"
+                                        style={{
+                                            strokeDasharray: `${(userProgress.progressPercentage / 100) * 283} 283`
                                         }}
-                                        title={`${data.day}: ${data.cards} cards reviewed${data.isToday ? ' (Today)' : ''}${data.isBest ? ' (Best day!)' : ''}`}
-                                    >
-                                    </div>
-                                    <span className="bar-label">{data.day}</span>
-                                    <span className="bar-value">
-                                        {data.cards}
-                                        {data.isBest && <span className="best-badge">🔥</span>}
-                                    </span>
+                                    />
+                                </svg>
+                                <div className="nightowl-xp-center">
+                                    <span className="nightowl-xp-level">Level {userProgress.level}</span>
+                                    <span className="nightowl-xp-points">{userProgress.currentXP} / {userProgress.xpForNextLevel} XP</span>
                                 </div>
-                            ))}
+                            </div>
+                            <div className="nightowl-xp-next">
+                                <span>{userProgress.xpForNextLevel - userProgress.currentXP} XP to Level {userProgress.level + 1}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Upcoming Cards Chart Section */}
+                <div className="nightowl-section">
+                    <div className="nightowl-section-header">
+                        <h2 className="nightowl-section-title">📅 Upcoming Cards</h2>
+                        <p className="nightowl-section-subtitle">The number of cards which will be added to your queue over the next 30 days</p>
+                    </div>
+                    <div className="nightowl-upcoming-chart-container">
+                        <div className="nightowl-upcoming-chart-header">
+                            <div className="nightowl-upcoming-stats">
+                                <div className="nightowl-upcoming-stat">
+                                    <span className="nightowl-upcoming-stat-label">Average</span>
+                                    <span className="nightowl-upcoming-stat-value">0 cards</span>
+                                </div>
+                                <div className="nightowl-upcoming-date-range">
+                                    04 Sep 2025 - 04 Oct
+                                </div>
+                            </div>
+                        </div>
+                        <div className="nightowl-upcoming-chart-content">
+                            {(() => {
+                                const maxHeightPx = 120; // must match CSS height of .nightowl-upcoming-chart-bars
+                                const scaleValues = [1.0, 0.8, 0.6, 0.4, 0.2, 0];
+                                return (
+                                    <div className="nightowl-upcoming-grid">
+                                        {scaleValues.map((value, idx) => {
+                                            const topPx = (1 - value / 1.0) * maxHeightPx;
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    className="nightowl-upcoming-gridline"
+                                                    style={{ top: `${topPx}px` }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
+                            <div className="nightowl-upcoming-chart-bars">
+                                {[
+                                    { date: '05 Sep', cards: 1.0 },
+                                    { date: '08 Sep', cards: 0.6 },
+                                    { date: '11 Sep', cards: 0.4 },
+                                    { date: '14 Sep', cards: 0.2 },
+                                    { date: '17 Sep', cards: 0.2 },
+                                    { date: '20 Sep', cards: 0.3 },
+                                    { date: '23 Sep', cards: 0.1 },
+                                    { date: '26 Sep', cards: 0.25 },
+                                    { date: '29 Sep', cards: 0.35 },
+                                    { date: '02 Oct', cards: 0.5 }
+                                ].map((data, index) => (
+                                    <div key={index} className="nightowl-upcoming-bar-group">
+                                        <div 
+                                            className="nightowl-upcoming-bar"
+                                            style={{ 
+                                                height: `${Math.max((data.cards / 1.0) * 120, 2)}px`,
+                                                animationDelay: `${index * 0.1}s`,
+                                                background: 'linear-gradient(180deg, #60a5fa 0%, #3b82f6 60%, #1d4ed8 100%)'
+                                            }}
+                                            title={`${data.date}: ${data.cards} cards`}
+                                        >
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="nightowl-upcoming-y-axis">
+                                {[1.0, 0.8, 0.6, 0.4, 0.2, 0].map((value, index) => (
+                                    <div key={index} className="nightowl-upcoming-y-label">
+                                        {value}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="nightowl-upcoming-x-labels">
+                                {[
+                                    { date: '05 Sep' },
+                                    { date: '08 Sep' },
+                                    { date: '11 Sep' },
+                                    { date: '14 Sep' },
+                                    { date: '17 Sep' },
+                                    { date: '20 Sep' },
+                                    { date: '23 Sep' },
+                                    { date: '26 Sep' },
+                                    { date: '29 Sep' },
+                                    { date: '02 Oct' }
+                                ].map((data, index) => (
+                                    <div key={index} className="nightowl-upcoming-x-label">
+                                        {data.date}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {upcomingCards.length > 0 && (
+                    <div className="nightowl-section">
+                        <div className="nightowl-section-header">
+                            <h2 className="nightowl-section-title">⏰ Upcoming</h2>
+                            <p className="nightowl-section-subtitle">Cards scheduled for review</p>
+                        </div>
                     <div className="upcoming-review-widget">
                         <h3 className="upcoming-review-widget-title">Upcoming Cards</h3>
                         <div className="upcoming-review-widget-content">
@@ -159,6 +346,7 @@ const FlashcardsDashboard = ({
                                 </div>
                             ))}
                         </div>
+                    </div>
                     </div>
                 )}
             </div>
