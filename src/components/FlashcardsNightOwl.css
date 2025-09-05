@@ -86,12 +86,14 @@ body.nightowl-root-bg .content-section {
   letter-spacing: 0.03em;
   margin: 0;
   width: fit-content;
+  cursor: default;
 }
 
 .nightowl-header-subtitle-row {
   display: flex;
   align-items: center;
   gap: 16px;
+  cursor: default;
 }
 
 .nightowl-header-sub {
@@ -132,6 +134,7 @@ body.nightowl-root-bg .content-section {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
+  cursor: default;
 }
 
 .nightowl-motivation-card:hover {
@@ -272,6 +275,7 @@ body.nightowl-root-bg .content-section {
   top: 16px;
   left: 16px;
   right: 16px;
+  cursor: default;
 }
 
 .nightowl-sticky-icon {
@@ -384,6 +388,7 @@ body.nightowl-root-bg .content-section {
   margin-bottom: 20px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: default;
 }
 
 .nightowl-section-title {
@@ -529,6 +534,7 @@ body.nightowl-root-bg .content-section {
   position: relative;
   width: 100px;
   height: 100px;
+  cursor: default;
 }
 
 .nightowl-xp-ring svg {
@@ -580,6 +586,7 @@ body.nightowl-root-bg .content-section {
   color: var(--nightowl-text-muted);
   font-size: 0.85rem;
   text-align: center;
+  cursor: default;
 }
 
 .nightowl-panel-grid {
@@ -874,6 +881,7 @@ body.nightowl-root-bg .content-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: default;
 }
 
 .nightowl-upcoming-stat {
@@ -963,6 +971,7 @@ body.nightowl-root-bg .content-section {
   padding: 8px 40px 0 0;
   height: 40px;
   align-items: flex-start;
+  cursor: default;
 }
 
 .nightowl-upcoming-x-label {

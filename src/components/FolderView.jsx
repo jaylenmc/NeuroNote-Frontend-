@@ -176,48 +176,17 @@ const FolderView = ({
     return (
         <div className="folder-view">
             <div className="folder-header">
-                <div className="folder-info">
-                    <div className="folder-title-section">
-                        <div className="folder-title-with-icon">
-                            <span className="folder-icon">📂</span>
-                            <h2 className="folder-title">{selectedFolder.name}</h2>
-                        </div>
-                        <p className="folder-subtitle">Categorized notes, all in one place.</p>
-                    </div>
-                    <div className="folder-stats">
-                        <div className="folder-stats-grid">
-                            <div className="folder-stat-item">
-                                <div className="folder-stat-icon">📄</div>
-                                <div className="folder-stat-content">
-                                    <div className="folder-stat-value">{getFolderItemCount(selectedFolder)}</div>
-                                    <div className="folder-stat-label">Documents</div>
-                                </div>
+                <div className="folder-header-top">
+                    <div className="folder-info">
+                        <div className="folder-title-section">
+                            <div className="folder-title-with-icon">
+                                <span className="folder-icon">📂</span>
+                                <h2 className="folder-title">{selectedFolder.name}</h2>
                             </div>
-                            <div className="folder-stat-item">
-                                <div className="folder-stat-icon">⏰</div>
-                                <div className="folder-stat-content">
-                                    <div className="folder-stat-value">2 days</div>
-                                    <div className="folder-stat-label">Recently Edited</div>
-                                </div>
-                            </div>
-                            <div className="folder-stat-item">
-                                <div className="folder-stat-icon">📝</div>
-                                <div className="folder-stat-content">
-                                    <div className="folder-stat-value">1,247</div>
-                                    <div className="folder-stat-label">Words Written</div>
-                                </div>
-                            </div>
-                            <div className="folder-stat-item">
-                                <div className="folder-stat-icon">👥</div>
-                                <div className="folder-stat-content">
-                                    <div className="folder-stat-value">3</div>
-                                    <div className="folder-stat-label">Collaborators</div>
-                                </div>
-                            </div>
+                            <p className="folder-subtitle">Categorized notes, all in one place.</p>
                         </div>
                     </div>
-                </div>
-                <div className="folder-actions">
+                    <div className="folder-actions">
                     <div className="new-item-container">
                         <button 
                             className="new-item-btn"
@@ -241,6 +210,39 @@ const FolderView = ({
                                 </button>
                             </div>
                         )}
+                    </div>
+                </div>
+                </div>
+                <div className="folder-stats">
+                    <div className="folder-stats-grid">
+                        <div className="folder-stat-item">
+                            <div className="folder-stat-icon">📄</div>
+                            <div className="folder-stat-content">
+                                <div className="folder-stat-value">{getFolderItemCount(selectedFolder)}</div>
+                                <div className="folder-stat-label">Documents</div>
+                            </div>
+                        </div>
+                        <div className="folder-stat-item">
+                            <div className="folder-stat-icon">⏰</div>
+                            <div className="folder-stat-content">
+                                <div className="folder-stat-value">2 days</div>
+                                <div className="folder-stat-label">Recently Edited</div>
+                            </div>
+                        </div>
+                        <div className="folder-stat-item">
+                            <div className="folder-stat-icon">📝</div>
+                            <div className="folder-stat-content">
+                                <div className="folder-stat-value">1,247</div>
+                                <div className="folder-stat-label">Words Written</div>
+                            </div>
+                        </div>
+                        <div className="folder-stat-item">
+                            <div className="folder-stat-icon">👥</div>
+                            <div className="folder-stat-content">
+                                <div className="folder-stat-value">3</div>
+                                <div className="folder-stat-label">Collaborators</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
