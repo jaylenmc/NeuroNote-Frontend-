@@ -166,7 +166,7 @@ const FlashcardsDashboard = ({
                         <div className="nightowl-sticky-note nightowl-sticky-due">
                             <div className="nightowl-sticky-header">
                                 <span className="nightowl-sticky-icon">📚</span>
-                                <span className="nightowl-sticky-title">Due today</span>
+                                <span className="nightowl-sticky-title">Time Studied Today</span>
                             </div>
                             <div className="nightowl-sticky-value">{dueTodayCount}</div>
                         </div>
@@ -174,15 +174,15 @@ const FlashcardsDashboard = ({
                         <div className="nightowl-sticky-note nightowl-sticky-upcoming">
                             <div className="nightowl-sticky-header">
                                 <span className="nightowl-sticky-icon">⏰</span>
-                                <span className="nightowl-sticky-title">Upcoming</span>
+                                <span className="nightowl-sticky-title">Average Session Length</span>
                             </div>
                             <div className="nightowl-sticky-value">{upcomingCards.length}</div>
                         </div>
                         
                         <div className="nightowl-sticky-note nightowl-sticky-correct">
                             <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-icon">✅</span>
-                                <span className="nightowl-sticky-title">Correct</span>
+                                <span className="nightowl-sticky-icon">🧠</span>
+                                <span className="nightowl-sticky-title">Total Cards Studied (Today)</span>
                             </div>
                             <div className="nightowl-sticky-value">{reviewProgress.last7Days.correct}</div>
                         </div>
@@ -190,7 +190,7 @@ const FlashcardsDashboard = ({
                         <div className="nightowl-sticky-note nightowl-sticky-mastered">
                             <div className="nightowl-sticky-header">
                                 <span className="nightowl-sticky-icon">🏆</span>
-                                <span className="nightowl-sticky-title">Mastered</span>
+                                <span className="nightowl-sticky-title">Mastered Decks</span>
                             </div>
                             <div className="nightowl-sticky-value">{reviewProgress.last7Days.incorrect}</div>
                         </div>
