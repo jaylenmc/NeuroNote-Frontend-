@@ -234,6 +234,28 @@ body.nightowl-root-bg .content-section {
 }
 
 /* Sticky Notes */
+.nightowl-stats-error {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  color: #ffc107;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.nightowl-error-icon {
+  font-size: 16px;
+}
+
+.nightowl-error-message {
+  font-weight: 500;
+}
+
 .nightowl-sticky-notes {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -303,6 +325,13 @@ body.nightowl-root-bg .content-section {
   font-weight: 700;
   color: var(--nightowl-text-main);
   line-height: 1;
+}
+
+/* Smaller text for time values in sticky notes */
+.nightowl-sticky-note .nightowl-sticky-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 /* Sticky Note Icon Badge Colors */

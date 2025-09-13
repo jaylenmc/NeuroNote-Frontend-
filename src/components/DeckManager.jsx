@@ -42,7 +42,8 @@ const DeckManager = () => {
         setIsLoadingDecks(true);
         try {
             const response = await api.get('/flashcards/deck/');
-            setDecks(response.data);
+            const decksData = response.data.decks || response.data;
+            setDecks(decksData);
         } catch (error) {
             console.error('Error fetching decks:', error);
         } finally {
@@ -82,7 +83,7 @@ const DeckManager = () => {
 
     const deleteDeck = async (deckId) => {
         try {
-            await api.delete(`/flashcards/deck/delete/${deckId}`);
+            await api.delete(`/flashcards/deck/${deckId}/`);
             if (selectedDeck?.id === deckId) {
                 setSelectedDeck(null);
                 setCards([]);

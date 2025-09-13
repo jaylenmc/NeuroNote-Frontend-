@@ -317,7 +317,7 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
   const handleEditDeck = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.put(`/flashcards/deck/update/${editingDeck.id}/`, {
+      const response = await api.put(`/flashcards/deck/${editingDeck.id}/`, {
           title: editDeckTitle,
           subject: editDeckSubject
       });

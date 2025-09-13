@@ -145,8 +145,9 @@ const QuizPage = () => {
 
     const fetchDecks = async () => {
         try {
-            const response = await api.get('/flashcards/decks/');
-            setDecks(response.data);
+            const response = await api.get('/flashcards/deck/');
+            const decksData = response.data.decks || response.data;
+            setDecks(decksData);
         } catch (error) {
             console.error('Error fetching decks:', error);
         }

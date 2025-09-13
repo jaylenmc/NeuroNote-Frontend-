@@ -119,9 +119,9 @@ export default function DeckContent() {
 
   async function fetchDeck() {
     try {
-      const response = await api.get('/flashcards/deck/');
+      const response = await api.get(`/flashcards/deck/${deckId}/`);
       const data = response.data;
-      setDeck(data.decks.find(d => d.id === parseInt(deckId)));
+      setDeck(data);
     } catch (err) {
       console.error('Error fetching deck:', err);
     }
@@ -185,7 +185,7 @@ export default function DeckContent() {
   async function handleDeleteDeck() {
     if (!window.confirm('Are you sure you want to delete this deck?')) return;
     try {
-      await api.delete(`/flashcards/deck/delete/${deckId}`);
+      await api.delete(`/flashcards/deck/${deckId}/`);
       navigate('/study-room');
     } catch (err) {
       console.error('Error deleting deck:', err);
@@ -371,7 +371,7 @@ export default function DeckContent() {
   const handleEditDeck = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.put(`/flashcards/deck/update/${deckId}/`, {
+      const response = await api.put(`/flashcards/deck/${deckId}/`, {
         title: editDeckTitle,
         subject: editDeckSubject
       });

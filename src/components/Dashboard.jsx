@@ -143,9 +143,45 @@ function Dashboard({ initialView }) {
         return response.data;
     };
 
+    const fetchDeckById = async (deckId) => {
+        const response = await api.get(`/flashcards/deck/${deckId}/`);
+        return response.data;
+    };
+
+    const fetchFlashcardData = async () => {
+        try {
+            // Fetch due cards for today
+            const dueCardsResponse = await api.get('/flashcards/cards/due/');
+            const dueCards = dueCardsResponse.data;
+            
+            // Fetch due cards for soon (next hour)
+            const upcomingCardsResponse = await api.get('/flashcards/cards/due/?due_soon=true');
+            const upcomingCards = upcomingCardsResponse.data;
+            
+            setDueTodayCount(Array.isArray(dueCards) ? dueCards.length : 0);
+            setUpcomingCards(Array.isArray(upcomingCards) ? upcomingCards : []);
+            
+        } catch (error) {
+            console.error('Error fetching flashcard data:', error);
+            setDueTodayCount(0);
+            setUpcomingCards([]);
+        }
+    };
+
     const fetchAllQuizzes = async () => {
         const response = await api.get('/test/quiz/');
         return response.data;
+    };
+
+    const refreshUserData = async () => {
+        try {
+            const response = await api.get('/folders/user/');
+            if (response.data && response.data.xp !== undefined && response.data.level !== undefined) {
+                login({ ...user, xp: response.data.xp, level: response.data.level });
+            }
+        } catch (error) {
+            console.error('Error refreshing user data:', error);
+        }
     };
 
     const fetchFolders = async () => {
@@ -626,12 +662,11 @@ function Dashboard({ initialView }) {
     const fetchDeckCards = async (deckId) => {
         setIsLoading(prev => ({ ...prev, cards: true }));
         try {
-            const response = await api.get('/flashcards/cards/');
+            const response = await api.get(`/flashcards/cards/${deckId}/`);
             if (!response) return;
 
             if (response.status === 200) {
-                const allCards = response.data;
-                const deckCards = allCards.filter(card => card.card_deck === deckId);
+                const deckCards = response.data;
                 setCards(deckCards);
             }
         } catch (error) {
@@ -655,6 +690,7 @@ function Dashboard({ initialView }) {
     useEffect(() => {
         setIsMounted(true);
         fetchFolders();
+        fetchFlashcardData();
         
         return () => {
             setIsMounted(false);
@@ -763,6 +799,7 @@ function Dashboard({ initialView }) {
                         upcomingCards={upcomingCards}
                         reviewProgress={reviewProgress}
                         isTransitioning={isTransitioning}
+                        refreshUserData={refreshUserData}
                     />
                 );
             case 'quiz':

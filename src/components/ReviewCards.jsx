@@ -152,7 +152,7 @@ const ReviewCards = ({ onViewModeChange }) => {
     try {
       // Fetch all decks
       const decksResponse = await api.get('/flashcards/deck/');
-      const decksData = decksResponse.data;
+      const decksData = decksResponse.data.decks || decksResponse.data;
       setDecks(decksData);
       // Then fetch cards for each deck
       const allCards = [];
@@ -171,8 +171,9 @@ const ReviewCards = ({ onViewModeChange }) => {
 
   const fetchDecks = async () => {
     try {
-      const response = await api.get('flashcards/deck');
-        setDecks(response.data);
+      const response = await api.get('/flashcards/deck/');
+      const decksData = response.data.decks || response.data;
+      setDecks(decksData);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching decks:', error);
@@ -214,7 +215,7 @@ const ReviewCards = ({ onViewModeChange }) => {
   const createDeck = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('flashcards/deck/', {
+      const response = await api.post('/flashcards/deck/', {
         title: newDeckTitle,
         subject: newDeckSubject
       });
@@ -258,7 +259,7 @@ const ReviewCards = ({ onViewModeChange }) => {
   const deleteDeck = async (deckId) => {
     try {
       const deckToDelete = decks.find(deck => deck.id === deckId);
-      await api.delete(`flashcards/deck/delete/${deckId}`);
+      await api.delete(`/flashcards/deck/${deckId}/`);
       setDecks(decks.filter(deck => deck.id !== deckId));
       if (selectedDeck?.id === deckId) {
         setSelectedDeck(null);
@@ -670,18 +671,30 @@ const ReviewCards = ({ onViewModeChange }) => {
 
   const handleRatingSelect = (rating) => {
     const currentCard = reviewCards[currentReviewCardIndex];
-    setPendingRatings(prev => ([
-      ...prev,
-      {
-        deck_id: currentCard.card_deck,
-        card_id: currentCard.id,
-        quality: rating
+    const reviewData = {
+      deck_id: currentCard.card_deck,
+      card_id: currentCard.id,
+      quality: rating
+    };
+    
+    // Check if this is the last card
+    const isLastCard = currentReviewCardIndex === reviewCards.length - 1;
+    
+    setPendingRatings(prev => {
+      const newData = [...prev, reviewData];
+      
+      // If this is the last card, mark session complete after state update
+      if (isLastCard) {
+        setTimeout(() => {
+          setSessionComplete(true);
+        }, 0);
       }
-    ]));
-    // If last card, mark session complete
-    if (currentReviewCardIndex === reviewCards.length - 1) {
-      setSessionComplete(true);
-    } else {
+      
+      return newData;
+    });
+    
+    // Move to next card only if not the last card
+    if (!isLastCard) {
       handleNextReviewCard();
     }
   };
@@ -709,18 +722,46 @@ const ReviewCards = ({ onViewModeChange }) => {
     }));
   };
 
+  const refreshUserData = async () => {
+    try {
+      const response = await api.get('/folders/user/');
+      if (response.data && response.data.xp !== undefined && response.data.level !== undefined) {
+        // Update user data in sessionStorage
+        const currentUser = JSON.parse(sessionStorage.getItem('user'));
+        const updatedUser = { ...currentUser, xp: response.data.xp, level: response.data.level };
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('User data refreshed:', updatedUser);
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
+
   // Send all ratings to backend when user clicks Go Home
   const handleGoHome = async () => {
     try {
-      let allReviewedDates = [];
-      for (const rating of pendingRatings) {
-        const res = await api.put('flashcards/review/', rating);
-        if (res.data && res.data.reviewed_dates) {
-          allReviewedDates = allReviewedDates.concat(res.data.reviewed_dates);
+      if (pendingRatings.length > 0) {
+        // Calculate session time from timer
+        const hours = Math.floor(timer / 3600);
+        const minutes = Math.floor((timer % 3600) / 60);
+        const seconds = timer % 60;
+        const sessionTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Submit all reviews in bulk
+        const response = await api.put('/flashcards/review/', {
+          session_time: sessionTime,
+          review: pendingRatings
+        });
+        
+        if (response.status === 200) {
+          console.log('Bulk review submitted successfully');
+          // Refresh user data to get updated XP and level
+          await refreshUserData();
         }
       }
+      
       // Always update the graph, even if no reviews (will show all zeros)
-      updateCardsReviewedGraph(allReviewedDates);
+      updateCardsReviewedGraph([]);
       setSessionComplete(false);
       setShowReviewModal(false);
       setReviewCards([]);

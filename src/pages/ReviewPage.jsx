@@ -32,8 +32,9 @@ const ReviewPage = () => {
       try {
         const decksResponse = await api.get('/flashcards/deck/');
         let decks = [];
-        if (decksResponse.data && Array.isArray(decksResponse.data)) {
-          decks = decksResponse.data;
+        const responseData = decksResponse.data.decks || decksResponse.data;
+        if (responseData && Array.isArray(responseData)) {
+          decks = responseData;
         } else if (decksResponse.data && Array.isArray(decksResponse.data.decks)) {
           decks = decksResponse.data.decks;
         } else if (decksResponse.data && decksResponse.data.results) {

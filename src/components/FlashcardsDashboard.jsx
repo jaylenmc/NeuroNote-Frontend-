@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiPlay, FiPause, FiRotateCcw, FiSettings } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import blackboardBg from '../assets/Blackboard.png';
 import { formatDateForDisplay } from '../utils/dateUtils';
+import api from '../api/axios';
 import './FlashcardsNightOwl.css';
 
 const FlashcardsDashboard = ({
@@ -11,9 +12,85 @@ const FlashcardsDashboard = ({
     dueTodayCount,
     upcomingCards,
     reviewProgress,
-    isTransitioning
+    isTransitioning,
+    refreshUserData
 }) => {
     const navigate = useNavigate();
+    
+    // State for study stats
+    const [studyStats, setStudyStats] = useState({
+        total_cards_studied_today: 0,
+        average_session_time: '00:00:00',
+        mastered_decks: 0,
+        time_studied_today: '00:00:00'
+    });
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [statsError, setStatsError] = useState(null);
+
+    // Helper function to format time strings (HH:MM:SS format)
+    const formatTime = (timeString) => {
+        if (!timeString || timeString === '00:00:00') {
+            return '0 secs';
+        }
+        
+        const [hours, minutes, seconds] = timeString.split(':').map(Number);
+        const parts = [];
+        
+        // Add hours if not zero
+        if (hours > 0) {
+            parts.push(`${hours} ${hours === 1 ? 'hr' : 'hrs'}`);
+        }
+        
+        // Add minutes if not zero
+        if (minutes > 0) {
+            parts.push(`${minutes} ${minutes === 1 ? 'min' : 'mins'}`);
+        }
+        
+        // Add seconds if not zero
+        if (seconds > 0) {
+            parts.push(`${seconds} ${seconds === 1 ? 'sec' : 'secs'}`);
+        }
+        
+        // If all parts are zero, return 0 secs
+        if (parts.length === 0) {
+            return '0 secs';
+        }
+        
+        return parts.join(' ');
+    };
+
+    const fetchStudyStats = async () => {
+        try {
+            setStatsLoading(true);
+            setStatsError(null);
+            
+            // Get user timezone - default to UTC if not available
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+            
+            const response = await api.get('/solostudyroom/study-stats/', {
+                params: {
+                    user_timezone: userTimezone
+                }
+            });
+            
+            setStudyStats(response.data);
+        } catch (error) {
+            console.error('Error fetching study stats:', error);
+            setStatsError(error.message || 'Failed to fetch study stats');
+            // Keep default values on error
+        } finally {
+            setStatsLoading(false);
+        }
+    };
+
+    // Fetch study stats from backend
+    useEffect(() => {
+        fetchStudyStats();
+        // Also refresh user data to get updated XP and level
+        if (refreshUserData) {
+            refreshUserData();
+        }
+    }, [refreshUserData]);
 
     // Get real user data from session storage
     const getUserData = () => {
@@ -163,36 +240,50 @@ const FlashcardsDashboard = ({
                     </div>
                     
                     <div className="nightowl-sticky-notes">
+                        {statsError && (
+                            <div className="nightowl-stats-error">
+                                <span className="nightowl-error-icon">⚠️</span>
+                                <span className="nightowl-error-message">Unable to load stats</span>
+                            </div>
+                        )}
                         <div className="nightowl-sticky-note nightowl-sticky-due">
                             <div className="nightowl-sticky-header">
                                 <span className="nightowl-sticky-icon">📚</span>
-                                <span className="nightowl-sticky-title">Due today</span>
+                                <span className="nightowl-sticky-title">Cards Studied Today</span>
                             </div>
-                            <div className="nightowl-sticky-value">{dueTodayCount}</div>
+                            <div className="nightowl-sticky-value">
+                                {statsLoading ? '...' : studyStats.total_cards_studied_today}
+                            </div>
                         </div>
                         
                         <div className="nightowl-sticky-note nightowl-sticky-upcoming">
                             <div className="nightowl-sticky-header">
                                 <span className="nightowl-sticky-icon">⏰</span>
-                                <span className="nightowl-sticky-title">Upcoming</span>
+                                <span className="nightowl-sticky-title">Average Session Time</span>
                             </div>
-                            <div className="nightowl-sticky-value">{upcomingCards.length}</div>
+                            <div className="nightowl-sticky-value">
+                                {statsLoading ? '...' : formatTime(studyStats.average_session_time)}
+                            </div>
                         </div>
                         
                         <div className="nightowl-sticky-note nightowl-sticky-correct">
                             <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-icon">✅</span>
-                                <span className="nightowl-sticky-title">Correct</span>
+                                <span className="nightowl-sticky-icon">📝</span>
+                                <span className="nightowl-sticky-title">Time Studied Today</span>
                             </div>
-                            <div className="nightowl-sticky-value">{reviewProgress.last7Days.correct}</div>
+                            <div className="nightowl-sticky-value">
+                                {statsLoading ? '...' : formatTime(studyStats.time_studied_today)}
+                            </div>
                         </div>
                         
                         <div className="nightowl-sticky-note nightowl-sticky-mastered">
                             <div className="nightowl-sticky-header">
                                 <span className="nightowl-sticky-icon">🏆</span>
-                                <span className="nightowl-sticky-title">Mastered</span>
+                                <span className="nightowl-sticky-title">Mastered Decks</span>
                             </div>
-                            <div className="nightowl-sticky-value">{reviewProgress.last7Days.incorrect}</div>
+                            <div className="nightowl-sticky-value">
+                                {statsLoading ? '...' : studyStats.mastered_decks}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -39,6 +39,8 @@ const ReviewSession = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [reviewedCardsForQuiz, setReviewedCardsForQuiz] = useState([]);
   const [includeDueSoon, setIncludeDueSoon] = useState(false);
+  const [reviewSessionData, setReviewSessionData] = useState([]);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
   
   // State to track card ratings
   const [cardRatings, setCardRatings] = useState({});
@@ -174,6 +176,8 @@ const ReviewSession = () => {
         setSessionComplete(false);
         setTimer(0);
         setIsPaused(false);
+        setSessionStartTime(new Date()); // Track session start time
+        setReviewSessionData([]); // Reset review session data
         setLoading(false);
       } catch (err) {
         
@@ -374,92 +378,102 @@ const ReviewSession = () => {
     if (!reviewCards[currentReviewCardIndex] || sessionComplete) return;
 
     const currentCard = reviewCards[currentReviewCardIndex];
+    const deckId = selectedDeck?.id || currentCard.card_deck;
     
-    try {
-      // Use the card's deck ID instead of selectedDeck.id
-      const deckId = selectedDeck?.id || currentCard.card_deck;
+    // Collect review data locally instead of making individual API calls
+    const reviewData = {
+      card_id: currentCard.id,
+      deck_id: deckId,
+      quality: rating
+    };
+    
+    // Check if this is the last card
+    const isLastCard = currentReviewCardIndex === reviewCards.length - 1;
+    
+    // Add to review session data
+    setReviewSessionData(prev => {
+      const newData = [...prev, reviewData];
       
-      const response = await api.put('/flashcards/review/', {
-        card_id: currentCard.id,
-        quality: rating,
-        deck_id: deckId
-      });
-
-      if (response.status === 200) {
-        // Update the card with new review data
-        const updatedCard = response.data;
-        setReviewCards(prev => 
-          prev.map(card => 
-            card.id === currentCard.id ? { ...card, ...updatedCard } : card
-          )
-        );
-        
-        // Update the cardRatings state to track ratings for quiz
-        setCardRatings(prev => ({
-          ...prev,
-          [currentCard.id]: rating
-        }));
-        
-
+      // If this is the last card, submit bulk review after state update
+      if (isLastCard) {
+        setTimeout(async () => {
+          setSessionComplete(true);
+          await submitBulkReview(newData); // Pass the complete data directly
+        }, 0);
       }
-    } catch (error) {
       
-      // If it's a 401 error, try to refresh the token
-      if (error.response?.status === 401) {
-        try {
-          const refresh = sessionStorage.getItem('refresh_token');
-          if (refresh) {
-            const refreshResponse = await api.post('/auth/token/refresh/', { refresh });
-            sessionStorage.setItem('jwt_token', refreshResponse.data.access);
-            // Retry the rating submission
-            const deckId = selectedDeck?.id || currentCard.card_deck;
-            const retryResponse = await api.put('/flashcards/review/', {
-              card_id: currentCard.id,
-              quality: rating,
-              deck_id: deckId
-            });
-            
-            if (retryResponse.status === 200) {
-              const updatedCard = retryResponse.data;
-              setReviewCards(prev => 
-                prev.map(card => 
-                  card.id === currentCard.id ? { ...card, ...updatedCard } : card
-                )
-              );
-              
-              setCardRatings(prev => ({
-                ...prev,
-                [currentCard.id]: rating
-              }));
-              
-      
-            }
-          } else {
-            setError('Session expired. Please log in again.');
-            setTimeout(() => navigate('/signin'), 2000);
-            return;
-          }
-        } catch (refreshError) {
-          
-          setError('Session expired. Please log in again.');
-          setTimeout(() => navigate('/signin'), 2000);
-          return;
-        }
-      }
+      return newData;
+    });
+    
+    // Update the cardRatings state to track ratings for quiz
+    setCardRatings(prev => ({
+      ...prev,
+      [currentCard.id]: rating
+    }));
+
+    // Move to next card only if not the last card
+    if (!isLastCard) {
+      handleNextReviewCard();
     }
-
-    // Move to next card
-    handleNextReviewCard();
   };
 
   const handleNextReviewCard = async () => {
     if (currentReviewCardIndex < reviewCards.length - 1) {
       setCurrentReviewCardIndex(currentReviewCardIndex + 1);
       setIsFlipped(false);
-    } else {
-      // Session is complete - the backend has already updated the scheduled_date
-      // through the update_sm21 method when each card was rated
-      setSessionComplete(true);
+    }
+    // Note: Last card handling is now done in handleRatingSelect to avoid race conditions
+  };
+
+  const refreshUserData = async () => {
+    try {
+      const response = await api.get('/folders/user/');
+      if (response.data && response.data.xp !== undefined && response.data.level !== undefined) {
+        // Update user data in sessionStorage
+        const currentUser = JSON.parse(sessionStorage.getItem('user'));
+        const updatedUser = { ...currentUser, xp: response.data.xp, level: response.data.level };
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('User data refreshed:', updatedUser);
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
+
+  const submitBulkReview = async (reviewData = reviewSessionData) => {
+    if (reviewData.length === 0) return;
+    
+    try {
+      // Calculate session time
+      const sessionEndTime = new Date();
+      const sessionDuration = sessionStartTime ? 
+        Math.floor((sessionEndTime - sessionStartTime) / 1000) : 0;
+      
+      // Format session time as HH:MM:SS
+      const hours = Math.floor(sessionDuration / 3600);
+      const minutes = Math.floor((sessionDuration % 3600) / 60);
+      const seconds = sessionDuration % 60;
+      const sessionTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      console.log('Submitting bulk review with data:', {
+        session_time: sessionTime,
+        review: reviewData,
+        reviewCount: reviewData.length
+      });
+      
+      const response = await api.put('/flashcards/review/', {
+        session_time: sessionTime,
+        review: reviewData
+      });
+
+      if (response.status === 200) {
+        console.log('Bulk review submitted successfully');
+        // Refresh user data to get updated XP and level
+        await refreshUserData();
+      }
+    } catch (error) {
+      console.error('Error submitting bulk review:', error);
+      setError('Failed to submit review session. Please try again.');
     }
   };
 
@@ -467,6 +481,7 @@ const ReviewSession = () => {
     setReviewCards((prev) => [...prev].sort(() => Math.random() - 0.5));
     setCurrentReviewCardIndex(0);
     setIsFlipped(false);
+    setReviewSessionData([]); // Reset review session data when shuffling
   };
 
   const handlePause = () => {

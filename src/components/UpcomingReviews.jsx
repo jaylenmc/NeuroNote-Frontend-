@@ -18,10 +18,11 @@ const UpcomingReviews = ({ calendarHeight = '300px', deck = null }) => {
     useEffect(() => {
         const fetchDecks = async () => {
             try {
-                const response = await api.get('/flashcards/decks/');
-                console.log('Decks response:', response.data);
+                const response = await api.get('/flashcards/deck/');
+                const decksData = response.data.decks || response.data;
+                console.log('Decks response:', decksData);
                 const decksMap = {};
-                response.data.forEach(deck => {
+                decksData.forEach(deck => {
                     decksMap[deck.id] = deck;
                 });
                 setDecks(decksMap);

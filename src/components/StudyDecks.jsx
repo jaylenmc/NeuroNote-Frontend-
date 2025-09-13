@@ -262,7 +262,7 @@ const StudyDecks = () => {
         if (!window.confirm('Are you sure you want to delete this deck?')) return;
 
         try {
-            await api.delete(`/flashcards/deck/delete/${deckId}`);
+            await api.delete(`/flashcards/deck/${deckId}/`);
             await fetchDecks();
         } catch (err) {
             setError(err.message);
