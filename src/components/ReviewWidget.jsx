@@ -454,7 +454,7 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
   // Progress summary calculation
   const totalCards = allCards.length;
   const reviewedToday = allCards.filter(card => card.last_reviewed_today).length;
-  const mastered = allCards.filter(card => card.learning_status === 'Mastered').length;
+  const mastered = allCards.filter(card => card.learning_status === 'mstrd').length;
   const leftToday = totalCards - reviewedToday;
   const progressPct = totalCards ? Math.round((reviewedToday / totalCards) * 100) : 0;
 
@@ -591,22 +591,57 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
           </div>
         ) : (
           <div className="scrollable-card-list">
-            {(cards[activeTab] || []).map((card, index) => (
-              <div key={card.id} className="card-item" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="card-deck-top">
-                  <span role="img" aria-label="deck">🌍</span> {card.deckTitle}
+            {(cards[activeTab] || []).map((card, index) => {
+              // Get ribbon color based on learning status
+              const getRibbonColor = (learningStatus) => {
+                switch (learningStatus) {
+                  case 'mstrd':
+                    return '#db2777'; // Dark pink
+                  case 'strgl':
+                    return '#f43f5e'; // Soft red
+                  case 'unseen':
+                    return '#38bdf8'; // Soft blue
+                  case 'imprv':
+                  default:
+                    return '#7c3aed'; // Muted purple
+                }
+              };
+
+              const getRibbonTooltip = (learningStatus) => {
+                switch (learningStatus) {
+                  case 'mstrd':
+                    return "Mastered: You've reviewed this card enough times to master it!";
+                  case 'strgl':
+                    return 'Struggling: More incorrect than correct answers.';
+                  case 'unseen':
+                    return 'Unseen: You have not reviewed this card yet.';
+                  case 'imprv':
+                  default:
+                    return 'In Progress: Partially reviewed.';
+                }
+              };
+
+              const ribbonColor = getRibbonColor(card.learning_status);
+              const ribbonTooltip = getRibbonTooltip(card.learning_status);
+
+              return (
+                <div key={card.id} className="card-item" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div className="card-ribbon" style={{ backgroundColor: ribbonColor }} title={ribbonTooltip}></div>
+                  <div className="card-deck-top">
+                    <span role="img" aria-label="deck">🌍</span> {card.deckTitle}
+                  </div>
+                  <div className="card-question-center">
+                    {card.question}
+                  </div>
+                  <div className="card-due-bottom">
+                    <span className="card-due-icon">📅</span>
+                    <span className="card-due-date">
+                      {formatTimeForCardDisplay(card.scheduled_date, activeTab)}
+                    </span>
+                  </div>
                 </div>
-                <div className="card-question-center">
-                  {card.question}
-                </div>
-                <div className="card-due-bottom">
-                  <span className="card-due-icon">📅</span>
-                  <span className="card-due-date">
-                    {formatTimeForCardDisplay(card.scheduled_date, activeTab)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {(cards[activeTab] || []).length === 0 && (
               <div className="empty-state">
                 <div className="empty-icon">📚</div>

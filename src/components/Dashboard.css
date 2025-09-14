@@ -86,7 +86,7 @@
     position: fixed;
     left: 24px;
     top: 24px;
-    z-index: 30;
+    z-index: 1;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 
@@ -95,6 +95,50 @@
         inset 0 0 20px rgba(255, 255, 255, 0.02);
     transition: all 0.3s ease;
 }
+
+/* Night Owl Flashcards page - change sidebar background */
+.nightowl-root-bg .dashboard-sidebar {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Folder view page - change sidebar background */
+.folder-root-bg .dashboard-sidebar {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Put sidebar in background when reminders modal is open */
+body.reminders-modal-open .dashboard-sidebar {
+    z-index: 1;
+}
+
+/* Night Owl Flashcards page - lighter tab highlight colors */
+.nightowl-root-bg .nav-item.active {
+    background-color: #3a3a3a; /* Lighter gray */
+    color: #ffffff;
+}
+
+.nightowl-root-bg .nav-item.active::before {
+    background-color: #ffffff; /* Lighter gray */
+}
+
+/* Night Owl Flashcards page - lighter folder item highlight colors */
+.nightowl-root-bg .sidebar-content .nav-item.active,
+.nightowl-root-bg .folders-list .folder-item.active {
+    background-color: #3a3a3a !important; /* Lighter gray */
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+.nightowl-root-bg .sidebar-content .nav-item.active::before,
+.nightowl-root-bg .folders-list .folder-item.active::before {
+    background-color: #ffffff !important; /* Lighter gray */
+}
+
+/* Night Owl Flashcards page - folders-list items background */
+.nightowl-root-bg .folders-list .folder-item {
+    background-color: #3a3a3a !important; /* Same light gray as active items */
+}
+
 .sidebar-top {
     padding: 20px 20px 0px 20px;
 }

@@ -88,7 +88,7 @@ const Sidebar = ({
                     </div>
                     <div className="folders-list">
                         {folders.map(folder => (
-                            <div key={folder.id}>
+                            <React.Fragment key={folder.id}>
                                 <div 
                                     className={`folder-item ${selectedFolder?.id === folder.id && activeView === 'folder' ? 'active' : ''}`}
                                     onClick={(e) => handleFolderClick(folder.id, e)}
@@ -176,7 +176,7 @@ const Sidebar = ({
                                         {folder.items && folder.items.length > 0 && renderFolderItems(folder)}
                                     </div>
                                 )}
-                            </div>
+                            </React.Fragment>
                         ))}
                     </div>
                 </div>

@@ -11,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 export default function DeckContent() {
   const [showBack, setShowBack] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const searchInputRef = useRef(null);
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
@@ -56,12 +57,6 @@ export default function DeckContent() {
   const [showClaudeGenerator, setShowClaudeGenerator] = useState(false);
   const generatedInputRef = useRef(null);
   
-  // Sticky note state
-  const [stickyNote, setStickyNote] = useState('');
-  const [showStickyNote, setShowStickyNote] = useState(false);
-  const [editingStickyNote, setEditingStickyNote] = useState(false);
-  const [stickyNoteTitle, setStickyNoteTitle] = useState('Sticky Note');
-  const [lastUpdated, setLastUpdated] = useState(null);
   const [savedGenerated, setSavedGenerated] = useState(false);
 
   const ribbonColors = [
@@ -77,45 +72,10 @@ export default function DeckContent() {
   useEffect(() => {
     fetchDeck();
     fetchCards();
-    // Load sticky note from localStorage
-    const savedNote = localStorage.getItem(`stickyNote_${deckId}`);
-    if (savedNote) {
-      const noteData = JSON.parse(savedNote);
-      setStickyNote(noteData.content || '');
-      setStickyNoteTitle(noteData.title || 'Sticky Note');
-      setLastUpdated(noteData.lastUpdated || null);
-      setShowStickyNote(true);
-    }
     // eslint-disable-next-line
   }, [deckId]);
 
-  // Sticky note functions
-  const saveStickyNote = () => {
-    const noteData = {
-      content: stickyNote,
-      title: stickyNoteTitle,
-      lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem(`stickyNote_${deckId}`, JSON.stringify(noteData));
-    setLastUpdated(new Date().toISOString());
-    setEditingStickyNote(false);
-  };
 
-  const deleteStickyNote = () => {
-    localStorage.removeItem(`stickyNote_${deckId}`);
-    setStickyNote('');
-    setStickyNoteTitle('Sticky Note');
-    setShowStickyNote(false);
-    setEditingStickyNote(false);
-    setLastUpdated(null);
-  };
-
-  const toggleStickyNote = () => {
-    if (!showStickyNote && !stickyNote) {
-      setEditingStickyNote(true);
-    }
-    setShowStickyNote(!showStickyNote);
-  };
 
   async function fetchDeck() {
     try {
@@ -194,16 +154,16 @@ export default function DeckContent() {
 
   const getRibbonColor = (card) => {
     let ribbonColorClass = '', ribbonTooltip = '';
-    if (card.learning_status === 'Mastered') {
+    if (card.learning_status === 'mstrd') {
       ribbonColorClass = 'ribbon-dark-pink';
       ribbonTooltip = "Mastered: You've reviewed this card enough times to master it!";
-    } else if (card.learning_status === 'Struggling') {
+    } else if (card.learning_status === 'strgl') {
       ribbonColorClass = 'ribbon-soft-red';
       ribbonTooltip = 'Struggling: More incorrect than correct answers.';
-    } else if (card.learning_status === 'Unseen') {
+    } else if (card.learning_status === 'unseen') {
       ribbonColorClass = 'ribbon-soft-blue';
       ribbonTooltip = 'Unseen: You have not reviewed this card yet.';
-    } else if (card.learning_status === 'In Progress') {
+    } else if (card.learning_status === 'imprv') {
       ribbonColorClass = 'ribbon-muted-purple';
       ribbonTooltip = 'In Progress: Partially reviewed.';
     } else {
@@ -213,9 +173,24 @@ export default function DeckContent() {
     return { ribbonColorClass, ribbonTooltip };
   };
 
+  // Helper function to highlight matching text
+  const highlightSearchTerm = (text, searchTerm) => {
+    if (!searchTerm.trim()) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => {
+      if (regex.test(part)) {
+        return <span key={index} className="search-highlight">{part}</span>;
+      }
+      return part;
+    });
+  };
+
   const filteredCards = cards.filter(card => {
-    const matchesSearch = card.question.toLowerCase().includes(search.toLowerCase()) ||
-                         card.answer.toLowerCase().includes(search.toLowerCase());
+    // Only search in the question field and require exact order match
+    const matchesSearch = search === '' || card.question.toLowerCase().indexOf(search.toLowerCase()) !== -1;
     const matchesRibbon = !selectedRibbonColor || getRibbonColor(card).ribbonColorClass === selectedRibbonColor;
     return matchesSearch && matchesRibbon;
   });
@@ -466,7 +441,7 @@ export default function DeckContent() {
             />
           ) : (
             <div className="card-preview-content">
-              {card.question}
+              {highlightSearchTerm(card.question, search)}
             </div>
           )}
         </div>
@@ -562,162 +537,189 @@ export default function DeckContent() {
 
   return (
     <>
-      <div className="deck-content-page">
-        <div className="button-container">
+      <div className="page-background-image"></div>
+      <nav className="deck-navbar">
+        <div className="navbar-content">
           <button className="back-button" onClick={() => navigate('/study-room/decks')}><FiArrowLeft /> Back</button>
           <button className="add-card-btn" onClick={() => setShowAdd(true)} disabled={!deck}><FiPlus /> Add New Card</button>
         </div>
+      </nav>
+      <div className="deck-content-page">
         <div className="deck-header">
           <div className="deck-header-content">
             {/* Left Side - Deck Info and Stats */}
             <div className="deck-info-section">
               <div className="deck-header-info">
-                <div className="deck-title-section">
-                  <div className="deck-title-with-icon">
-                    <Book className="deck-emoji" />
-                    <h1 className="deck-title">{deck?.title || 'Deck'}</h1>
-                  </div>
-                  <span className="deck-subject">{deck?.subject || 'No subject'}</span>
-                  <div className="deck-subtitle">{cards.length} cards · Last updated 2 days ago</div>
-                  {/* Micro Stats Chips */}
-                  <div className="micro-stats-row">
-                    <span className="micro-stat-chip"><span className="chip-emoji">⏱️</span>Avg. Review Time: 3.2s</span>
-                    <span className="micro-stat-chip"><span className="chip-emoji">♻️</span>Cards Due: 5</span>
-                    <span className="micro-stat-chip"><span className="chip-emoji">🧠</span>Mastered: 3 / 14</span>
-                  </div>
-                  {/* Progress Summary Bar */}
-                  {cards.length > 0 && (() => {
-                    const total = cards.length;
-                    const mastered = cards.filter(c => c.learning_status === 'Mastered').length;
-                    const masteredPct = (mastered / total) * 100;
-                    return (
-                      <div className="mastery-progress-container">
-                        <div className="mastery-progress-header">
-                          <div className="mastery-progress-label">Mastery Progress</div>
-                          <div className="mastery-progress-percentage">{Math.round(masteredPct)}% Mastered</div>
-                        </div>
-                        <div className="mastery-progress-bar">
-                          <div 
-                            className="mastery-progress-fill" 
-                            style={{ width: `${masteredPct}%` }} 
-                          />
-                        </div>
+                <div className="deck-info-left">
+                  <div className="deck-title-section">
+                    <div className="deck-title-with-icon">
+                      <Book className="deck-emoji" />
+                      <h1 className="deck-title">{deck?.title || 'Deck'}</h1>
+                    </div>
+                    <span className="deck-subject">{deck?.subject || 'No subject'}</span>
+                    <div className="deck-subtitle">{cards.length} cards · Last updated 2 days ago</div>
+                    {/* Micro Stats Chips */}
+                    <div className="micro-stats-row">
+                      <span className="micro-stat-chip">
+                        <span className="chip-emoji time-icon">⏱️</span>
+                        Avg. Review Time: 3.2s
+                      </span>
+                      <span className="micro-stat-chip">
+                        <span className="chip-emoji due-icon">📚</span>
+                        Cards Due: 5
+                      </span>
+                      <span className="micro-stat-chip">
+                        <span className="chip-emoji mastered-icon">🧠</span>
+                        Mastered: 3 / 14
+                      </span>
+                    </div>
+                    
+                    {/* Mastery Progress Info - Under Micro Stats */}
+                    {cards.length > 0 && deck && (() => {
+                      const total = cards.length;
+                      const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
+                      
+                      return (
                         <div className="mastery-progress-info">
                           <div className="next-card-due">
                             <span className="due-icon">⏰</span>
                             <span>Next card due in 2h 15m</span>
                           </div>
-                          <div className="mastery-stats">
-                            <div className="mastery-stat">
-                              <span>Mastered:</span>
-                              <span className="mastery-stat-value">{mastered}</span>
-                            </div>
-                            <div className="mastery-stat">
-                              <span>Total:</span>
-                              <span className="mastery-stat-value">{total}</span>
-                            </div>
-                          </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Actions Section - Inside Deck Info */}
+              <div className="deck-actions-section">
+                <div className="deck-header-actions">
+                  <button 
+                    className="deck-header-btn" 
+                    title="Edit Deck" 
+                    disabled={!deck}
+                    onClick={() => {
+                      if (!deck) return;
+                      setEditingDeck(deck);
+                      setEditDeckTitle(deck.title || '');
+                      setEditDeckSubject(deck.subject || '');
+                      setShowEditDeck(true);
+                    }}
+                  >
+                    <FiEdit2 />
+                  </button>
+                  <button className="deck-header-btn" title="Delete Deck" onClick={handleDeleteDeck}>
+                    <FiTrash2 />
+                  </button>
                 </div>
               </div>
             </div>
             
-            {/* Right Side - Actions and Sticky Notes */}
-            <div className="deck-actions-section">
-              <div className="deck-header-actions">
-                <button 
-                  className="deck-header-btn" 
-                  title="Edit Deck" 
-                  disabled={!deck}
-                  onClick={() => {
-                    if (!deck) return;
-                    setEditingDeck(deck);
-                    setEditDeckTitle(deck.title || '');
-                    setEditDeckSubject(deck.subject || '');
-                    setShowEditDeck(true);
-                  }}
-                >
-                  <FiEdit2 />
-                </button>
-                <button className="deck-header-btn" title="Delete Deck" onClick={handleDeleteDeck}>
-                  <FiTrash2 />
-                </button>
-              </div>
-              {/* Sticky Note Component */}
-              {showStickyNote && (
-                <div className="sticky-note">
-                  <div className="sticky-note-header">
-                    <div className="sticky-note-title-section">
-                      <div className="sticky-note-icon">📝</div>
-                      {editingStickyNote ? (
-                        <input
-                          type="text"
-                          className="sticky-note-title-input"
-                          value={stickyNoteTitle}
-                          onChange={(e) => setStickyNoteTitle(e.target.value)}
-                          placeholder="Note title..."
-                        />
-                      ) : (
-                        <h4 className="sticky-note-title">{stickyNoteTitle}</h4>
-                      )}
+            {/* Circular Progress Wheel - Far Right */}
+            {cards.length > 0 && deck && (() => {
+              const total = cards.length;
+              const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
+              // Use the mastery_progress from the backend API response
+              const masteredPct = Math.round(deck.mastery_progress || 0);
+              const circumference = 2 * Math.PI * 45; // radius of 45px
+              const strokeDasharray = circumference;
+              const strokeDashoffset = circumference - (masteredPct / 100) * circumference;
+              
+              return (
+                <div className="deck-info-right">
+                  <div className="mastery-progress-container">
+                    <div className="mastery-progress-header">
+                      <div className="mastery-progress-label">Mastery Progress</div>
                     </div>
-                    <div className="sticky-note-actions">
-                      <button 
-                        className="sticky-note-btn"
-                        onClick={() => setEditingStickyNote(!editingStickyNote)}
-                        title={editingStickyNote ? "Save" : "Edit"}
-                      >
-                        {editingStickyNote ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
-                      </button>
-                      <button 
-                        className="sticky-note-btn delete"
-                        onClick={deleteStickyNote}
-                        title="Delete"
-                      >
-                        <FiTrash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="sticky-note-content">
-                    {editingStickyNote ? (
-                      <textarea
-                        className="sticky-note-textarea"
-                        value={stickyNote}
-                        onChange={(e) => setStickyNote(e.target.value)}
-                        placeholder="Write your notes here..."
-                        onBlur={saveStickyNote}
-                      />
-                    ) : (
-                      <div className="sticky-note-text">
-                        {stickyNote || "Click edit to add your notes..."}
+                    <div className="circular-progress-wrapper">
+                      <div className="circular-progress">
+                        <svg className="circular-progress-svg" width="120" height="120">
+                          {/* Background circle */}
+                          <circle
+                            className="circular-progress-bg"
+                            cx="60"
+                            cy="60"
+                            r="45"
+                            fill="none"
+                            stroke="rgba(255, 255, 255, 0.1)"
+                            strokeWidth="8"
+                          />
+                          {/* Progress circle */}
+                          <circle
+                            className="circular-progress-fill"
+                            cx="60"
+                            cy="60"
+                            r="45"
+                            fill="none"
+                            stroke="#7c3aed"
+                            strokeWidth="8"
+                            strokeLinecap="round"
+                            strokeDasharray={strokeDasharray}
+                            strokeDashoffset={strokeDashoffset}
+                            transform="rotate(-90 60 60)"
+                          />
+                        </svg>
+                        <div className="circular-progress-text">
+                          <div className="circular-progress-percentage">{masteredPct}%</div>
+                          <div className="circular-progress-label">Mastered</div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  {lastUpdated && (
-                    <div className="sticky-note-timestamp">
-                      Updated {formatDateTimeForDisplay(lastUpdated)}
                     </div>
-                  )}
+                    
+                    {/* Mastery Stats - Under Progress Bar */}
+                    {cards.length > 0 && deck && (() => {
+                      const total = cards.length;
+                      const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
+                      
+                      return (
+                        <div className="mastery-stats">
+                          <div className="mastery-stat">
+                            <span>Mastered:</span>
+                            <span className="mastery-stat-value">{mastered}</span>
+                          </div>
+                          <div className="mastery-stat">
+                            <span>Total:</span>
+                            <span className="mastery-stat-value">{total}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
-              )}
-            </div>
+              );
+            })()}
           </div>
         </div>
         <div className="deck-search-filter">
           <div className="deck-search-bar">
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search cards..."
               value={search}
               onChange={e => setSearch(e.target.value)}
+              onFocus={() => {
+                // Position cursor at the end of the text when focused
+                setTimeout(() => {
+                  if (searchInputRef.current) {
+                    const length = searchInputRef.current.value.length;
+                    searchInputRef.current.setSelectionRange(length, length);
+                  }
+                }, 0);
+              }}
             />
             <FiSearch className="search-icon" />
           </div>
           <div className="ribbon-filter">
-            <button className="filter-button">
+            <button 
+              className={`filter-button ${selectedRibbonColor ? 'active' : ''}`}
+              style={{
+                color: selectedRibbonColor ? ribbonColors.find(c => c.value === selectedRibbonColor)?.color : undefined,
+                backgroundColor: selectedRibbonColor ? `${ribbonColors.find(c => c.value === selectedRibbonColor)?.color}20` : undefined,
+                borderColor: selectedRibbonColor ? ribbonColors.find(c => c.value === selectedRibbonColor)?.color : undefined
+              }}
+            >
               <FiFilter size={16} />
               Filter
             </button>
@@ -742,14 +744,6 @@ export default function DeckContent() {
           >
             <FiZap size={16} />
             {showClaudeGenerator ? "Close" : "Generate"}
-          </button>
-          <button 
-            className="sticky-note-toggle-btn"
-            onClick={toggleStickyNote}
-            title={showStickyNote ? "Hide Sticky Note" : "Show Sticky Note"}
-          >
-            📝
-            {showStickyNote ? "Hide" : "Note"}
           </button>
         </div>
         <div className={`claude-flashcard-generator ${!showClaudeGenerator ? 'hidden' : ''}`}>
@@ -896,22 +890,52 @@ export default function DeckContent() {
             </>
           )}
           {loading ? <div className="loading">Loading...</div> :
+            filteredCards.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">🔍</div>
+                <h3>No cards found</h3>
+                <p>
+                  {selectedRibbonColor ? 
+                    `No cards with the selected status found. Try selecting a different filter or clear the search.` :
+                    search ? 
+                      `No cards match "${search}". Try a different search term.` :
+                      'No cards in this deck yet.'
+                  }
+                </p>
+                {selectedRibbonColor && (
+                  <button 
+                    className="clear-filter-btn"
+                    onClick={() => setSelectedRibbonColor(null)}
+                  >
+                    Clear Filter
+                  </button>
+                )}
+                {search && (
+                  <button 
+                    className="clear-search-btn"
+                    onClick={() => setSearch('')}
+                  >
+                    Clear Search
+                  </button>
+                )}
+              </div>
+            ) :
             filteredCards.map(card => {
               const isEditing = editingCardId === card.id;
               const reps = card.repetitions || 0;
               const correct = card.correct || 0;
               const incorrect = card.incorrect || 0;
               let ribbonColorClass = '', ribbonTooltip = '';
-              if (card.learning_status === 'Mastered') {
+              if (card.learning_status === 'mstrd') {
                 ribbonColorClass = 'ribbon-dark-pink';
                 ribbonTooltip = "Mastered: You've reviewed this card enough times to master it!";
-              } else if (card.learning_status === 'Struggling') {
+              } else if (card.learning_status === 'strgl') {
                 ribbonColorClass = 'ribbon-soft-red';
                 ribbonTooltip = 'Struggling: More incorrect than correct answers.';
-              } else if (card.learning_status === 'Unseen') {
+              } else if (card.learning_status === 'unseen') {
                 ribbonColorClass = 'ribbon-soft-blue';
                 ribbonTooltip = 'Unseen: You have not reviewed this card yet.';
-              } else if (card.learning_status === 'In Progress') {
+              } else if (card.learning_status === 'imprv') {
                 ribbonColorClass = 'ribbon-muted-purple';
                 ribbonTooltip = 'In Progress: Partially reviewed.';
               } else {
@@ -961,7 +985,7 @@ export default function DeckContent() {
                     }}
                   >
                     <div className={`card-ribbon-bookmark ${ribbonColorClass}`}>&nbsp;</div>
-                    <span className={`badge-tooltip badge-tooltip-outside${showTooltip ? ' show' : ''}`}
+                    <span className={`badge-tooltip badge-tooltip-outside ${card.learning_status === 'imprv' ? 'tooltip-in-progress' : ''}${showTooltip ? ' show' : ''}`}
                           style={{ background: ribbonBackground }}>{ribbonTooltip}
                     </span>
                   </div>
@@ -1062,7 +1086,7 @@ export default function DeckContent() {
                           />
                         ) : (
                           <div className="card-preview-content">
-                            {card.question}
+                            {highlightSearchTerm(card.question, search)}
                             {isEditing && <span className="caret">|</span>}
                           </div>
                         )}

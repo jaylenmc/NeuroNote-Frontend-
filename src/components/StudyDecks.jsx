@@ -288,17 +288,8 @@ const StudyDecks = () => {
     };
 
     const calculateMasteryProgress = (deck) => {
-        // Use stock data for mastery progress
-        const stockMasteryData = {
-            'Biology': 85,
-            'Chemistry': 62,
-            'Computer Science': 78,
-            'Mathematics': 45,
-            'Physics': 92,
-            'default': 30
-        };
-        
-        return stockMasteryData[deck.subject] || stockMasteryData.default;
+        // Use the actual mastery_progress from the backend API response
+        return Math.round(deck.mastery_progress || 0);
     };
     
     const getMasteryColor = (progress) => {

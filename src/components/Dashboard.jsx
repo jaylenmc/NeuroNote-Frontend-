@@ -74,6 +74,7 @@ function Dashboard({ initialView }) {
     });
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [transitionTimeout, setTransitionTimeout] = useState(null);
+    const [isFolderClickInProgress, setIsFolderClickInProgress] = useState(false);
     const [showNewQuizModal, setShowNewQuizModal] = useState(false);
     const [newQuiz, setNewQuiz] = useState({
         topic: '',
@@ -280,7 +281,7 @@ function Dashboard({ initialView }) {
     const handleFolderClick = async (folderId, e) => {
         if (e.detail > 1) return;
         
-        console.log('Folder clicked:', folderId);
+        setIsFolderClickInProgress(true);
         setIsTransitioning(true);
         
         if (transitionTimeout) {
@@ -322,7 +323,7 @@ function Dashboard({ initialView }) {
                 item.type !== 'document' && item.type !== 'quiz'
             );
 
-            const updatedFolder = {
+                const updatedFolder = {
                 ...folder,
                 items: [
                     ...folderDocuments.map(doc => ({
@@ -330,7 +331,9 @@ function Dashboard({ initialView }) {
                         type: 'document',
                         title: doc.title,
                         created_at: doc.created_at,
-                        tag: doc.tag || null
+                        tag: doc.tag || null,
+                        saved: doc.saved,
+                        notes: doc.notes
                     })),
                     ...folderQuizzes.map(quiz => ({
                         id: quiz.id,
@@ -365,15 +368,21 @@ function Dashboard({ initialView }) {
         
             console.log('Setting activeView to folder, selectedFolder:', updatedFolder);
         
-        const timeout = setTimeout(() => {
-            setIsTransitioning(false);
+            // Navigate after state is set to avoid race condition with useEffect
+            setTimeout(() => {
+                navigate(`/dashboard/folder/${folderId}`);
+            }, 0);
+        
+            const timeout = setTimeout(() => {
+                setIsTransitioning(false);
+                setIsFolderClickInProgress(false);
             }, 300);
         
-        setTransitionTimeout(timeout);
-        navigate(`/dashboard/folder/${folderId}`);
+            setTransitionTimeout(timeout);
         } catch (error) {
             console.error('Error fetching folder contents:', error);
             setIsTransitioning(false);
+            setIsFolderClickInProgress(false);
         }
     };
 
@@ -408,7 +417,9 @@ function Dashboard({ initialView }) {
                         id: doc.id,
                         type: 'document',
                         title: doc.title,
-                        created_at: doc.created_at
+                        created_at: doc.created_at,
+                        saved: doc.saved,
+                        notes: doc.notes
                     })),
                     ...folderDecks.map(deck => ({
                         id: deck.id,
@@ -491,9 +502,6 @@ function Dashboard({ initialView }) {
         }
         if (!e.target.closest('.new-item-container')) {
             setShowNewItemDropdown(false);
-        }
-        if (!e.target.closest('.block-type-menu') && !e.target.closest('.block-menu-button')) {
-            handleBlockMenuClose();
         }
     };
 
@@ -692,6 +700,9 @@ function Dashboard({ initialView }) {
         fetchFolders();
         fetchFlashcardData();
         
+        // Ensure reminders modal class is removed on mount
+        document.body.classList.remove('reminders-modal-open');
+        
         return () => {
             setIsMounted(false);
         };
@@ -699,6 +710,11 @@ function Dashboard({ initialView }) {
 
     // When folders or folderId changes, auto-select folder if folderId is present in URL
     useEffect(() => {
+        // Don't run this effect if we're in the middle of a folder click operation
+        if (isFolderClickInProgress) {
+            return;
+        }
+        
         if (folderId && folders.length > 0) {
             const folder = folders.find(f => String(f.id) === String(folderId));
             if (folder) {
@@ -710,16 +726,24 @@ function Dashboard({ initialView }) {
                         type: 'document',
                         title: doc.title,
                         created_at: doc.created_at,
-                        tag: doc.tag || null
+                        tag: doc.tag || null,
+                        saved: doc.saved,
+                        notes: doc.notes
                     }));
                     setSelectedFolder({ ...folder, items });
                 } else {
-                    setSelectedFolder(folder);
+                    // Only set selectedFolder if we don't already have it selected with the same ID
+                    // AND if the current selectedFolder doesn't have items (meaning it was just fetched)
+                    if (!selectedFolder || 
+                        selectedFolder.id !== folder.id || 
+                        (selectedFolder.id === folder.id && !selectedFolder.items)) {
+                        setSelectedFolder(folder);
+                    }
                 }
                 setActiveView('folder');
             }
         }
-    }, [folderId, folders, location.state]);
+    }, [folderId, folders, location.state, isFolderClickInProgress]);
 
     // Apply Night Owl background for flashcards view
     useEffect(() => {
@@ -734,6 +758,22 @@ function Dashboard({ initialView }) {
         return () => {
             document.documentElement.classList.remove('nightowl-root-bg');
             document.body.classList.remove('nightowl-root-bg');
+        };
+    }, [activeView]);
+
+    // Apply folder background for folder view
+    useEffect(() => {
+        if (activeView === 'folder') {
+            document.documentElement.classList.add('folder-root-bg');
+            document.body.classList.add('folder-root-bg');
+        } else {
+            document.documentElement.classList.remove('folder-root-bg');
+            document.body.classList.remove('folder-root-bg');
+        }
+
+        return () => {
+            document.documentElement.classList.remove('folder-root-bg');
+            document.body.classList.remove('folder-root-bg');
         };
     }, [activeView]);
 

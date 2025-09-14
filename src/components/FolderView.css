@@ -2,25 +2,31 @@
 
 .folder-view {
   padding: 24px;
-  min-height: 100vh;
+  height: 100vh;
   background: transparent;
   color: #fff;
   font-family: 'Inter', sans-serif;
   position: relative;
-  z-index: 1;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Folder Header */
 .folder-header {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  margin-bottom: 32px;
-  padding: 24px;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   backdrop-filter: blur(10px);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 20;
 }
 
 .folder-header-top {
@@ -85,22 +91,22 @@
 
 .folder-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 14rem);
-  gap: 16px;
-  width: fit-content;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  width: 100%;
   justify-content: center;
 }
 
 .folder-stat-item {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   transform: rotate(-0.5deg);
   transition: all 0.3s ease;
-  min-height: 80px;
+  min-height: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -198,9 +204,511 @@
   gap: 16px;
 }
 
+/* Search Container */
+.search-container {
+  margin-right: 16px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.search-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px 10px 40px;
+  color: #fff;
+  font-size: 14px;
+  width: 280px;
+  transition: all 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: rgba(124, 131, 253, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba(124, 131, 253, 0.1);
+}
+
+.search-clear {
+  position: absolute;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.search-clear:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Reminders Button */
+.reminders-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-right: 12px;
+}
+
+.reminders-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.reminders-btn svg {
+  font-size: 18px;
+}
+
+.reminder-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(23, 23, 23, 0.6);
+}
+
+/* Reminders Modal */
+.reminders-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 20px;
+  animation: fadeIn 0.1s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sidebar background handled in Dashboard.css */
+
+.reminders-modal {
+  background: rgba(23, 23, 23, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.reminders-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reminders-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reminders-modal-header h3 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.reminders-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.reminders-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.add-reminder-header-btn {
+  background: rgba(124, 131, 253, 0.1);
+  border: 1px solid rgba(124, 131, 253, 0.3);
+  color: #7c83fd;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-reminder-header-btn:hover {
+  background: rgba(124, 131, 253, 0.2);
+  border-color: rgba(124, 131, 253, 0.5);
+}
+
+.cancel-btn-header {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cancel-btn-header:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.save-reminder-btn-header {
+  background: #7c83fd;
+  border: none;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-reminder-btn-header:hover:not(:disabled) {
+  background: #6b73e6;
+  transform: translateY(-1px);
+}
+
+.save-reminder-btn-header:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.reminders-close-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reminders-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+
+.reminders-content {
+  padding: 24px;
+  max-height: calc(85vh - 100px);
+  overflow-y: auto;
+}
+
+/* Create Reminder Form */
+.create-reminder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #7c83fd;
+  background: rgba(255, 255, 255, 0.08);
+  color: #7c83fd;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+
+/* Empty State */
+.reminders-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.reminders-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.reminders-empty p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+
+.add-reminder-btn {
+  background: #7c83fd;
+  border: none;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-reminder-btn:hover {
+  background: #6b73e6;
+  transform: translateY(-1px);
+}
+
+/* Reminders List */
+.reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reminder-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  gap: 12px;
+}
+
+.reminder-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.reminder-item.completed {
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.reminder-checkbox {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.reminder-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #7c83fd;
+  cursor: pointer;
+}
+
+.reminder-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.reminder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.reminder-title {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.reminder-title:focus {
+  color: #7c83fd;
+}
+
+.reminder-item.completed .reminder-title {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.reminder-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.reminder-date svg {
+  font-size: 12px;
+}
+
+.reminder-date.completed {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.reminder-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.delete-reminder-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-reminder-btn:hover {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
+}
+
+.reminder-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.reminder-item.completed .reminder-description {
+  color: rgba(255, 255, 255, 0.4);
+}
+
 /* New Item Button */
 .new-item-container {
   position: relative;
+  z-index: 30;
 }
 
 .new-item-btn {
@@ -219,8 +727,7 @@
 }
 
 .new-item-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.3);
+  background-color: #959afb;
 }
 
 .new-item-dropdown {
@@ -234,7 +741,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   min-width: 200px;
-  z-index: 1000;
+  z-index: 9999;
   overflow: hidden;
 }
 
@@ -267,60 +774,268 @@
   filter: brightness(0) invert(1);
 }
 
-/* Folder Items */
+/* Folder Items Container */
 .folderview-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.folderview-item-card {
+/* Custom Scrollbar for Folder Items */
+.folderview-items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.folderview-items::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 3px;
+}
+
+.folderview-items::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.folderview-items::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Folder Item - Modern Card Design */
+.folderview-items .folder-item {
+  background: rgba(255, 255, 255, 0.05) !important; /* bg-neutral-900/60 */
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease !important;
   position: relative;
   overflow: hidden;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 180px;
-}
-
-.folderview-item-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-color: rgba(124, 131, 253, 0.3);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.folderview-item-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #7c83fd 0%, #9ca3fd 100%);
-  border-radius: 16px 16px 0 0;
-}
-
-/* Card Header */
-.card-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 16px;
+  min-height: 80px;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+
+
+.folderview-items .folder-item:hover {
+  background: rgba(38, 38, 38, 0.8) !important; /* bg-neutral-800 on hover */
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+/* Folder Item Icon */
+.folder-item__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+
+.folder-item__icon svg {
+  width: 20px;
+  height: 20px;
+  color: #a855f7;
+  z-index: 1;
+  position: relative;
+}
+
+.folder-item__icon img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(47%) sepia(79%) saturate(2476%) hue-rotate(258deg) brightness(118%) contrast(119%);
+  z-index: 1;
+  position: relative;
+}
+
+/* All icons are now purple with purple background */
+
+/* Folder Item Content */
+.folder-item__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.folder-item__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+/* Folder Item Right Section */
+.folder-item__right-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.folder-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+/* On hover, move metadata left to make space for actions */
+.folder-item:hover .folder-item__meta {
+  transform: translateX(-90px);
+}
+
+.folder-item__meta-item {
+  font-weight: 500;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+  position: relative;
+}
+
+/* Time metadata - Soft orange accent */
+.folder-item__meta-item.meta-time {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: rgba(251, 191, 36, 0.9);
+}
+
+/* Removed underline for meta-time */
+
+/* Word count metadata - Green accent */
+.folder-item__meta-item.meta-words {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: rgba(34, 197, 94, 0.9);
+}
+
+/* Removed underline for meta-words */
+
+/* Card count metadata - Blue accent */
+.folder-item__meta-item.meta-cards {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.25);
+  color: rgba(96, 165, 250, 0.9);
+}
+
+/* Removed underline for meta-cards */
+
+/* Mastery metadata - Purple accent */
+.folder-item__meta-item.meta-mastery {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: rgba(167, 139, 250, 0.9);
+}
+
+/* Removed underline for meta-mastery */
+
+/* Quiz questions metadata - Yellow accent */
+.folder-item__meta-item.meta-questions {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.25);
+  color: rgba(253, 224, 71, 0.9);
+}
+
+/* Removed underline for meta-questions */
+
+/* Quiz score metadata - Red accent */
+.folder-item__meta-item.meta-score {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: rgba(248, 113, 113, 0.9);
+}
+
+/* Removed underline for meta-score */
+
+.folder-item__meta-dot {
+  display: none; /* Hidden since we're using pill separators */
+}
+
+/* Folder Item Actions */
+.folder-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.folder-item:hover .folder-item__actions {
+  opacity: 1;
+}
+
+.folder-item__action {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  backdrop-filter: blur(5px);
+}
+
+.folder-item__action:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.folder-item__action--delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
 }
 
 .card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -330,14 +1045,14 @@
 }
 
 .card-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   color: #7c83fd;
 }
 
 .card-icon img {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   filter: brightness(0) invert(1);
 }
 
@@ -378,25 +1093,24 @@
   border-color: rgba(239, 68, 68, 0.3);
 }
 
-/* Card Content */
-.card-content {
+/* Card Title Section */
+.card-title-section {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
   color: #fff;
   margin: 0;
   line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-preview {
@@ -404,27 +1118,27 @@
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   opacity: 0.8;
 }
 
 /* Card Footer */
 .card-footer {
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  flex-shrink: 0;
 }
 
 .card-metadata {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #7A8CA3;
+  white-space: nowrap;
 }
 
 .metadata-item {
@@ -655,9 +1369,10 @@
 
   .folder-header {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     align-items: flex-start;
     padding: 16px;
+    margin-bottom: 16px;
   }
 
   .folder-title {
@@ -670,12 +1385,12 @@
 
   .folder-stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 8px;
   }
 
   .folder-stat-item {
-    padding: 12px;
-    min-height: 70px;
+    padding: 10px;
+    min-height: 50px;
   }
 
   .folder-stat-value {
@@ -692,14 +1407,133 @@
   }
 
   .folderview-items {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 16px 0;
+    gap: 6px;
+    margin: 0;
   }
 
-  .folderview-item-card {
+  .folder-item {
     padding: 16px;
-    min-height: 160px;
+    min-height: 70px;
+    gap: 12px;
+  }
+
+  .folder-item__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .folder-item__icon svg,
+  .folder-item__icon img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .folder-item__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .folder-item__meta {
+    font-size: 0.7rem;
+    gap: 4px;
+  }
+  
+  .folder-item__meta-item {
+    padding: 3px 6px;
+    font-size: 0.65rem;
+  }
+  
+  /* Mobile colored metadata accents - underlines removed */
+
+  .folder-item__action {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  /* Mobile search styles */
+  .search-container {
+    margin-right: 12px;
+    margin-bottom: 12px;
+  }
+
+  .search-input {
+    width: 200px;
+    padding: 8px 10px 8px 36px;
+    font-size: 13px;
+  }
+
+  .search-icon {
+    left: 10px;
+    font-size: 14px;
+  }
+
+  .search-clear {
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+  }
+
+  /* Mobile reminders styles */
+  .reminders-btn {
+    padding: 8px 10px;
+    margin-right: 8px;
+  }
+
+  .reminders-btn svg {
+    font-size: 16px;
+  }
+
+  .reminder-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .reminders-modal {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+    max-height: 90vh;
+  }
+
+  .reminders-modal-header {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .reminders-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .reminders-modal-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .reminders-content {
+    padding: 20px;
+    max-height: calc(90vh - 100px);
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .reminder-item {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .reminder-title {
+    font-size: 0.9rem;
+  }
+
+  .reminder-description {
+    font-size: 0.8rem;
   }
 
   .card-title {

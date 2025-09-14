@@ -314,12 +314,6 @@
   transition: all 0.2s ease;
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #4ECDC4;
-  background: rgba(255, 255, 255, 0.1);
-}
-
 .modal-actions {
   display: flex;
   gap: 16px;

@@ -1,10 +1,35 @@
-import React from 'react';
-import { FiFileText, FiEdit2, FiPlus, FiUpload, FiGrid, FiList } from 'react-icons/fi';
+import React, { useState, useMemo } from 'react';
+import { FiFileText, FiEdit2, FiPlus, FiUpload, FiGrid, FiList, FiShare2, FiTrash2, FiFolderPlus, FiSearch, FiBell, FiClock, FiX, FiSave } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import deckIcon from '../assets/deck.svg';
 import testIcon from '../assets/test.svg';
 import { formatDateForDisplay } from '../utils/dateUtils';
 import './FolderView.css';
+
+// Helper function to calculate word count
+const getWordCount = (text) => {
+    if (!text) return 0;
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+};
+
+// Helper function to format saved time
+const formatSavedTime = (savedDate) => {
+    if (!savedDate) return 'Never saved';
+    
+    const now = new Date();
+    const saved = new Date(savedDate);
+    const diffInMs = now - saved;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    return formatDateForDisplay(savedDate);
+};
 
 const FolderView = ({
     selectedFolder,
@@ -19,6 +44,109 @@ const FolderView = ({
     getFolderItemCount
 }) => {
     const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showReminders, setShowReminders] = useState(false);
+    const [showCreateReminder, setShowCreateReminder] = useState(false);
+    const [newReminder, setNewReminder] = useState({
+        title: '',
+        description: '',
+        dueDate: '',
+        dueTime: ''
+    });
+    
+    // Add/remove body class when modal opens/closes
+    React.useEffect(() => {
+        if (showReminders) {
+            document.body.classList.add('reminders-modal-open');
+        } else {
+            document.body.classList.remove('reminders-modal-open');
+        }
+        
+        return () => {
+            document.body.classList.remove('reminders-modal-open');
+        };
+    }, [showReminders]);
+    
+    // Mock reminders data - in real app, this would come from props or API
+    const folderReminders = selectedFolder.reminders || [
+        {
+            id: 1,
+            title: "Review study materials",
+            description: "Go through chapter 5 notes before the exam",
+            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+            completed: false
+        },
+        {
+            id: 2,
+            title: "Complete assignment",
+            description: "Finish the research paper draft",
+            dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+            completed: true
+        }
+    ];
+    
+    // Helper function to format reminder dates
+    const formatReminderDate = (date) => {
+        const now = new Date();
+        const reminderDate = new Date(date);
+        const diffInMs = reminderDate - now;
+        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+        
+        if (diffInMs < 0) {
+            return 'Overdue';
+        } else if (diffInDays === 0) {
+            return 'Today';
+        } else if (diffInDays === 1) {
+            return 'Tomorrow';
+        } else if (diffInDays < 7) {
+            return `In ${diffInDays} days`;
+        } else {
+            return formatDateForDisplay(date);
+        }
+    };
+
+    // Helper functions for reminder management
+    const handleCreateReminder = () => {
+        if (newReminder.title.trim() && newReminder.dueDate) {
+            // In a real app, this would make an API call
+            console.log('Creating reminder:', newReminder);
+            
+            // Reset form
+            setNewReminder({
+                title: '',
+                description: '',
+                dueDate: '',
+                dueTime: ''
+            });
+            setShowCreateReminder(false);
+        }
+    };
+
+    const handleReminderToggle = (reminderId) => {
+        // In a real app, this would make an API call
+        console.log('Toggling reminder:', reminderId);
+    };
+
+    const handleReminderDelete = (reminderId) => {
+        // In a real app, this would make an API call
+        console.log('Deleting reminder:', reminderId);
+    };
+    
+    // Filter items based on search query
+    const filteredItems = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return selectedFolder.items || [];
+        }
+        
+        const query = searchQuery.toLowerCase().trim();
+        return (selectedFolder.items || []).filter(item => {
+            const title = item.title || item.name || '';
+            const topic = item.topic || '';
+            return title.toLowerCase().includes(query) || 
+                   topic.toLowerCase().includes(query);
+        });
+    }, [selectedFolder.items, searchQuery]);
     
     const handleCreateDocument = () => {
         // Create a new document and redirect to notes editor
@@ -50,6 +178,12 @@ const FolderView = ({
                             </button>
                             <button 
                                 className="empty-state-btn"
+                                onClick={() => handleAddItem(folder.id, 'folder')}
+                            >
+                                <FiFolderPlus /> Create Subfolder
+                            </button>
+                            <button 
+                                className="empty-state-btn"
                                 onClick={() => handleAddItem(folder.id, 'deck')}
                             >
                                 <img src={deckIcon} alt="deck" /> Import Deck
@@ -66,12 +200,31 @@ const FolderView = ({
             );
         }
 
+        // Show search results or no results message
+        if (filteredItems.length === 0 && searchQuery.trim()) {
+            return (
+                <div className="empty-state">
+                    <div className="empty-state-content">
+                        <div className="empty-state-icon">🔍</div>
+                        <h3>No items found</h3>
+                        <p>No items match "{searchQuery}"</p>
+                        <button 
+                            className="empty-state-btn"
+                            onClick={() => setSearchQuery('')}
+                        >
+                            Clear search
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="folderview-items">
-                {folder.items.map(item => (
+                {filteredItems.map(item => (
                     <div 
                         key={item.id} 
-                        className={`folderview-item-card ${item.type}`}
+                        className={`folder-item folder-item--${item.type}`}
                         onClick={(e) => {
                             if (item.type === 'document') {
                                 // Navigate to notes editor with existing document, include folder id in state
@@ -84,88 +237,66 @@ const FolderView = ({
                         }}
                         onContextMenu={(e) => handleContextMenu(e, item.type, item.id)}
                     >
-                        <div className="card-header">
-                            <div className="card-icon">
-                                {item.type === 'document' && <FiFileText />}
-                                {item.type === 'deck' && <img src={deckIcon} alt="deck" />}
-                                {item.type === 'quiz' && <img src={testIcon} alt="quiz" />}
+                        <div className="folder-item__icon">
+                            {item.type === 'document' && <FiFileText />}
+                            {item.type === 'deck' && <img src={deckIcon} alt="deck" />}
+                            {item.type === 'quiz' && <img src={testIcon} alt="quiz" />}
+                        </div>
+                        
+                        <div className="folder-item__content">
+                            <h3 className="folder-item__title">
+                                {item.type === 'document' ? item.title : 
+                                 item.type === 'deck' ? item.name : item.topic}
+                            </h3>
+                        </div>
+                        
+                        <div className="folder-item__right-section">
+                            <div className="folder-item__meta">
+                                {item.type === 'document' && (
+                                    <>
+                                        <span className="folder-item__meta-item meta-time">{formatSavedTime(item.saved)}</span>
+                                        <span className="folder-item__meta-dot">•</span>
+                                        <span className="folder-item__meta-item meta-words">{getWordCount(item.notes)} words</span>
+                                    </>
+                                )}
+                                {item.type === 'deck' && (
+                                    <>
+                                        <span className="folder-item__meta-item meta-cards">{item.cardCount || 0} cards</span>
+                                        <span className="folder-item__meta-dot">•</span>
+                                        <span className="folder-item__meta-item meta-mastery">80% mastered</span>
+                                    </>
+                                )}
+                                {item.type === 'quiz' && (
+                                    <>
+                                        <span className="folder-item__meta-item meta-questions">15 questions</span>
+                                        <span className="folder-item__meta-dot">•</span>
+                                        <span className="folder-item__meta-item meta-score">Score: 85%</span>
+                                    </>
+                                )}
                             </div>
-                            <div className="card-actions">
+                            
+                            <div className="folder-item__actions">
                                 <button 
-                                    className="card-action-btn"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Edit action
-                                    }}
-                                    title="Edit"
-                                >
-                                    ✏️
-                                </button>
-                                <button 
-                                    className="card-action-btn"
+                                    className="folder-item__action"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         // Share action
                                     }}
                                     title="Share"
                                 >
-                                    🔗
+                                    <FiShare2 />
                                 </button>
                                 <button 
-                                    className="card-action-btn delete"
+                                    className="folder-item__action folder-item__action--delete"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         // Delete action
                                     }}
                                     title="Delete"
                                 >
-                                    🗑️
+                                    <FiTrash2 />
                                 </button>
                             </div>
-                        </div>
-                        <div className="card-content">
-                            <h4 className="card-title">
-                                {item.type === 'document' ? item.title : 
-                                 item.type === 'deck' ? item.name : item.topic}
-                            </h4>
-                            {item.type === 'document' && (
-                                <p className="card-preview">
-                                    "This is a preview of the document content. It shows the first few lines to give you a quick overview of what's inside..."
-                                </p>
-                            )}
-                            {item.type === 'deck' && (
-                                <p className="card-preview">
-                                    Study deck with {item.cardCount || 0} flashcards covering key concepts and definitions.
-                                </p>
-                            )}
-                            {item.type === 'quiz' && (
-                                <p className="card-preview">
-                                    Quiz on {item.subject} with multiple choice and short answer questions.
-                                </p>
-                            )}
-                        </div>
-                        <div className="card-footer">
-                            {item.type === 'document' && (
-                                <div className="card-metadata">
-                                    <span className="metadata-item">Last edited 2 days ago</span>
-                                    <span className="metadata-separator">•</span>
-                                    <span className="metadata-item">Word count: 524</span>
-                                </div>
-                            )}
-                            {item.type === 'deck' && (
-                                <div className="card-metadata">
-                                    <span className="metadata-item">{item.cardCount || 0} cards</span>
-                                    <span className="metadata-separator">•</span>
-                                    <span className="metadata-item">Last studied 1 day ago</span>
-                                </div>
-                            )}
-                            {item.type === 'quiz' && (
-                                <div className="card-metadata">
-                                    <span className="metadata-item">15 questions</span>
-                                    <span className="metadata-separator">•</span>
-                                    <span className="metadata-item">Last taken 3 days ago</span>
-                                </div>
-                            )}
                         </div>
                     </div>
                 ))}
@@ -187,6 +318,42 @@ const FolderView = ({
                         </div>
                     </div>
                     <div className="folder-actions">
+                        <div className="search-container">
+                            <div className="search-input-wrapper">
+                                <FiSearch className="search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Search items..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="search-input"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        className="search-clear"
+                                        onClick={() => setSearchQuery('')}
+                                        title="Clear search"
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <button 
+                            className="reminders-btn"
+                            onClick={() => {
+                                document.body.classList.add('reminders-modal-open');
+                                setShowReminders(true);
+                            }}
+                            title="View reminders"
+                        >
+                            <FiBell />
+                            {folderReminders.filter(r => !r.completed).length > 0 && (
+                                <span className="reminder-badge">
+                                    {folderReminders.filter(r => !r.completed).length}
+                                </span>
+                            )}
+                        </button>
                     <div className="new-item-container">
                         <button 
                             className="new-item-btn"
@@ -198,6 +365,9 @@ const FolderView = ({
                             <div className="new-item-dropdown">
                                 <button onClick={handleCreateDocument}>
                                     <FiFileText /> Document
+                                </button>
+                                <button onClick={() => handleAddItem(selectedFolder.id, 'folder')}>
+                                    <FiFolderPlus /> Subfolder
                                 </button>
                                 <button onClick={() => handleAddItem(selectedFolder.id, 'deck')}>
                                     <img src={deckIcon} alt="deck" /> Import Deck
@@ -247,6 +417,173 @@ const FolderView = ({
                 </div>
             </div>
             {renderFolderItems(selectedFolder)}
+            
+            {/* Reminders Modal */}
+            {showReminders && (
+                <div className="reminders-modal-overlay" onClick={() => {
+                    document.body.classList.remove('reminders-modal-open');
+                    setShowReminders(false);
+                    setShowCreateReminder(false);
+                }}>
+                    <div className="reminders-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="reminders-modal-header">
+                            <div className="reminders-header-content">
+                                <h3>{showCreateReminder ? 'Create New Reminder' : 'Folder Reminders'}</h3>
+                                {!showCreateReminder && <span className="reminders-count">{folderReminders.length} reminders</span>}
+                            </div>
+                            <div className="reminders-header-actions">
+                                {!showCreateReminder && (
+                                    <button 
+                                        className="add-reminder-header-btn"
+                                        onClick={() => setShowCreateReminder(true)}
+                                    >
+                                        <FiPlus /> Add Reminder
+                                    </button>
+                                )}
+                                {showCreateReminder && (
+                                    <>
+                                        <button 
+                                            className="cancel-btn-header"
+                                            onClick={() => {
+                                                setShowCreateReminder(false);
+                                                setNewReminder({
+                                                    title: '',
+                                                    description: '',
+                                                    dueDate: '',
+                                                    dueTime: ''
+                                                });
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            className="save-reminder-btn-header"
+                                            onClick={handleCreateReminder}
+                                            disabled={!newReminder.title.trim() || !newReminder.dueDate}
+                                        >
+                                            <FiSave /> Create Reminder
+                                        </button>
+                                    </>
+                                )}
+                                {!showCreateReminder && (
+                                    <button 
+                                        className="reminders-close-btn"
+                                        onClick={() => {
+                                            document.body.classList.remove('reminders-modal-open');
+                                            setShowReminders(false);
+                                            setShowCreateReminder(false);
+                                        }}
+                                    >
+                                        <FiX />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <div className="reminders-content">
+                            {showCreateReminder ? (
+                                <div className="create-reminder-form">
+                                    <div className="form-fields">
+                                        <div className="form-group">
+                                            <label htmlFor="reminder-title">Title *</label>
+                                            <input
+                                                id="reminder-title"
+                                                type="text"
+                                                placeholder="Enter reminder title..."
+                                                value={newReminder.title}
+                                                onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="reminder-description">Description</label>
+                                            <textarea
+                                                id="reminder-description"
+                                                placeholder="Enter reminder description (optional)..."
+                                                value={newReminder.description}
+                                                onChange={(e) => setNewReminder({...newReminder, description: e.target.value})}
+                                                rows={3}
+                                            />
+                                        </div>
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label htmlFor="reminder-date">Due Date *</label>
+                                                <input
+                                                    id="reminder-date"
+                                                    type="date"
+                                                    value={newReminder.dueDate}
+                                                    onChange={(e) => setNewReminder({...newReminder, dueDate: e.target.value})}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label htmlFor="reminder-time">Due Time</label>
+                                                <input
+                                                    id="reminder-time"
+                                                    type="time"
+                                                    value={newReminder.dueTime}
+                                                    onChange={(e) => setNewReminder({...newReminder, dueTime: e.target.value})}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    {folderReminders.length === 0 ? (
+                                        <div className="reminders-empty">
+                                            <div className="reminders-empty-icon">🔔</div>
+                                            <h4>No reminders set</h4>
+                                            <p>Create your first reminder to stay on track with this folder's tasks.</p>
+                                            <button 
+                                                className="add-reminder-btn"
+                                                onClick={() => setShowCreateReminder(true)}
+                                            >
+                                                <FiPlus /> Add Your First Reminder
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="reminders-list">
+                                            {folderReminders.map(reminder => (
+                                                <div 
+                                                    key={reminder.id} 
+                                                    className={`reminder-item ${reminder.completed ? 'completed' : ''}`}
+                                                >
+                                                    <div className="reminder-checkbox">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={reminder.completed}
+                                                            onChange={() => handleReminderToggle(reminder.id)}
+                                                        />
+                                                    </div>
+                                                    <div className="reminder-content">
+                                                        <div className="reminder-header">
+                                                            <h4 className="reminder-title">{reminder.title}</h4>
+                                                            <div className="reminder-actions">
+                                                                <span className={`reminder-date ${reminder.completed ? 'completed' : ''}`}>
+                                                                    <FiClock />
+                                                                    {formatReminderDate(reminder.dueDate)}
+                                                                </span>
+                                                                <button 
+                                                                    className="delete-reminder-btn"
+                                                                    onClick={() => handleReminderDelete(reminder.id)}
+                                                                    title="Delete reminder"
+                                                                >
+                                                                    <FiTrash2 />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        {reminder.description && (
+                                                            <p className="reminder-description">{reminder.description}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
