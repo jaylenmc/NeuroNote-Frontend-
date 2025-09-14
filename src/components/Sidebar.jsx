@@ -19,6 +19,23 @@ const Sidebar = ({
     toggleFolder,
     setSidebarContextMenu
 }) => {
+    const renderFolderItems = (folder) => {
+        if (!folder.items || folder.items.length === 0) return null;
+        
+        return folder.items.map(item => (
+            <div key={item.id} className="folder-item-content">
+                <span className="item-name" title={item.title || item.name || item.topic}>
+                    {item.type === 'document' && '📄 '}
+                    {item.type === 'deck' && '🃏 '}
+                    {item.type === 'quiz' && '📝 '}
+                    {(item.title || item.name || item.topic || 'Untitled').length > 15 
+                        ? (item.title || item.name || item.topic || 'Untitled').slice(0, 12) + '...'
+                        : (item.title || item.name || item.topic || 'Untitled')
+                    }
+                </span>
+            </div>
+        ));
+    };
     return (
         <div className={`dashboard-sidebar ${activeView === 'dashboard' ? 'dashboard-home-active' : ''}`}>
             <div className="sidebar-top">

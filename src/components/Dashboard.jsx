@@ -199,12 +199,24 @@ function Dashboard({ initialView }) {
             }
             
             const foldersWithCounts = (foldersData.folders || foldersData).map(folder => {
+                // Transform folder_document to items format for compatibility
+                const documents = (folder.folder_document || []).map(doc => ({
+                    id: doc.id,
+                    type: 'document',
+                    title: doc.title,
+                    created_at: doc.created_at,
+                    tag: doc.tag || null,
+                    saved: doc.saved,
+                    notes: doc.notes
+                }));
+
                 return {
                     ...folder,
                     documentCount: folder.content_num || 0,
                     deckCount: 0,
                     quizCount: 0,
-                    sub_folders: folder.sub_folders || []
+                    sub_folders: folder.sub_folders || [],
+                    items: documents // Include documents as items for compatibility
                 };
             });
             setFolders(foldersWithCounts);
@@ -229,18 +241,18 @@ function Dashboard({ initialView }) {
         if (name.trim()) {
             try {
                 const body = parentId
-                    ? { name: name.trim(), folder_id: parentId }
+                    ? { name: name.trim(), parent_folder_id: parentId }
                     : { name: name.trim() };
                 const response = await api.post('/folders/user/', body);
                 
                 if (response.status === 200 || response.status === 201) {
                     const newFolderData = response.data;
-                    if (newFolderData.folder) {
-                        setFolders(prev => [...prev, newFolderData.folder]);
+                    // The new API returns the created folder directly
+                    if (newFolderData) {
+                        // Refresh folders to get the updated structure with subfolders
+                        await fetchFolders();
                         setNewFolderName('');
                         setShowNewFolderModal(false);
-                    } else if (newFolderData.sub_folder) {
-                        fetchFolders();
                         setShowNewSubfolderModal(false);
                         setNewSubfolderName('');
                         setSubfolderParentId(null);
@@ -260,7 +272,6 @@ function Dashboard({ initialView }) {
             if (!response) return;
 
             if (response.status === 200 || response.status === 204) {
-                setFolders(folders.filter(f => f.id !== folderId));
                 showNotification(`${folder.name} successfully deleted`);
                 
                 if (selectedFolder?.id === folderId) {
@@ -272,6 +283,9 @@ function Dashboard({ initialView }) {
                         }
                     }
                 }
+                
+                // Refresh folders to get the updated structure
+                await fetchFolders();
             }
         } catch (error) {
             console.error('Error deleting folder:', error);
@@ -289,19 +303,29 @@ function Dashboard({ initialView }) {
         }
         
         try {
-            console.log('Fetching folder contents...');
-            const [documentsResponse, quizzesResponse] = await Promise.all([
-                api.get(`documents/notes/${folderId}/`),
-                api.get('test/quiz/')
-            ]);
-            
-            let folderDocuments = [];
-            let folderQuizzes = [];
+            // First check if we already have the folder with its contents
+            const existingFolder = folders.find(f => f.id === folderId);
+            let folderToUse = existingFolder;
 
-            if (documentsResponse && documentsResponse.status === 200) {
-                folderDocuments = documentsResponse.data;
-                console.log('Documents found:', folderDocuments.length);
+            // If the folder doesn't have items loaded, or we need fresh data, fetch it
+            if (!existingFolder || !existingFolder.folder_document || existingFolder.folder_document.length === 0) {
+                console.log('Fetching specific folder contents...');
+                const folderResponse = await api.get(`/folders/user/${folderId}/`);
+                
+                if (folderResponse.status === 200) {
+                    folderToUse = folderResponse.data;
+                    console.log('Fetched folder:', folderToUse);
+                } else {
+                    console.error('Failed to fetch folder:', folderResponse);
+                    setIsTransitioning(false);
+                    setIsFolderClickInProgress(false);
+                    return;
+                }
             }
+
+            // Fetch quizzes separately since they're not included in folder response
+            const quizzesResponse = await api.get('test/quiz/');
+            let folderQuizzes = [];
 
             if (quizzesResponse && quizzesResponse.status === 200) {
                 const allQuizzes = quizzesResponse.data;
@@ -309,32 +333,26 @@ function Dashboard({ initialView }) {
                 console.log('Quizzes found:', folderQuizzes.length);
             }
 
-            const folder = folders.find(f => f.id === folderId);
-            if (!folder) {
-                console.error('Folder not found:', folderId);
-                setIsTransitioning(false);
-                return;
-            }
+            // Transform the folder data to include items
+            const documents = (folderToUse.folder_document || []).map(doc => ({
+                id: doc.id,
+                type: 'document',
+                title: doc.title,
+                created_at: doc.created_at,
+                tag: doc.tag || null,
+                saved: doc.saved,
+                notes: doc.notes
+            }));
 
-            console.log('Original folder:', folder);
-
-            const existingItems = folder.items || [];
+            const existingItems = folderToUse.items || [];
             const existingNonDocQuizItems = existingItems.filter(item => 
                 item.type !== 'document' && item.type !== 'quiz'
             );
 
-                const updatedFolder = {
-                ...folder,
+            const updatedFolder = {
+                ...folderToUse,
                 items: [
-                    ...folderDocuments.map(doc => ({
-                        id: doc.id,
-                        type: 'document',
-                        title: doc.title,
-                        created_at: doc.created_at,
-                        tag: doc.tag || null,
-                        saved: doc.saved,
-                        notes: doc.notes
-                    })),
+                    ...documents,
                     ...folderQuizzes.map(quiz => ({
                         id: quiz.id,
                         type: 'quiz',
@@ -348,20 +366,25 @@ function Dashboard({ initialView }) {
 
             console.log('Updated folder:', updatedFolder);
 
-            setFolders(prevFolders => {
-                return prevFolders.map(f => {
-                    if (f.id === folderId) {
-                        return updatedFolder;
-                    }
-                    if (f.sub_folders) {
-                        return {
-                            ...f,
-                            sub_folders: f.sub_folders.map(sf => sf.id === folderId ? updatedFolder : sf)
-                        };
-                    }
-                    return f;
+            // Update the folders state if this folder wasn't already in it
+            if (!existingFolder) {
+                setFolders(prevFolders => [...prevFolders, updatedFolder]);
+            } else {
+                setFolders(prevFolders => {
+                    return prevFolders.map(f => {
+                        if (f.id === folderId) {
+                            return updatedFolder;
+                        }
+                        if (f.sub_folders) {
+                            return {
+                                ...f,
+                                sub_folders: f.sub_folders.map(sf => sf.id === folderId ? updatedFolder : sf)
+                            };
+                        }
+                        return f;
+                    });
                 });
-            });
+            }
             
             setSelectedFolder(updatedFolder);
             setActiveView('folder');
