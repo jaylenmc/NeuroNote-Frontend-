@@ -12,7 +12,7 @@ const NewSubfolderModal = ({
     return (
         <div className="dashboard-modal-overlay">
             <div className="dashboard-modal">
-                <h2>Create Subfolder</h2>
+                <h2>Create New Subfolder</h2>
                 <input
                     type="text"
                     value={newSubfolderName}

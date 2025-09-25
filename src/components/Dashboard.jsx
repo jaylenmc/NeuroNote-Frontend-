@@ -101,6 +101,46 @@ function Dashboard({ initialView }) {
     const [viewMode, setViewMode] = useState('grid');
     const [showNewItemDropdown, setShowNewItemDropdown] = useState(false);
     const fileInputRef = useRef(null);
+    // Helper: find a folder's parent name in the folder tree
+    const findParentName = (nodes, childId) => {
+        for (const node of nodes) {
+            if (Array.isArray(node.sub_folders) && node.sub_folders.some(sf => sf.id === childId)) {
+                return node.name;
+            }
+            if (Array.isArray(node.sub_folders) && node.sub_folders.length > 0) {
+                const found = findParentName(node.sub_folders, childId);
+                if (found) return found;
+            }
+        }
+        return undefined;
+    };
+
+    // Helper: find full ancestor chain names for a given folder id
+    const findAncestorNames = (nodes, childId, path = []) => {
+        for (const node of nodes) {
+            if (node.id === childId) {
+                return path;
+            }
+            if (Array.isArray(node.sub_folders) && node.sub_folders.length > 0) {
+                const result = findAncestorNames(node.sub_folders, childId, [...path, node.name]);
+                if (result) return result;
+            }
+        }
+        return undefined;
+    };
+
+    // Helper: find a folder by id anywhere in the folder tree
+    const findFolderInTree = (nodes, targetId) => {
+        for (const node of nodes) {
+            if (String(node.id) === String(targetId)) return node;
+            if (Array.isArray(node.sub_folders) && node.sub_folders.length > 0) {
+                const found = findFolderInTree(node.sub_folders, targetId);
+                if (found) return found;
+            }
+        }
+        return undefined;
+    };
+
 
     const [showNewSubfolderModal, setShowNewSubfolderModal] = useState(false);
     const [newSubfolderName, setNewSubfolderName] = useState('');
@@ -220,13 +260,16 @@ function Dashboard({ initialView }) {
                 };
             });
             setFolders(foldersWithCounts);
-            
+
             if (selectedFolder && isMounted) {
-                const updatedSelectedFolder = foldersWithCounts.find(f => f.id === selectedFolder.id);
+                const updatedSelectedFolder = findFolderInTree(foldersWithCounts, selectedFolder.id);
                 if (updatedSelectedFolder) {
-                    setSelectedFolder(updatedSelectedFolder);
+                    const parentName = findParentName(foldersWithCounts, updatedSelectedFolder.id);
+                    const ancestorNames = findAncestorNames(foldersWithCounts, updatedSelectedFolder.id) || [];
+                    setSelectedFolder({ ...updatedSelectedFolder, parent_name: parentName, ancestor_names: ancestorNames });
                 }
             }
+            return foldersWithCounts;
         } catch (error) {
             console.error('Error fetching folders:', error);
         } finally {
@@ -250,7 +293,18 @@ function Dashboard({ initialView }) {
                     // The new API returns the created folder directly
                     if (newFolderData) {
                         // Refresh folders to get the updated structure with subfolders
-                        await fetchFolders();
+                        const updatedTree = await fetchFolders();
+                        // If we created a subfolder, ensure the parent view is refreshed and expanded using the fresh tree
+                        if (parentId && Array.isArray(updatedTree)) {
+                            setExpandedFolders(prev => ({ ...prev, [parentId]: true }));
+                            const refreshedParent = findFolderInTree(updatedTree, parentId);
+                            if (refreshedParent) {
+                                const parentName = findParentName(updatedTree, refreshedParent.id);
+                                const ancestorNames = findAncestorNames(updatedTree, refreshedParent.id) || [];
+                                setSelectedFolder({ ...refreshedParent, parent_name: parentName, ancestor_names: ancestorNames });
+                                setActiveView('folder');
+                            }
+                        }
                         setNewFolderName('');
                         setShowNewFolderModal(false);
                         setShowNewSubfolderModal(false);
@@ -366,27 +420,29 @@ function Dashboard({ initialView }) {
 
             console.log('Updated folder:', updatedFolder);
 
-            // Update the folders state if this folder wasn't already in it
-            if (!existingFolder) {
-                setFolders(prevFolders => [...prevFolders, updatedFolder]);
-            } else {
-                setFolders(prevFolders => {
-                    return prevFolders.map(f => {
-                        if (f.id === folderId) {
-                            return updatedFolder;
+            // Helper: replace a folder anywhere in the tree without promoting it to top-level
+            const replaceFolderInTree = (nodes, updated) => {
+                return nodes.map(node => {
+                    if (node.id === updated.id) {
+                        return updated;
+                    }
+                    if (Array.isArray(node.sub_folders) && node.sub_folders.length > 0) {
+                        const newSubs = replaceFolderInTree(node.sub_folders, updated);
+                        // Only create a new object if subfolders changed reference
+                        if (newSubs !== node.sub_folders) {
+                            return { ...node, sub_folders: newSubs };
                         }
-                        if (f.sub_folders) {
-                            return {
-                                ...f,
-                                sub_folders: f.sub_folders.map(sf => sf.id === folderId ? updatedFolder : sf)
-                            };
-                        }
-                        return f;
-                    });
+                    }
+                    return node;
                 });
-            }
+            };
+
+            // Update folders by replacing the node in-place within the tree
+            setFolders(prevFolders => replaceFolderInTree(prevFolders, updatedFolder));
             
-            setSelectedFolder(updatedFolder);
+            const parentName = findParentName(folders, updatedFolder.id);
+            const ancestorNames = findAncestorNames(folders, updatedFolder.id) || [];
+            setSelectedFolder({ ...updatedFolder, parent_name: parentName, ancestor_names: ancestorNames });
             setActiveView('folder');
         
             console.log('Setting activeView to folder, selectedFolder:', updatedFolder);
@@ -753,14 +809,18 @@ function Dashboard({ initialView }) {
                         saved: doc.saved,
                         notes: doc.notes
                     }));
-                    setSelectedFolder({ ...folder, items });
+                    const parentName = findParentName(folders, folder.id);
+                    const ancestorNames = findAncestorNames(folders, folder.id) || [];
+                    setSelectedFolder({ ...folder, items, parent_name: parentName, ancestor_names: ancestorNames });
                 } else {
                     // Only set selectedFolder if we don't already have it selected with the same ID
                     // AND if the current selectedFolder doesn't have items (meaning it was just fetched)
                     if (!selectedFolder || 
                         selectedFolder.id !== folder.id || 
                         (selectedFolder.id === folder.id && !selectedFolder.items)) {
-                        setSelectedFolder(folder);
+                        const parentName = findParentName(folders, folder.id);
+                        const ancestorNames = findAncestorNames(folders, folder.id) || [];
+                        setSelectedFolder({ ...folder, parent_name: parentName, ancestor_names: ancestorNames });
                     }
                 }
                 setActiveView('folder');
@@ -812,7 +872,7 @@ function Dashboard({ initialView }) {
         const isFirstLogin = !lastLogin;
         
         setIsNewUser(isFirstLogin);
-        showNotification(isFirstLogin ? `Welcome ${user?.email?.split('@')[0]}` : 'Welcome Back!');
+        // Removed welcome back message
 
         localStorage.setItem('lastLogin', new Date().toISOString());
     }, []);
@@ -831,10 +891,13 @@ function Dashboard({ initialView }) {
                         showNewItemDropdown={showNewItemDropdown}
                         setShowNewItemDropdown={setShowNewItemDropdown}
                         handleAddItem={handleAddItem}
+                        handleFolderClick={handleFolderClick}
                         handleDeckClick={handleDeckClick}
                         handleQuizClick={handleQuizClick}
                         handleContextMenu={handleContextMenu}
                         getFolderItemCount={getFolderItemCount}
+                        setShowNewSubfolderModal={setShowNewSubfolderModal}
+                        setSubfolderParentId={setSubfolderParentId}
                     />
                 );
             case 'deck':

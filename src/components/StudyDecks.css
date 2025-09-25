@@ -19,7 +19,7 @@
 .study-decks-header h2 {
     font-size: 1.8rem;
     font-weight: 600;
-    margin: 0;
+    margin-left: 7rem;
     flex: 1;
 }
 
@@ -64,12 +64,11 @@
 
 /* --- Isolated StudyDecks styles --- */
 .studydeck-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2.5rem;
+  column-count: 3;
+  column-gap: 2.5rem;
+  column-fill: balance;
   width: 100%;
   padding: 1rem 0;
-  align-items: start;
 }
 
 .studydeck-card {
@@ -79,11 +78,13 @@
   padding: 2.2rem 1.7rem 2.5rem 1.7rem;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   background-color: #1a1a1a;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 2.5rem;
+  display: inline-block;
   border-radius: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #f3f4f8;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   transition: background 0.18s, border 0.18s;
   box-sizing: border-box;
@@ -115,34 +116,40 @@
 /* Responsive breakpoints */
 @media (max-width: 1200px) {
   .studydeck-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    column-count: 2;
+    column-gap: 2rem;
+  }
+  
+  .studydeck-card {
+    margin-bottom: 2rem;
   }
 }
 
 @media (max-width: 768px) {
   .studydeck-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+    column-count: 2;
+    column-gap: 1.5rem;
     padding: 0.5rem 0;
   }
   
   .studydeck-card {
     min-height: 260px;
     padding: 1.8rem 1.4rem 2rem 1.4rem;
+    margin-bottom: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .studydeck-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    column-count: 1;
+    column-gap: 0;
     padding: 0;
   }
   
   .studydeck-card {
     min-height: 240px;
     padding: 1.5rem 1.2rem 1.8rem 1.2rem;
+    margin-bottom: 1rem;
   }
 }
 
@@ -763,16 +770,6 @@
 @media (max-width: 768px) {
     .study-decks-container {
         padding: 1rem;
-    }
-    
-    .studydeck-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .deck-card {
-        max-width: 100%;
-        padding: 2rem 1.5rem 1.5rem 1.5rem;
     }
     
     .study-decks-header {

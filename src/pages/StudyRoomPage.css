@@ -41,7 +41,7 @@
 
 .study-room-sidebar {
   width: 280px;
-  background: linear-gradient(135deg, rgba(37, 37, 37, 0.8) 0%, rgba(45, 45, 45, 0.7) 100%);
+  background: red;
   backdrop-filter: blur(10px);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;

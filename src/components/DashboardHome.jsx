@@ -206,7 +206,7 @@ const DashboardHome = () => {
         </div>
         <div className="greeting-area">
           <h1 className="greeting-title">
-            Welcome back, {getUsername()} 👋
+            {getUsername()}
           </h1>
           <p className="greeting-subtitle">Ready to crush your goals today?</p>
           <div className="streak-area">

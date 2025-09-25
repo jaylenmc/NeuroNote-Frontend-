@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FiFileText, FiEdit2, FiPlus, FiUpload, FiGrid, FiList, FiShare2, FiTrash2, FiFolderPlus, FiSearch, FiBell, FiClock, FiX, FiSave } from 'react-icons/fi';
+import { FiFileText, FiEdit2, FiPlus, FiUpload, FiGrid, FiList, FiShare2, FiTrash2, FiFolderPlus, FiSearch, FiBell, FiClock, FiX, FiSave, FiFolder, FiFile, FiBookOpen, FiCalendar } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import deckIcon from '../assets/deck.svg';
 import testIcon from '../assets/test.svg';
@@ -39,9 +39,12 @@ const FolderView = ({
     setShowNewItemDropdown,
     handleAddItem,
     handleDeckClick,
+    handleFolderClick,
     handleQuizClick,
     handleContextMenu,
-    getFolderItemCount
+    getFolderItemCount,
+    setShowNewSubfolderModal,
+    setSubfolderParentId
 }) => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
@@ -162,7 +165,10 @@ const FolderView = ({
     if (!selectedFolder) return null;
 
     const renderFolderItems = (folder) => {
-        if (!folder.items || folder.items.length === 0) {
+        const hasItems = Array.isArray(folder.items) && folder.items.length > 0;
+        const hasSubfolders = Array.isArray(folder.sub_folders) && folder.sub_folders.length > 0;
+
+        if (!hasItems && !hasSubfolders) {
             return (
                 <div className="empty-state">
                     <div className="empty-state-content">
@@ -178,21 +184,24 @@ const FolderView = ({
                             </button>
                             <button 
                                 className="empty-state-btn"
-                                onClick={() => handleAddItem(folder.id, 'folder')}
+                                onClick={() => {
+                                    setSubfolderParentId(folder.id);
+                                    setShowNewSubfolderModal(true);
+                                }}
                             >
-                                <FiFolderPlus /> Create Subfolder
+                                <FiFolder size={14} /> Create Subfolder
                             </button>
                             <button 
                                 className="empty-state-btn"
                                 onClick={() => handleAddItem(folder.id, 'deck')}
                             >
-                                <img src={deckIcon} alt="deck" /> Import Deck
+                                <FiBookOpen size={14} /> Import Deck
                             </button>
                             <button 
                                 className="empty-state-btn"
                                 onClick={() => handleAddItem(folder.id, 'quiz')}
                             >
-                                <img src={testIcon} alt="quiz" /> Import Quiz
+                                <FiFile size={14} /> Import Quiz
                             </button>
                         </div>
                     </div>
@@ -200,8 +209,8 @@ const FolderView = ({
             );
         }
 
-        // Show search results or no results message
-        if (filteredItems.length === 0 && searchQuery.trim()) {
+        // Show search results or no results message (for documents/quizzes/decks)
+        if (filteredItems.length === 0 && searchQuery.trim() && hasItems) {
             return (
                 <div className="empty-state">
                     <div className="empty-state-content">
@@ -221,6 +230,30 @@ const FolderView = ({
 
         return (
             <div className="folderview-items">
+                {hasSubfolders && (
+                    <div className="folderview-subfolders">
+                        {folder.sub_folders.map(sf => (
+                            <div 
+                                key={sf.id} 
+                                className="folder-item folder-item--subfolder"
+                                onClick={(e) => handleFolderClick(sf.id, e)}
+                                onContextMenu={(e) => handleContextMenu(e, 'folder', sf.id)}
+                            >
+                                <div className="folder-item__icon">
+                                    <FiFolder size={16} />
+                                </div>
+                                <div className="folder-item__content">
+                                    <h3 className="folder-item__title">{sf.name}</h3>
+                                </div>
+                                <div className="folder-item__right-section">
+                                    <div className="subfolder-notification-badge">
+                                        Reminders: {Math.floor(Math.random() * 5) + 1}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
                 {filteredItems.map(item => (
                     <div 
                         key={item.id} 
@@ -238,9 +271,9 @@ const FolderView = ({
                         onContextMenu={(e) => handleContextMenu(e, item.type, item.id)}
                     >
                         <div className="folder-item__icon">
-                            {item.type === 'document' && <FiFileText />}
-                            {item.type === 'deck' && <img src={deckIcon} alt="deck" />}
-                            {item.type === 'quiz' && <img src={testIcon} alt="quiz" />}
+                            {item.type === 'document' && <FiFileText size={16} />}
+                            {item.type === 'deck' && <FiBookOpen size={16} />}
+                            {item.type === 'quiz' && <FiFile size={16} />}
                         </div>
                         
                         <div className="folder-item__content">
@@ -312,7 +345,12 @@ const FolderView = ({
                         <div className="folder-title-section">
                             <div className="folder-title-with-icon">
                                 <span className="folder-icon">📂</span>
-                                <h2 className="folder-title">{selectedFolder.name}</h2>
+                                <h2 className="folder-title">
+                                    {Array.isArray(selectedFolder.ancestor_names) && selectedFolder.ancestor_names.length > 0
+                                        ? `${selectedFolder.ancestor_names.join(' / ')} / ${selectedFolder.name}`
+                                        : (selectedFolder.parent_name ? `${selectedFolder.parent_name} / ${selectedFolder.name}` : selectedFolder.name)
+                                    }
+                                </h2>
                             </div>
                             <p className="folder-subtitle">Categorized notes, all in one place.</p>
                         </div>
@@ -347,7 +385,7 @@ const FolderView = ({
                             }}
                             title="View reminders"
                         >
-                            <FiBell />
+                            <FiBell size={16} />
                             {folderReminders.filter(r => !r.completed).length > 0 && (
                                 <span className="reminder-badge">
                                     {folderReminders.filter(r => !r.completed).length}
@@ -366,14 +404,18 @@ const FolderView = ({
                                 <button onClick={handleCreateDocument}>
                                     <FiFileText /> Document
                                 </button>
-                                <button onClick={() => handleAddItem(selectedFolder.id, 'folder')}>
-                                    <FiFolderPlus /> Subfolder
+                                <button onClick={() => {
+                                    setSubfolderParentId(selectedFolder.id);
+                                    setShowNewSubfolderModal(true);
+                                    setShowNewItemDropdown(false);
+                                }}>
+                                    <FiFolder size={14} /> Subfolder
                                 </button>
                                 <button onClick={() => handleAddItem(selectedFolder.id, 'deck')}>
-                                    <img src={deckIcon} alt="deck" /> Import Deck
+                                    <FiBookOpen size={14} /> Import Deck
                                 </button>
                                 <button onClick={() => handleAddItem(selectedFolder.id, 'quiz')}>
-                                    <img src={testIcon} alt="quiz" /> Import Quiz
+                                    <FiFile size={14} /> Import Quiz
                                 </button>
                                 <button onClick={() => document.getElementById('file-upload').click()}>
                                     <FiUpload /> Upload File
@@ -558,7 +600,7 @@ const FolderView = ({
                                                             <h4 className="reminder-title">{reminder.title}</h4>
                                                             <div className="reminder-actions">
                                                                 <span className={`reminder-date ${reminder.completed ? 'completed' : ''}`}>
-                                                                    <FiClock />
+                                                                    <FiClock size={14} />
                                                                     {formatReminderDate(reminder.dueDate)}
                                                                 </span>
                                                                 <button 

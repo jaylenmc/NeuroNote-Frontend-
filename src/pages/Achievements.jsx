@@ -23,7 +23,9 @@ const Achievements = () => {
         const response = await makeAuthenticatedRequest(`${apiUrl}achievements/user/`);
         if (!response) throw new Error('No response from server');
         if (response.status !== 200) throw new Error(response.data?.message || 'Failed to fetch achievements');
-        setAchievements(response.data);
+        // Ensure we always set an array
+        const achievementsData = Array.isArray(response.data) ? response.data : [];
+        setAchievements(achievementsData);
       } catch (err) {
         setError(err.message || 'Failed to fetch achievements');
       } finally {
@@ -35,6 +37,7 @@ const Achievements = () => {
 
   // Generate categories from achievement families
   const getCategories = () => {
+    if (!Array.isArray(achievements)) return ["All", "General"];
     const families = [...new Set(achievements.map(a => a.family).filter(Boolean))];
     return ["All", "General", ...families];
   };
@@ -42,14 +45,15 @@ const Achievements = () => {
   const categories = getCategories();
 
   // Filter achievements based on selected category
-  const filteredAchievements = selectedCategory === "All" 
+  const filteredAchievements = !Array.isArray(achievements) ? [] :
+    selectedCategory === "All" 
     ? achievements 
     : selectedCategory === "General"
     ? achievements.filter(achievement => !achievement.family || achievement.family === "General")
     : achievements.filter(achievement => achievement.family === selectedCategory);
 
-  const unlockedCount = achievements.length; // All achievements from backend are considered unlocked for now
-  const totalCount = achievements.length;
+  const unlockedCount = Array.isArray(achievements) ? achievements.length : 0; // All achievements from backend are considered unlocked for now
+  const totalCount = Array.isArray(achievements) ? achievements.length : 0;
 
   const getCategoryIcon = (category) => {
     switch (category) {

@@ -73,7 +73,7 @@ const ReviewPage = () => {
         </div>
       </div>
       <div className="review-session-title-block enhanced-title-block">
-        <div className="review-greeting">Welcome back, {userName} <span className="wave">👋</span></div>
+        <div className="review-greeting">{userName} <span className="wave">👋</span></div>
         <h2 className="review-session-title gradient-title">
           <FaBrain className="brain-icon" /> Review Session
         </h2>

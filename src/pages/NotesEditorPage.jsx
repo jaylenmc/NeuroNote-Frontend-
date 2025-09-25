@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiSave, FiGlobe, FiTag, FiX, FiList, FiMaximize2, FiMinimize2 } from 'react-icons/fi';
+import { FiSave, FiGlobe, FiTag, FiX, FiList, FiMaximize2, FiMinimize2, FiGrid } from 'react-icons/fi';
 import { FaListOl } from 'react-icons/fa';
 import api from '../api/axios';
 import './NotesEditorPage.css';
@@ -19,6 +19,12 @@ const NotesEditorPage = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [currentDocumentId, setCurrentDocumentId] = useState(null);
   const [currentFolderId, setCurrentFolderId] = useState(null);
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [tableRows, setTableRows] = useState(3);
+  const [tableCols, setTableCols] = useState(3);
+  const [showTableContextMenu, setShowTableContextMenu] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+  const [isDragOver, setIsDragOver] = useState(false);
   const contentRef = useRef(null);
 
   // Set content programmatically only when content changes from outside (e.g., loading a doc)
@@ -27,6 +33,14 @@ const NotesEditorPage = () => {
       contentRef.current.innerHTML = content;
     }
   }, [content]);
+
+  // Handle clicks outside context menu
+  useEffect(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showTableContextMenu]);
 
   // Load document if editing
   useEffect(() => {
@@ -59,6 +73,225 @@ const NotesEditorPage = () => {
   const formatText = (cmd, value = null) => {
     document.execCommand(cmd, false, value);
     contentRef.current && setContent(contentRef.current.innerHTML);
+  };
+
+  // Table functions
+  const insertTable = () => {
+    const table = createTableHTML(tableRows, tableCols);
+    console.log('Inserting table:', table);
+    
+    // Focus the content area first
+    if (contentRef.current) {
+      contentRef.current.focus();
+      
+      // Try multiple methods to insert the table
+      try {
+        // Method 1: execCommand
+        const success = document.execCommand('insertHTML', false, table);
+        console.log('execCommand success:', success);
+        
+        if (!success) {
+          // Method 2: Direct DOM manipulation
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = table;
+            const fragment = document.createDocumentFragment();
+            while (tempDiv.firstChild) {
+              fragment.appendChild(tempDiv.firstChild);
+            }
+            range.insertNode(fragment);
+            selection.removeAllRanges();
+          } else {
+            // Method 3: Append to content
+            contentRef.current.innerHTML += table;
+          }
+        }
+        
+        // Update content state
+        setContent(contentRef.current.innerHTML);
+        setShowTableModal(false);
+      } catch (error) {
+        console.error('Error inserting table:', error);
+        // Fallback: append to content
+        contentRef.current.innerHTML += table;
+        setContent(contentRef.current.innerHTML);
+        setShowTableModal(false);
+      }
+    }
+  };
+
+  const createTableHTML = (rows, cols) => {
+    let tableHTML = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0; min-height: 100px;">';
+    
+    for (let i = 0; i < rows; i++) {
+      tableHTML += '<tr>';
+      for (let j = 0; j < cols; j++) {
+        const isHeader = i === 0;
+        const tag = isHeader ? 'th' : 'td';
+        tableHTML += `<${tag} style="border: 1px solid #ddd; padding: 8px; text-align: left; width: ${100/cols}%; min-height: 30px; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; white-space: normal; ${isHeader ? 'font-weight: bold;' : ''}" contenteditable="true">&nbsp;</${tag}>`;
+      }
+      tableHTML += '</tr>';
+    }
+    
+    tableHTML += '</table>';
+    return tableHTML;
+  };
+
+  const addTableRow = () => {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const table = range.commonAncestorContainer.closest('table');
+      if (table) {
+        const tbody = table.querySelector('tbody') || table;
+        const lastRow = tbody.querySelector('tr:last-child');
+        if (lastRow) {
+          const newRow = lastRow.cloneNode(true);
+          // Clear cell content and make them editable
+          const cells = newRow.querySelectorAll('td, th');
+          cells.forEach((cell) => {
+            cell.innerHTML = '&nbsp;';
+            cell.setAttribute('contenteditable', 'true');
+          });
+          tbody.appendChild(newRow);
+          contentRef.current && setContent(contentRef.current.innerHTML);
+        }
+      }
+    }
+  };
+
+  const addTableColumn = () => {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const table = range.commonAncestorContainer.closest('table');
+      if (table) {
+        const rows = table.querySelectorAll('tr');
+        const colIndex = rows[0].children.length;
+        
+        // Update existing cells to have equal width
+        rows.forEach((row) => {
+          const cells = Array.from(row.children);
+          const newWidth = `${100 / (cells.length + 1)}%`;
+          cells.forEach(cell => {
+            cell.style.width = newWidth;
+          });
+        });
+
+        rows.forEach((row, rowIndex) => {
+          const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
+          cell.style.border = '1px solid #ddd';
+          cell.style.padding = '8px';
+          cell.style.textAlign = 'left';
+          cell.style.width = `${100 / (row.children.length + 1)}%`;
+          cell.style.minHeight = '30px';
+          cell.style.wordWrap = 'break-word';
+          cell.style.wordBreak = 'break-word';
+          cell.style.overflowWrap = 'break-word';
+          cell.style.whiteSpace = 'normal';
+          cell.setAttribute('contenteditable', 'true');
+          cell.innerHTML = '&nbsp;';
+          
+          if (rowIndex === 0) {
+            cell.style.fontWeight = 'bold';
+          }
+          row.appendChild(cell);
+        });
+        
+        contentRef.current && setContent(contentRef.current.innerHTML);
+      }
+    }
+  };
+
+  const deleteTable = () => {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const table = range.commonAncestorContainer.closest('table');
+      if (table) {
+        table.remove();
+        contentRef.current && setContent(contentRef.current.innerHTML);
+      }
+    }
+    setShowTableContextMenu(false);
+  };
+
+  const handleTableContextMenu = (e) => {
+    const table = e.target.closest('table');
+    if (table) {
+      e.preventDefault();
+      setContextMenuPosition({ x: e.clientX, y: e.clientY });
+      setShowTableContextMenu(true);
+    }
+  };
+
+  const handleClickOutside = (e) => {
+    if (showTableContextMenu && !e.target.closest('.table-context-menu')) {
+      setShowTableContextMenu(false);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set drag over to false if we're leaving the content area entirely
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+    if (imageFiles.length > 0) {
+      imageFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = document.createElement('img');
+          img.src = event.target.result;
+          img.style.maxWidth = '100%';
+          img.style.height = 'auto';
+          img.style.display = 'block';
+          img.style.margin = '10px 0';
+          img.style.borderRadius = '8px';
+          img.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+          
+          // Insert image at cursor position or at the end
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(img);
+            range.setStartAfter(img);
+            range.setEndAfter(img);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          } else if (contentRef.current) {
+            contentRef.current.appendChild(img);
+          }
+          
+          // Update content state
+          if (contentRef.current) {
+            setContent(contentRef.current.innerHTML);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
   };
 
   const handleAddTag = () => {
@@ -211,6 +444,19 @@ const NotesEditorPage = () => {
         <div className="format-divider"></div>
         <button className="format-btn" onClick={() => formatText('insertUnorderedList')} title="Bullet List"><FiList size={16} /></button>
         <button className="format-btn" onClick={() => formatText('insertOrderedList')} title="Numbered List"><FaListOl size={16} /></button>
+        <div className="format-divider"></div>
+        <button className="format-btn" onClick={() => {
+          console.log('Table button clicked');
+          setShowTableModal(true);
+        }} title="Insert Table"><FiGrid size={16} /></button>
+        <button className="format-btn" onClick={() => {
+          console.log('Test table button clicked');
+          const testTable = createTableHTML(2, 2);
+          if (contentRef.current) {
+            contentRef.current.innerHTML += testTable;
+            setContent(contentRef.current.innerHTML);
+          }
+        }} title="Test Table">T</button>
         <div className="formatting-toolbar-right">
           <button className="toolbar-action-btn" onClick={() => {/* TODO: Export handler */}} title="Export">📤 Export</button>
           <button className="toolbar-action-btn" onClick={() => {/* TODO: PDF handler */}} title="Export as PDF">📄 PDF</button>
@@ -230,14 +476,98 @@ const NotesEditorPage = () => {
         <div
           ref={contentRef}
           contentEditable={true}
-          className="notes-content-editable"
+          className={`notes-content-editable ${isDragOver ? 'drag-over' : ''}`}
           onInput={e => setContent(e.currentTarget.innerHTML)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          onContextMenu={handleTableContextMenu}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           suppressContentEditableWarning={true}
           style={{ minHeight: 300 }}
         />
       </div>
+
+      {/* Table Modal */}
+      {showTableModal && (
+        <div className="modal-overlay" onClick={() => {
+          console.log('Modal overlay clicked');
+          setShowTableModal(false);
+        }}>
+          <div className="modal-content" onClick={e => {
+            console.log('Modal content clicked');
+            e.stopPropagation();
+          }}>
+            <div className="modal-header">
+              <h3>Insert Table</h3>
+              <button className="modal-close" onClick={() => setShowTableModal(false)}>
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="table-size-controls">
+                <div className="size-control">
+                  <label>Rows:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={tableRows}
+                    onChange={e => setTableRows(parseInt(e.target.value) || 1)}
+                  />
+                </div>
+                <div className="size-control">
+                  <label>Columns:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={tableCols}
+                    onChange={e => setTableCols(parseInt(e.target.value) || 1)}
+                  />
+                </div>
+              </div>
+              <div className="table-preview">
+                <div className="preview-label">Preview:</div>
+                <div dangerouslySetInnerHTML={{ __html: createTableHTML(tableRows, tableCols) }} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowTableModal(false)}>
+                Cancel
+              </button>
+              <button className="btn-primary" onClick={insertTable}>
+                Insert Table
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Table Context Menu */}
+      {showTableContextMenu && (
+        <div 
+          className="table-context-menu" 
+          style={{ 
+            display: 'block',
+            position: 'fixed',
+            left: contextMenuPosition.x,
+            top: contextMenuPosition.y,
+            zIndex: 1002
+          }}
+        >
+          <button onClick={() => {
+            addTableRow();
+            setShowTableContextMenu(false);
+          }}>Add Row</button>
+          <button onClick={() => {
+            addTableColumn();
+            setShowTableContextMenu(false);
+          }}>Add Column</button>
+          <button onClick={deleteTable}>Delete Table</button>
+        </div>
+      )}
     </div>
   );
 };

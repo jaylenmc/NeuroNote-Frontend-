@@ -537,13 +537,10 @@ export default function DeckContent() {
 
   return (
     <>
-      <div className="page-background-image"></div>
-      <nav className="deck-navbar">
-        <div className="navbar-content">
+     <div className="main-content-header">
           <button className="back-button" onClick={() => navigate('/study-room/decks')}><FiArrowLeft /> Back</button>
           <button className="add-card-btn" onClick={() => setShowAdd(true)} disabled={!deck}><FiPlus /> Add New Card</button>
         </div>
-      </nav>
       <div className="deck-content-page">
         <div className="deck-header">
           <div className="deck-header-content">
