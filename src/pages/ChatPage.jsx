@@ -19,6 +19,12 @@ const ChatPage = () => {
     const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
     const [currentSubject, setCurrentSubject] = useState('Biology');
     const [currentFocus, setCurrentFocus] = useState('Chapter 3: Cell Biology');
+    const [pinnedNotes, setPinnedNotes] = useState([
+        { id: 1, title: "Biology Chapter 3", type: "document", icon: "📚" },
+        { id: 2, title: "Cell Structure Notes", type: "file", icon: "📄" },
+        { id: 3, title: "Mitosis Process", type: "link", icon: "🔗" }
+    ]);
+    const [isStudyMode, setIsStudyMode] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -132,72 +138,229 @@ const ChatPage = () => {
         { title: "Make a 5-question quiz", icon: "🧪", prompt: "Create a 5-question quiz based on..." }
     ];
 
+    const quickActions = [
+        { 
+            title: "Summarize my notes", 
+            icon: "📚", 
+            prompt: "Please summarize my notes and highlight the key concepts" 
+        },
+        { 
+            title: "Make flashcards from this text", 
+            icon: "✍️", 
+            prompt: "Create flashcards from this text with questions and answers" 
+        },
+        { 
+            title: "Test me with a quiz", 
+            icon: "🎯", 
+            prompt: "Create a quiz to test my understanding of this material" 
+        }
+    ];
+
+    const studyModeActions = [
+        { 
+            title: "Explain this concept", 
+            icon: "🧠", 
+            prompt: "Please explain this concept in detail with examples" 
+        },
+        { 
+            title: "Create study questions", 
+            icon: "❓", 
+            prompt: "Generate study questions to help me understand this topic" 
+        },
+        { 
+            title: "Review key points", 
+            icon: "📝", 
+            prompt: "Help me review the key points and important details" 
+        }
+    ];
+
+    const getCurrentQuickActions = () => {
+        return isStudyMode ? studyModeActions : quickActions;
+    };
+
     const handlePromptClick = (prompt) => {
         setInput(prompt.prompt);
         inputRef.current?.focus();
     };
 
+    const handleQuickActionClick = (action) => {
+        setInput(action.prompt);
+        inputRef.current?.focus();
+    };
+
+    const handlePinNote = () => {
+        // This would typically open a modal to select resources from Study Room
+        // For now, we'll add a placeholder function
+        console.log('Open pin resource modal');
+    };
+
+    const handleUnpinNote = (noteId) => {
+        setPinnedNotes(prev => prev.filter(note => note.id !== noteId));
+    };
+
+    const handlePinnedNoteClick = (note) => {
+        // This would typically reference the pinned note in the chat
+        const referenceText = `Please reference my pinned note: "${note.title}"`;
+        setInput(referenceText);
+        inputRef.current?.focus();
+    };
+
+    const handleStudyModeToggle = () => {
+        setIsStudyMode(prev => !prev);
+    };
+
     return (
         <div className="chat-page">
-            {/* Top Section - Page Header Card */}
-            <div className="page-header-card">
-                <div className="header-content">
-                    <div className="header-left">
+            {/* Left Sidebar */}
+            <div className="chat-sidebar">
+                <div className="sidebar-header">
+                    <h2 className="sidebar-title">
+                        <span className="chat-emoji">💬</span>
+                        Ask NeuroNote
+                    </h2>
+                    <p className="sidebar-subtitle">Your AI study assistant – ready to help with notes, flashcards, and problem solving.</p>
+                </div>
+                
+                <div className="sidebar-actions">
+                    <button 
+                        className="sidebar-action-btn"
+                        onClick={() => navigate('/study-room')}
+                    >
+                        <FiArrowLeft />
+                        Back to Study Room
+                    </button>
+                    <button 
+                        className="sidebar-action-btn"
+                        onClick={() => navigate('/study-room/decks')}
+                    >
+                        📚 Flashcards
+                    </button>
+                    <button 
+                        className="sidebar-action-btn"
+                        onClick={() => navigate('/quiz')}
+                    >
+                        🧪 Quiz Battle
+                    </button>
+                    <button 
+                        className="sidebar-action-btn"
+                        onClick={() => navigate('/focus')}
+                    >
+                        🎯 Focus Mode
+                    </button>
+                    <button 
+                        className="sidebar-action-btn"
+                        onClick={handleClearChat}
+                    >
+                        <FiTrash2 />
+                        Clear Chat
+                    </button>
+                </div>
+
+                {/* Quick Prompts Section */}
+                <div className="sidebar-section">
+                    <h4 style={{ color: '#B0B0B0', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Quick Prompts</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {quickPrompts.map((prompt, index) => (
+                            <button
+                                key={index}
+                                className="sidebar-action-btn"
+                                onClick={() => handlePromptClick(prompt)}
+                                style={{ fontSize: '0.85rem', padding: '0.6rem 0.8rem' }}
+                            >
+                                {prompt.icon} {prompt.title}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Pinned Notes Section */}
+                <div className="chat-pinned-section">
+                    <div className="chat-pinned-header">
+                        <h4 className="chat-pinned-title">Pinned Notes</h4>
                         <button 
-                            className="back-button"
-                            onClick={() => navigate('/study-room')}
+                            className="chat-pinned-add-btn"
+                            onClick={handlePinNote}
                         >
-                            <FiArrowLeft /> Back
+                            + Add
                         </button>
-                        <div className="header-title-section">
-                            <div className="header-icon">💬</div>
-                            <div className="header-text">
-                                <h1 className="page-title">Ask NeuroNote</h1>
-                                <p className="page-subtitle">Your AI-powered study assistant.</p>
+                    </div>
+                    
+                    <div className="chat-pinned-list">
+                        {pinnedNotes.length === 0 ? (
+                            <div className="chat-pinned-empty">
+                                No pinned notes yet
                             </div>
-                        </div>
+                        ) : (
+                            pinnedNotes.map((note) => (
+                                <div 
+                                    key={note.id} 
+                                    className="chat-pinned-item"
+                                    onClick={() => handlePinnedNoteClick(note)}
+                                >
+                                    <span className="chat-pinned-item-icon">{note.icon}</span>
+                                    <span className="chat-pinned-item-text">{note.title}</span>
+                                    <button 
+                                        className="chat-pinned-item-remove"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUnpinNote(note.id);
+                                        }}
+                                        title="Remove pinned note"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))
+                        )}
                     </div>
-                    <div className="header-actions">
-                        <button 
-                            className="action-button"
-                            onClick={handleClearChat}
-                            title="Clear chat"
-                        >
-                            <FiTrash2 />
-                        </button>
-                        <button 
-                            className="action-button"
-                            onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
-                            title="Chat tools"
-                        >
-                            ☰
-                        </button>
-                    </div>
+                </div>
+
+                {/* Study Mode Toggle */}
+                <div className="chat-study-mode-section">
+                    <button 
+                        className={`chat-study-mode-toggle ${isStudyMode ? 'active' : ''}`}
+                        onClick={handleStudyModeToggle}
+                    >
+                        <span className="chat-study-mode-icon">
+                            {isStudyMode ? '🎯' : '📚'}
+                        </span>
+                        <span>
+                            {isStudyMode ? 'Exit Study Mode' : 'Enter Study Mode'}
+                        </span>
+                    </button>
                 </div>
             </div>
 
-           
-
-            {/* Middle Section - Chat Interface Card */}
-            <div className="chat-interface-card">
+            {/* Main Chat Area */}
+            <div className="chat-main">
+                {/* Middle Section - Chat Interface Card */}
+                <div className="chat-interface-card">
                 <div className="messages-container">
                     {messages.map((message) => (
                         <div key={message.id} className={`message ${message.type}`}>
-                            <div className="message-bubble">
-                                <div className="message-content">
-                                    {formatMessage(message.content)}
+                            <div className="message-label">
+                                {message.type === 'ai' ? 'NeuroNote' : 'You'}
+                            </div>
+                            <div className="message-container">
+                                <div className="message-avatar">
+                                    {message.type === 'ai' ? '🧠' : '👤'}
                                 </div>
-                                <div className="message-timestamp">
-                                    {formatTime(message.timestamp)}
-                                </div>
-                                <div className="message-actions">
-                                    <button 
-                                        className="message-action-btn"
-                                        onClick={() => handleCopy(message.content)}
-                                        title="Copy message"
-                                    >
-                                        📋
-                                    </button>
+                                <div className="message-bubble">
+                                    <div className="message-content">
+                                        {formatMessage(message.content)}
+                                    </div>
+                                    <div className="message-timestamp">
+                                        {formatTime(message.timestamp)}
+                                    </div>
+                                    <div className="message-actions">
+                                        <button 
+                                            className="message-action-btn"
+                                            onClick={() => handleCopy(message.content)}
+                                            title="Copy message"
+                                        >
+                                            📋
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -205,13 +368,17 @@ const ChatPage = () => {
                     
                     {isTyping && (
                         <div className="message ai">
-                            <div className="message-bubble">
-                                <div className="typing-indicator">
-                                    <span>AI is thinking</span>
-                                    <div className="typing-dots">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
+                            <div className="message-label">NeuroNote</div>
+                            <div className="message-container">
+                                <div className="message-avatar">🧠</div>
+                                <div className="message-bubble">
+                                    <div className="typing-indicator">
+                                        <span>AI is thinking</span>
+                                        <div className="typing-dots">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -254,82 +421,24 @@ const ChatPage = () => {
                     <div className="input-helper">
                         Press Enter to send, Shift+Enter for new line
                     </div>
-                </div>
-            </div>
-
-            {/* Side Panel */}
-            <div className={`side-panel ${isSidePanelOpen ? 'open' : ''}`}>
-                <div className="side-panel-header">
-                    <h3>Chat Tools</h3>
-                    <button 
-                        className="close-panel"
-                        onClick={() => setIsSidePanelOpen(false)}
-                    >
-                        ✕
-                    </button>
-                </div>
-                
-                <div className="side-panel-content">
-                    <div className="panel-section">
-                        <h4>Study Context</h4>
-                        <div className="study-context">
-                            <div className="context-item">
-                                <strong>Current Subject:</strong>
-                                <span>{currentSubject}</span>
-                            </div>
-                            <div className="context-item">
-                                <strong>Current Focus:</strong>
-                                <span>{currentFocus}</span>
-                            </div>
-                            <div className="context-item">
-                                <strong>Session Time:</strong>
-                                <span>45 minutes</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="panel-section">
-                        <h4>Quick Prompts</h4>
-                        <div className="prompt-templates">
-                            {quickPrompts.map((prompt, index) => (
-                                <button
-                                    key={index}
-                                    className="prompt-template"
-                                    onClick={() => handlePromptClick(prompt)}
-                                >
-                                    {prompt.icon} {prompt.title}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="panel-section">
-                        <h4>Recent Conversations</h4>
-                        <div className="chat-history">
-                            <div className="history-item">
-                                <FiClock />
-                                <span>Biology Q&A</span>
-                            </div>
-                            <div className="history-item">
-                                <FiClock />
-                                <span>Math Help</span>
-                            </div>
-                            <div className="history-item">
-                                <FiClock />
-                                <span>Study Tips</span>
-                            </div>
-                        </div>
+                    
+                    {/* Quick Actions */}
+                    <div className="quick-actions">
+                        {getCurrentQuickActions().map((action, index) => (
+                            <button
+                                key={index}
+                                className="quick-action-btn"
+                                onClick={() => handleQuickActionClick(action)}
+                            >
+                                <span>{action.icon}</span>
+                                <span>{action.title}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
 
-            {/* Overlay for side panel */}
-            {isSidePanelOpen && (
-                <div 
-                    className="side-panel-overlay"
-                    onClick={() => setIsSidePanelOpen(false)}
-                />
-            )}
+            </div>
         </div>
     );
 };

@@ -3,8 +3,11 @@
   --nightowl-accent-soft: #b8ffe6;
   --nightowl-accent-hover: #7fffe0;
   --nightowl-accent-shadow: 0 0 8px #5fffd799;
-  --nightowl-panel-bg: #373737;
-  --nightowl-panel-border: #232323;
+  --nightowl-bg-main: #222327;
+  --nightowl-bg-panel: #24282F;
+  --nightowl-bg-card: #2A2E35;
+  --nightowl-bg-hover: #32363F;
+  --nightowl-panel-border: #353B44;
   --nightowl-text-main: #F3F6FB;
   --nightowl-text-steel: #B6C2D1;
   --nightowl-text-muted: #7A8CA3;
@@ -13,7 +16,7 @@
 html.nightowl-root-bg, body.nightowl-root-bg {
   min-height: 100vh;
   width: 100vw;
-  background: linear-gradient(135deg, #232323 0%, #373737 100%) !important;
+  background: var(--nightowl-bg-main) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   box-sizing: border-box;
@@ -29,6 +32,33 @@ html.nightowl-root-bg, body.nightowl-root-bg {
   z-index: 0;
 }
 
+.nightowl-flashcards-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(45deg, rgba(78, 205, 196, 0.03) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(78, 205, 196, 0.03) 25%, transparent 25%);
+  background-size: 60px 60px;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.nightowl-flashcards-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(78, 205, 196, 0.05) 0%, transparent 50%);
+  animation: particleFloat 20s ease-in-out infinite;
+  z-index: 0;
+}
+
 .nightowl-flashcards-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -40,6 +70,8 @@ html.nightowl-root-bg, body.nightowl-root-bg {
   overflow-y: visible;
   min-height: 100vh;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 /* Hide scrollbar for Night Owl content */
@@ -122,10 +154,10 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-motivation-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  background: var(--nightowl-bg-panel);
   border-radius: 20px;
   padding: 12px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
@@ -138,9 +170,10 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-motivation-card:hover {
+  background: var(--nightowl-bg-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--nightowl-panel-border);
 }
 
 .nightowl-motivation-card::before {
@@ -264,11 +297,11 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-sticky-note {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-card);
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   position: relative;
   transform: rotate(-1deg);
   transition: all 0.3s ease;
@@ -284,6 +317,7 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-sticky-note:hover {
+  background: var(--nightowl-bg-hover);
   transform: rotate(0deg) scale(1.05);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
@@ -439,10 +473,10 @@ body.nightowl-root-bg .content-section {
 
 /* Leaderboard Widget */
 .nightowl-leaderboard-widget {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-panel);
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -451,11 +485,11 @@ body.nightowl-root-bg .content-section {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--nightowl-bg-card);
   border-radius: 12px;
   margin-bottom: 12px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--nightowl-panel-border);
 }
 
 .nightowl-leaderboard-item:last-child {
@@ -463,8 +497,8 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-leaderboard-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--nightowl-bg-hover);
+  border-color: var(--nightowl-panel-border);
   transform: translateY(-1px);
 }
 
@@ -544,11 +578,11 @@ body.nightowl-root-bg .content-section {
 
 /* Circular XP Tracker */
 .nightowl-xp-section {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-panel);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -626,7 +660,7 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-panel {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-card);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -634,7 +668,7 @@ body.nightowl-root-bg .content-section {
   align-items: center;
   gap: 8px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   font-size: 0.9rem;
   position: relative;
@@ -642,6 +676,7 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-panel:hover {
+  background: var(--nightowl-bg-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
@@ -825,7 +860,7 @@ body.nightowl-root-bg .content-section {
 
 /* Progress Update Widget */
 .nightowl-progress-update {
-  background: #373737;
+  background: var(--nightowl-bg-panel);
   border-left: 4px solid var(--nightowl-accent);
   border-radius: 10px;
   color: var(--nightowl-text-main);
@@ -891,10 +926,10 @@ body.nightowl-root-bg .content-section {
 
 /* Upcoming Cards Chart Section */
 .nightowl-upcoming-chart-container {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-panel);
   border-radius: 16px;
   padding: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
@@ -1034,10 +1069,10 @@ body.nightowl-root-bg .content-section {
 }
 
 .nightowl-chart-container {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-panel);
   border-radius: 16px;
   padding: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
@@ -1193,7 +1228,7 @@ body.nightowl-root-bg .content-section {
 
 
 .nightowl-sticky {
-  background: #373737;
+  background: var(--nightowl-bg-panel);
   border-left: 4px solid var(--nightowl-accent);
   border-radius: 10px;
   color: var(--nightowl-text-main);
@@ -1207,24 +1242,34 @@ body.nightowl-root-bg .content-section {
 
 
 .nightowl-studyroom-btn {
-  background: #373737;
-  border: 1.5px solid #7c83fd;
+  background: linear-gradient(135deg, rgba(124, 131, 253, 0.1) 0%, rgba(124, 131, 253, 0.05) 100%);
+  border: 1px solid rgba(124, 131, 253, 0.3);
   color: #7c83fd;
-  border-radius: 10px;
-  padding: 12px 28px;
-  font-size: 1.08rem;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 1rem;
   font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif;
   font-weight: 600;
-  box-shadow: 0 2px 16px rgba(124, 131, 253, 0.2), 0 2px 8px #0006;
-  transition: box-shadow 0.2s, border-color 0.2s, color 0.2s, background 0.2s;
+  transition: all 0.3s ease;
   cursor: pointer;
   margin-left: 18px;
   margin-top: 2px;
+  position: relative;
+  overflow: hidden;
 }
+
 .nightowl-studyroom-btn:hover {
-  border-color: #7c83fd;
-  color: #7c83fd;
-  background: #474747;
+  border-color: rgba(124, 131, 253, 0.4);
+  color: #9ca3fd;
+}
+
+.nightowl-studyroom-btn:hover::before {
+  left: 100%;
+}
+
+.nightowl-studyroom-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(124, 131, 253, 0.2);
 }
 
 @media (max-width: 700px) {
@@ -1377,14 +1422,14 @@ body.nightowl-root-bg .content-section {
 }
 
 .upcoming-review-widget {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-panel);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   font-size: 0.9rem;
   max-height: 300px;
@@ -1392,9 +1437,10 @@ body.nightowl-root-bg .content-section {
 }
 
 .upcoming-review-widget:hover {
+  background: var(--nightowl-bg-hover);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--nightowl-panel-border);
 }
 
 .upcoming-review-widget-title {
@@ -1414,16 +1460,16 @@ body.nightowl-root-bg .content-section {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nightowl-bg-card);
   border-radius: 8px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   font-size: 0.9rem;
 }
 
 .upcoming-review-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--nightowl-bg-hover);
   border-color: rgba(124, 131, 253, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
@@ -1478,17 +1524,18 @@ body.nightowl-root-bg .content-section {
 }
 
 .folder-content-item {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--nightowl-bg-card);
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--nightowl-panel-border);
   cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
 .folder-content-item:hover {
+  background: var(--nightowl-bg-hover);
   transform: translateY(-2px) scale(1.02);
   border-color: #4FD1C5;
   box-shadow: 0 8px 24px rgba(79, 209, 197, 0.15);
@@ -1721,7 +1768,7 @@ body.nightowl-root-bg .content-section {
 }
 
 .document-widget {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--nightowl-bg-panel);
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -1730,13 +1777,13 @@ body.nightowl-root-bg .content-section {
   overflow: hidden;
   animation: noteAppear 0.5s ease-out forwards;
   transform-origin: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nightowl-panel-border);
 }
 
 .document-widget:hover {
+  background: var(--nightowl-bg-hover);
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 0.15);
 }
 
 .document-widget::before {
@@ -1759,5 +1806,14 @@ body.nightowl-root-bg .content-section {
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, 20px);
   }
 } 

@@ -3,16 +3,32 @@
     src: url('../assets/fonts/Floatien.ttf') format('truetype');
 }
 
+:root {
+  --nightowl-accent: #5fffd7;
+  --nightowl-accent-soft: #b8ffe6;
+  --nightowl-accent-hover: #7fffe0;
+  --nightowl-accent-shadow: 0 0 8px #5fffd799;
+  --nightowl-bg-main: #222327;
+  --nightowl-bg-panel: #24282F;
+  --nightowl-bg-card: #2A2E35;
+  --nightowl-bg-hover: #32363F;
+  --nightowl-panel-border: #353B44;
+  --nightowl-text-main: #F3F6FB;
+  --nightowl-text-steel: #B6C2D1;
+  --nightowl-text-muted: #7A8CA3;
+}
+
 .dashboard-container {
     display: flex;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, #1E1E1E 0%, #2A2A2A 100%);
+    background: var(--nightowl-bg-main);
     position: relative;
     overflow: hidden;
     margin: 0;
     padding: 0;
 }
+
 
 /* Ensure proper scrolling for dashboard content */
 .dashboard-container .tabs-content-container {
@@ -30,49 +46,6 @@
     scrollbar-width: none;  /* Firefox */
 }
 
-/* Background Elements for Home Tab */
-.background-blobs {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none; /* Allow clicking through the background */
-}
-
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.15;
-}
-
-.blob-1 {
-  width: 600px;
-  height: 600px;
-  background: #4CAF50;
-  top: -200px;
-  left: -100px;
-}
-
-.blob-2 {
-  width: 500px;
-  height: 500px;
-  background: #2196F3;
-  bottom: -150px;
-  right: -100px;
-}
-
-.blob-3 {
-  width: 400px;
-  height: 400px;
-  background: #9C27B0;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
 
 .dashboard-sidebar {
     width: 250px;
@@ -98,12 +71,12 @@
 
 /* Night Owl Flashcards page - change sidebar background */
 .nightowl-root-bg .dashboard-sidebar {
-    background: rgba(255, 255, 255, 0.05);
+    background: #262A32;
 }
 
 /* Folder view page - change sidebar background */
 .folder-root-bg .dashboard-sidebar {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--nightowl-bg-panel);
 }
 
 /* Put sidebar in background when reminders modal is open */
@@ -113,7 +86,7 @@ body.reminders-modal-open .dashboard-sidebar {
 
 /* Night Owl Flashcards page - lighter tab highlight colors */
 .nightowl-root-bg .nav-item.active {
-    background-color: #3a3a3a; /* Lighter gray */
+    background-color: #343942; /* Using nightowl-bg-hover color */
     color: #ffffff;
 }
 
@@ -124,7 +97,7 @@ body.reminders-modal-open .dashboard-sidebar {
 /* Night Owl Flashcards page - lighter folder item highlight colors */
 .nightowl-root-bg .sidebar-content .nav-item.active,
 .nightowl-root-bg .folders-list .folder-item.active {
-    background-color: #3a3a3a !important; /* Lighter gray */
+    background-color: #343942 !important; /* Using nightowl-bg-hover color */
     color: #ffffff !important;
     font-weight: 600 !important;
 }
@@ -136,7 +109,35 @@ body.reminders-modal-open .dashboard-sidebar {
 
 /* Night Owl Flashcards page - folders-list items background */
 .nightowl-root-bg .folders-list .folder-item {
-    background-color: #3a3a3a !important; /* Same light gray as active items */
+    background-color: #2C3038 !important; /* Using nightowl-bg-card color */
+}
+
+/* Folder view page - lighter tab highlight colors */
+.folder-root-bg .nav-item.active {
+    background-color: var(--nightowl-bg-hover);
+    color: var(--nightowl-text-main);
+}
+
+.folder-root-bg .nav-item.active::before {
+    background-color: var(--nightowl-text-main);
+}
+
+/* Folder view page - lighter folder item highlight colors */
+.folder-root-bg .sidebar-content .nav-item.active,
+.folder-root-bg .folders-list .folder-item.active {
+    background-color: var(--nightowl-bg-hover) !important;
+    color: var(--nightowl-text-main) !important;
+    font-weight: 600 !important;
+}
+
+.folder-root-bg .sidebar-content .nav-item.active::before,
+.folder-root-bg .folders-list .folder-item.active::before {
+    background-color: var(--nightowl-text-main) !important;
+}
+
+/* Folder view page - folders-list items background */
+.folder-root-bg .folders-list .folder-item {
+    background-color: var(--nightowl-bg-card) !important;
 }
 
 .sidebar-top {
@@ -320,6 +321,16 @@ body.reminders-modal-open .dashboard-sidebar {
     overflow: hidden;
 }
 
+/* Folder view page - change main area background */
+.folder-root-bg .main-area {
+    background: var(--nightowl-bg-main);
+}
+
+/* Folder view page - ensure content section is transparent */
+.folder-root-bg .content-section {
+    background: transparent;
+}
+
 .sidebar-content .nav-item,
 .folders-list .folder-item {
     display: flex !important;
@@ -339,6 +350,24 @@ body.reminders-modal-open .dashboard-sidebar {
 .folders-list .folder-item:hover {
     background-color: #333333 !important;
     color: #ffffff !important;
+}
+
+/* Folder view page - lighter hover colors */
+.folder-root-bg .sidebar-content .nav-item:hover,
+.folder-root-bg .folders-list .folder-item:hover {
+    background-color: var(--nightowl-bg-hover) !important;
+    color: var(--nightowl-text-main) !important;
+}
+
+/* Dashboard home page - hover colors using base color variant */
+body:has(.dashboard-home-container) .sidebar-content .nav-item:hover,
+body:has(.dashboard-home-container) .folders-list .folder-item:hover,
+.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item:hover,
+.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item:hover,
+.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item:hover,
+.dashboard-home-container .dashboard-sidebar .folders-list .folder-item:hover {
+    background-color: var(--nightowl-bg-hover) !important;
+    color: var(--nightowl-text-main) !important;
 }
 
 .sidebar-content .nav-item.active,
@@ -378,6 +407,47 @@ body.reminders-modal-open .dashboard-sidebar {
     color: #ffffff !important;
 }
 
+/* Dashboard home page - icon hover colors */
+body:has(.dashboard-home-container) .sidebar-content .nav-item:hover .nav-icon,
+body:has(.dashboard-home-container) .folders-list .folder-item:hover .folder-icon,
+.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item:hover .nav-icon,
+.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item:hover .folder-icon,
+.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item:hover .nav-icon,
+.dashboard-home-container .dashboard-sidebar .folders-list .folder-item:hover .folder-icon {
+    color: var(--nightowl-text-main) !important;
+}
+
+/* Dashboard home page - active tab colors using lighter variant */
+body:has(.dashboard-home-container) .nav-item.active {
+    background-color: var(--nightowl-bg-hover);
+    color: var(--nightowl-text-main);
+}
+
+body:has(.dashboard-home-container) .nav-item.active::before {
+    background-color: var(--nightowl-text-main);
+}
+
+/* Dashboard home page - active folder item colors */
+body:has(.dashboard-home-container) .sidebar-content .nav-item.active,
+body:has(.dashboard-home-container) .folders-list .folder-item.active,
+.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item.active,
+.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item.active,
+.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item.active,
+.dashboard-home-container .dashboard-sidebar .folders-list .folder-item.active {
+    background-color: var(--nightowl-bg-hover) !important;
+    color: var(--nightowl-text-main) !important;
+    font-weight: 600 !important;
+}
+
+body:has(.dashboard-home-container) .sidebar-content .nav-item.active::before,
+body:has(.dashboard-home-container) .folders-list .folder-item.active::before,
+.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item.active::before,
+.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item.active::before,
+.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item.active::before,
+.dashboard-home-container .dashboard-sidebar .folders-list .folder-item.active::before {
+    background-color: var(--nightowl-text-main) !important;
+}
+
 .nav-item {
     display: flex;
     align-items: center;
@@ -394,8 +464,9 @@ body.reminders-modal-open .dashboard-sidebar {
 }
 
 .nav-item:hover {
-    background-color: #333333;
-    color: #ffffff;
+  background-color: #333333;
+  color: #ffffff;
+  border-color: rgba(78, 205, 196, 0.2);
 }
 
 .nav-item.active {
@@ -1188,8 +1259,8 @@ body.reminders-modal-open .dashboard-sidebar {
 }
 
 .folder-item:hover {
-    background: #333333;
-    border-color: rgba(255, 255, 255, 0.1);
+  background: #333333;
+  border-color: rgba(78, 205, 196, 0.2);
 }
 
 .folder-item.active {
@@ -1275,7 +1346,7 @@ body.reminders-modal-open .dashboard-sidebar {
 
 
 .deck-icon {
-    color: white !important;
+  color: #FF6B6B !important;
 }
 
 .deck-content {
@@ -1338,9 +1409,10 @@ body.reminders-modal-open .dashboard-sidebar {
 }
 
 .card-item:hover {
-    background: rgba(51, 51, 51, 0.5);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(51, 51, 51, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-color: rgba(78, 205, 196, 0.2);
 }
 
 .card-content {
@@ -1878,14 +1950,15 @@ body.reminders-modal-open .dashboard-sidebar {
 }
 
 .deck-item:hover, .quiz-item:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(78, 205, 196, 0.2);
 }
 
 .deck-icon, .quiz-icon {
-    color: #0CBABA;
-    font-size: 20px;
-    flex-shrink: 0;
+  color: #FF6B6B;
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .deck-info, .quiz-info {

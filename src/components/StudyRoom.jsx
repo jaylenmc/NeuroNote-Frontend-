@@ -770,7 +770,7 @@ const StudyRoom = () => {
               <>
                 <div className="study-room-import-modal-header">
                   <button className="study-room-import-modal-back-button" onClick={() => { setImportStep('folders'); setSelectedDocument(null); setSelectedFolder(null); }}>← Back</button>
-                  <h3 className="study-room-import-modal-title">Select a Document from "{selectedFolder?.name}"</h3>
+                  <h3 className="study-room-import-modal-title">{selectedFolder?.name}</h3>
                 </div>
                 {isLoadingDocuments ? (
                   <div style={{ textAlign: 'center', padding: '20px', color: '#a0aec0' }}>

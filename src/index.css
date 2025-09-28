@@ -9,6 +9,20 @@
     --border-color: rgba(0, 0, 0, 0.1);
     --card-bg: rgba(255, 255, 255, 0.8);
     --shadow-color: rgba(0, 0, 0, 0.1);
+    
+    /* Night Owl theme variables */
+    --nightowl-accent: #5fffd7;
+    --nightowl-accent-soft: #b8ffe6;
+    --nightowl-accent-hover: #7fffe0;
+    --nightowl-accent-shadow: 0 0 8px #5fffd799;
+    --nightowl-bg-main: #222327;
+    --nightowl-bg-panel: #24282F;
+    --nightowl-bg-card: #2A2E35;
+    --nightowl-bg-hover: #32363F;
+    --nightowl-panel-border: #353B44;
+    --nightowl-text-main: #F3F6FB;
+    --nightowl-text-steel: #B6C2D1;
+    --nightowl-text-muted: #7A8CA3;
 }
 
 .dark-mode {
@@ -64,4 +78,12 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent-secondary);
+}
+
+/* Main content styling with Night Owl theme */
+.main-content {
+    background: var(--nightowl-bg-main);
+    color: var(--nightowl-text-main);
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
 } 

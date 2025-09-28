@@ -1150,6 +1150,7 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
     max-width: 480px;
     width: 480px;
+    max-height: 80vh;
     border: 1px solid #2A2A2A;
     animation: studyRoomModalSlideUp 0.3s ease;
     position: relative;
@@ -1160,6 +1161,7 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
+    overflow: hidden;
 }
 
 .study-room-import-modal-header {
@@ -1167,6 +1169,7 @@
     align-items: center;
     justify-content: space-between;
     position: relative;
+    gap: 16px;
 }
 
 .study-room-import-modal-title {
@@ -1317,6 +1320,31 @@
     background: #363636;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.study-room-import-modal-folder-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-bottom: 16px;
+}
+
+.study-room-import-modal-folder-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.study-room-import-modal-folder-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.study-room-import-modal-folder-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.study-room-import-modal-folder-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .study-room-import-modal-folder-item {
@@ -1644,34 +1672,40 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+  animation: overlayFadeIn 0.3s ease-out;
 }
 
 .overlay-content {
-  background: #23272f;
+  background: #1E1E1E;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid #2A2A2A;
+  border-top: 3px solid #7c83fd;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
   max-width: 90vw;
   max-height: 90vh;
   width: 80%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  backdrop-filter: blur(8px);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .overlay-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 24px 32px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .overlay-header h3 {
-  color: #fff;
+  color: white;
   font-size: 20px;
   font-weight: 600;
   margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .close-btn {
@@ -1692,7 +1726,7 @@
 .overlay-body {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 32px;
 }
 
 .loading-content {
@@ -1714,6 +1748,28 @@
   margin-bottom: 16px;
 }
 
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -1722,19 +1778,23 @@
 .document-content h4,
 .link-content h4,
 .file-content h4 {
-  color: #fff;
-  font-size: 18px;
+  color: white;
+  font-size: 16px;
   font-weight: 600;
-  margin: 0 0 16px 0;
+  margin: 0 0 24px 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .notes-content {
   color: #e2e8f0;
   line-height: 1.6;
   white-space: pre-wrap;
-  padding: 16px;
+  padding: 20px;
   border-radius: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
 }
 
 .notes-content h1 {
@@ -1743,6 +1803,7 @@
   font-weight: 700;
   margin: 0 0 24px 0;
   line-height: 1.2;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .notes-content h3 {
@@ -1751,6 +1812,7 @@
   font-weight: 600;
   margin: 32px 0 16px 0;
   line-height: 1.3;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .notes-content h3:first-child {
@@ -1762,6 +1824,8 @@
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 16px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
 }
 
 .notes-content div:last-child {
@@ -1779,7 +1843,17 @@
 }
 
 .link-url {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.link-url::before {
+  content: '🔗';
+  font-size: 14px;
+  color: #7c83fd;
+  flex-shrink: 0;
 }
 
 .link-url a {
@@ -1794,9 +1868,21 @@
 }
 
 .video-embed {
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
   background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  aspect-ratio: 16/9;
+  margin-bottom: 24px;
+}
+
+.video-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 16px;
 }
 
 .link-preview {
