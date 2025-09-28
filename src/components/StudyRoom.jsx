@@ -454,22 +454,22 @@ const StudyRoom = () => {
     return (
     <div className="study-room">
             <div className="study-room-header">
-        <div className="buttons-container">
+        <div className="study-room-buttons-container">
             <div className="header-left">
-            <button className="btn-ghost back-button" onClick={() => navigate('/night-owl-flashcards')}>
+            <button className="study-room-back-button" onClick={() => navigate('/night-owl-flashcards')}>
                 <ArrowLeft size={20} />
                 Back to Flashcards
             </button>
             </div>
             <div className="header-right">
                 <div className="header-controls">
-                    <button className="btn-ghost theme-toggle" onClick={() => setIsDarkMode((d) => !d)} aria-label="Toggle theme">
+                    <button className="study-room-theme-toggle-button" onClick={() => setIsDarkMode((d) => !d)} aria-label="Toggle theme">
                         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
-                    <button className="btn-ghost" onClick={() => setShowPomodoro(s => !s)} title="Pomodoro Timer">
+                    <button className="study-room-timer-button" onClick={() => setShowPomodoro(s => !s)} title="Pomodoro Timer">
                       <Timer size={20} />
                     </button>
-                    <button className="btn-ghost study-mode-toggle" onClick={() => setIsStudyMode((s) => !s)}>
+                    <button className={`study-room-study-mode-button ${isStudyMode ? 'active' : ''}`} onClick={() => setIsStudyMode((s) => !s)}>
                         {isStudyMode ? 'Exit Study Mode' : 'Enter Study Mode'}
                     </button>
                 </div>
@@ -515,7 +515,7 @@ const StudyRoom = () => {
         <div className="pinned-resources-header">
           <h3>Pinned Notes & Resources</h3>
           <button 
-            className="btn-ghost" 
+            className="study-room-ghost-button" 
             onClick={() => {
               setShowImportModal(true);
             }} 
@@ -620,31 +620,19 @@ const StudyRoom = () => {
           )}
         </div>
                         </div>
-      {/* Import Modal (placeholder) */}
+      {/* Import Modal */}
       {showImportModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(0,0,0,0.55)',
-          zIndex: 2000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div style={{ background: '#23272f', borderRadius: 16, padding: 32, minWidth: 340, color: '#fff', boxShadow: '0 8px 32px rgba(0,0,0,0.25)', maxWidth: 400 }}>
-            <h3 style={{ marginTop: 0, fontSize: 20 }}>Import Resource</h3>
+        <div className="study-room-import-modal-overlay">
+          <div className="study-room-import-modal-content">
             {importStep === 'select' && (
               <>
-                <p style={{ color: '#a0aec0', fontSize: 15, marginBottom: 18 }}>Choose the type of resource to import:</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
+                <h3 className="study-room-import-modal-title">Import Resource</h3>
+                <p className="study-room-import-modal-description">Choose the type of resource to import:</p>
+                <div className="study-room-import-modal-buttons-grid">
                   {resourceTypes.map(rt => (
                     <button
                       key={rt.key}
-                      className="btn-ghost"
-                      style={{ minWidth: 90, minHeight: 70, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, fontSize: 15, borderColor: selectedType === rt.key ? '#7c83fd' : '#2d3748', background: selectedType === rt.key ? '#18181b' : 'transparent', fontWeight: 500, cursor: 'pointer' }}
+                      className={`study-room-import-modal-button ${selectedType === rt.key ? 'selected' : ''}`}
                       onClick={() => { 
                         setSelectedType(rt.key); 
                         if (rt.key === 'document') {
@@ -660,15 +648,14 @@ const StudyRoom = () => {
                     </button>
                   ))}
                 </div>
-                <button className="btn-ghost" style={{ marginTop: 8 }} onClick={() => setShowImportModal(false)}>Cancel</button>
+                <button className="study-room-import-modal-cancel-button" onClick={() => setShowImportModal(false)}>Cancel</button>
               </>
             )}
             {importStep === 'input' && selectedType && (
               <>
-                <button className="btn-ghost" style={{ position: 'absolute', top: 18, right: 18, fontSize: 22 }} onClick={() => setShowImportModal(false)}>×</button>
-                <button className="btn-ghost" style={{ marginBottom: 18 }} onClick={() => { setImportStep('select'); setSelectedType(null); setImportValue(''); setImportFile(null); setImportLinkTitle(''); }}>← Back</button>
-                <div style={{ marginBottom: 18 }}>
-                  <strong style={{ fontSize: 16 }}>{resourceTypes.find(rt => rt.key === selectedType)?.label}</strong>
+                <div className="study-room-import-modal-header">
+                  <button className="study-room-import-modal-back-button" onClick={() => { setImportStep('select'); setSelectedType(null); setImportValue(''); setImportFile(null); setImportLinkTitle(''); }}>← Back</button>
+                  <h3 className="study-room-import-modal-title">{resourceTypes.find(rt => rt.key === selectedType)?.label}</h3>
                 </div>
                 {selectedType === 'note' && (
                   <textarea
@@ -680,12 +667,18 @@ const StudyRoom = () => {
                 )}
                 {(selectedType === 'pdf' || selectedType === 'textbook') && (
                   <div>
-                    <input
-                      type="file"
-                      accept={selectedType === 'pdf' ? '.pdf' : '.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
-                      onChange={e => setImportFile(e.target.files[0])}
-                      style={{ marginBottom: 18, color: '#fff' }}
-                    />
+                    <label className="study-room-import-modal-file-upload">
+                      <span className="study-room-import-modal-file-upload-text">Click to upload or drag & drop</span>
+                      <span className="study-room-import-modal-file-upload-subtext">
+                        {selectedType === 'pdf' ? 'PDF files only' : 'PDF, DOC, DOCX files'}
+                      </span>
+                      <input
+                        type="file"
+                        className="study-room-import-modal-file-input"
+                        accept={selectedType === 'pdf' ? '.pdf' : '.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+                        onChange={e => setImportFile(e.target.files[0])}
+                      />
+                    </label>
                     {importFile && (
                       <div style={{ 
                         fontSize: '12px', 
@@ -728,15 +721,14 @@ const StudyRoom = () => {
                     style={{ width: '100%', borderRadius: 8, border: '1px solid #2d3748', background: '#18181b', color: '#fff', padding: 12, marginBottom: 18 }}
                   />
                 )}
-                <button className="btn-ghost" style={{ marginTop: 8, width: '100%' }} onClick={handleImportResource}>Import</button>
+                <button className="study-room-import-modal-action-button" onClick={handleImportResource}>Import</button>
               </>
             )}
             {importStep === 'folders' && selectedType === 'document' && (
               <>
-                <button className="btn-ghost" style={{ position: 'absolute', top: 18, right: 18, fontSize: 22 }} onClick={() => setShowImportModal(false)}>×</button>
-                <button className="btn-ghost" style={{ marginBottom: 18 }} onClick={() => { setImportStep('select'); setSelectedType(null); setSelectedFolder(null); }}>← Back</button>
-                <div style={{ marginBottom: 18 }}>
-                  <strong style={{ fontSize: 16 }}>Select a Folder</strong>
+                <div className="study-room-import-modal-header">
+                  <button className="study-room-import-modal-back-button" onClick={() => { setImportStep('select'); setSelectedType(null); setSelectedFolder(null); }}>← Back</button>
+                  <h3 className="study-room-import-modal-title">Select a Folder</h3>
                 </div>
                 {isLoadingFolders ? (
                   <div style={{ textAlign: 'center', padding: '20px', color: '#a0aec0' }}>
@@ -751,7 +743,7 @@ const StudyRoom = () => {
                     {Array.isArray(userFolders) && userFolders.map((folder) => (
                       <div
                         key={folder.id}
-                        className="btn-ghost"
+                        className={`study-room-import-modal-folder-item ${selectedFolder?.id === folder.id ? 'selected' : ''}`}
                         style={{
                           width: '100%',
                           marginBottom: '8px',
@@ -776,10 +768,9 @@ const StudyRoom = () => {
             )}
             {importStep === 'documents' && selectedType === 'document' && (
               <>
-                <button className="btn-ghost" style={{ position: 'absolute', top: 18, right: 18, fontSize: 22 }} onClick={() => setShowImportModal(false)}>×</button>
-                <button className="btn-ghost" style={{ marginBottom: 18 }} onClick={() => { setImportStep('folders'); setSelectedDocument(null); setSelectedFolder(null); }}>← Back</button>
-                <div style={{ marginBottom: 18 }}>
-                  <strong style={{ fontSize: 16 }}>Select a Document from "{selectedFolder?.name}"</strong>
+                <div className="study-room-import-modal-header">
+                  <button className="study-room-import-modal-back-button" onClick={() => { setImportStep('folders'); setSelectedDocument(null); setSelectedFolder(null); }}>← Back</button>
+                  <h3 className="study-room-import-modal-title">Select a Document from "{selectedFolder?.name}"</h3>
                 </div>
                 {isLoadingDocuments ? (
                   <div style={{ textAlign: 'center', padding: '20px', color: '#a0aec0' }}>
@@ -794,7 +785,7 @@ const StudyRoom = () => {
                     {Array.isArray(userDocuments) && userDocuments.map((doc) => (
                       <div
                         key={doc.id}
-                        className="btn-ghost"
+                        className={`study-room-import-modal-folder-item ${selectedDocument?.id === doc.id ? 'selected' : ''}`}
                         style={{
                           width: '100%',
                           marginBottom: '8px',
@@ -852,7 +843,7 @@ const StudyRoom = () => {
           alignItems: 'center',
           animation: 'slideInRight 0.25s',
         }}>
-          <button className="btn-ghost" style={{ position: 'absolute', top: 18, right: 18, zIndex: 1003 }} onClick={() => setShowPomodoro(false)}>
+          <button className="study-room-ghost-button" style={{ position: 'absolute', top: 18, right: 18, zIndex: 1003 }} onClick={() => setShowPomodoro(false)}>
             ×
           </button>
           <div style={{ width: '100%', maxWidth: 380 }}>

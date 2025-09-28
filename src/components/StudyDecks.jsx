@@ -100,19 +100,22 @@ const EmptyState = ({ onOpenCreateModal }) => (
 // Memoized Modal Component
 const CreateDeckModal = memo(({ showCreateModal, handleCloseModal, handleCreateDeck, newDeck, setNewDeck, titleInputRef }) => {
     const modalContent = (
-        <div className={`modal-overlay ${showCreateModal ? 'show' : ''}`} onClick={handleCloseModal}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
+        <div className={`deck-view-modal-overlay ${showCreateModal ? 'show' : ''}`} onClick={handleCloseModal}>
+            <div className="deck-view-modal-content" onClick={e => e.stopPropagation()}>
+                <div className="deck-view-modal-header">
+                    <div className="deck-view-modal-icon">
+                        <Plus size={32} />
+                    </div>
                     <h3>Create New Deck</h3>
                     <button 
-                        className="close-button"
+                        className="deck-view-close-button"
                         onClick={handleCloseModal}
                     >
                         <X size={20} />
                     </button>
                 </div>
                 <form onSubmit={handleCreateDeck}>
-                    <div className="form-group">
+                    <div className="deck-view-form-group">
                         <label htmlFor="title">Title</label>
                         <input
                             ref={titleInputRef}
@@ -124,7 +127,7 @@ const CreateDeckModal = memo(({ showCreateModal, handleCloseModal, handleCreateD
                             placeholder="Enter deck title"
                         />
                     </div>
-                    <div className="form-group">
+                    <div className="deck-view-form-group">
                         <label htmlFor="subject">Subject</label>
                         <input
                             type="text"
@@ -135,7 +138,7 @@ const CreateDeckModal = memo(({ showCreateModal, handleCloseModal, handleCreateD
                             placeholder="Enter subject"
                         />
                     </div>
-                    <div className="modal-actions">
+                    <div className="deck-view-modal-actions">
                         <button type="button" onClick={handleCloseModal}>Cancel</button>
                         <button type="submit">Create Deck</button>
                     </div>
@@ -385,12 +388,12 @@ const StudyDecks = () => {
     return (
         <div className="study-decks-container">
             <div className="study-decks-header">
-                <button className="back-button" onClick={() => navigate('/study-room')}>
+                <button className="deck_view_back_button" onClick={() => navigate('/study-room')}>
                     <ArrowLeft size={20} />
                     Back
                 </button>
                 <h2>Your Decks</h2>
-                <div className="header-actions">
+                <div className="deck-view-header-actions">
                     <div className="sort-filter-container" ref={sortFilterRef}>
                         <button 
                             className="sort-filter-btn"
@@ -461,7 +464,7 @@ const StudyDecks = () => {
                             </div>
                         )}
                     </div>
-                    <button className="create-deck-button" onClick={handleOpenCreateModal}>
+                    <button className="deck-view-create-deck-button" onClick={handleOpenCreateModal}>
                         <Plus size={20} />
                         Create Deck
                     </button>

@@ -64,10 +64,93 @@
     width: 100%;
 }
 
-.buttons-container{
+.study-room-buttons-container{
     display: flex;
     width: 100%!important;
     justify-content: space-between;
+}
+
+/* Individual button styles - no inheritance */
+.study-room-back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #fff;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.study-room-back-button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.study-room-theme-toggle-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #fff;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.study-room-theme-toggle-button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.study-room-timer-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #fff;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.study-room-timer-button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.study-room-study-mode-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #fff;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.study-room-study-mode-button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.study-room-study-mode-button.active {
+    background: rgba(124, 131, 253, 0.2);
+    border-color: rgba(124, 131, 253, 0.5);
+    color: #7c83fd;
 }
 
 .study-room-header h1,
@@ -216,7 +299,7 @@
     }
 }
 
-.timer-section {
+.studyroom-timer-section {
     position: relative;
     z-index: 1;
     padding: 2rem;
@@ -670,7 +753,7 @@
         grid-template-columns: 1fr;
     }
 
-    .timer-section {
+    .studyroom-timer-section {
         padding: 1rem;
     }
 
@@ -1009,30 +1092,351 @@
   margin-right: auto;
 }
 
-/* 4. Button Consistency */
-.btn-ghost {
-  background-color: transparent;
-  border: 1px solid #2d3748;
-  padding: 8px 16px;
-  color: #fff;
-  border-radius: 12px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-.btn-ghost:hover {
-  background-color: #2d3748;
-  box-shadow: 0 0 12px rgba(255,255,255,0.05);
-}
-
-.btn-ghost:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: transparent;
+/* 4. Button Consistency - Individual styling like deck_view_back_button */
+.study-room-ghost-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #fff;
+    transition: all 0.3s ease;
+    font-weight: 500;
 }
 
-.btn-ghost:disabled:hover {
-  background-color: transparent;
-  box-shadow: none;
+.study-room-ghost-button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.study-room-ghost-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: transparent;
+}
+
+.study-room-ghost-button:disabled:hover {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Study Room Import Modal - Individual and Unique */
+.study-room-import-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: studyRoomModalFadeIn 0.2s ease;
+    opacity: 0;
+    animation: studyRoomModalFadeIn 0.2s ease forwards;
+}
+
+.study-room-import-modal-content {
+    background: #1E1E1E;
+    border-radius: 24px;
+    padding: 32px;
+    min-width: 340px;
+    color: #fff;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    max-width: 480px;
+    width: 480px;
+    border: 1px solid #2A2A2A;
+    animation: studyRoomModalSlideUp 0.3s ease;
+    position: relative;
+    backdrop-filter: blur(8px);
+    transform: scale(0.95);
+    opacity: 0;
+    animation: studyRoomModalMount 0.2s ease forwards;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.study-room-import-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.study-room-import-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.study-room-import-modal-description {
+    color: #9ca3af;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+.study-room-import-modal-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.study-room-import-modal-button {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.study-room-import-modal-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.study-room-import-modal-button:hover {
+    background: #2E2E2E;
+    border-color: #404040;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.study-room-import-modal-button:hover::before {
+    opacity: 1;
+}
+
+.study-room-import-modal-button.selected {
+    background: #2E2E2E;
+    border-color: #7c83fd;
+    box-shadow: 0 8px 20px rgba(124, 131, 253, 0.2);
+    transform: translateY(-1px);
+}
+
+.study-room-import-modal-button.selected::before {
+    background: linear-gradient(135deg, rgba(124, 131, 253, 0.1) 0%, rgba(124, 131, 253, 0.05) 100%);
+    opacity: 1;
+}
+
+.study-room-import-modal-button svg {
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.study-room-import-modal-button:hover svg {
+    transform: scale(1.1);
+}
+
+.study-room-import-modal-button.selected svg {
+    color: #7c83fd;
+}
+
+.study-room-import-modal-back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #2B2B2B;
+    border: none;
+    color: #d1d5db;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.study-room-import-modal-back-button:hover {
+    background: #363636;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.study-room-import-modal-action-button {
+    width: 100%;
+    background: #7c3aed;
+    border: none;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.study-room-import-modal-action-button:hover {
+    background: #6d28d9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.study-room-import-modal-cancel-button {
+    width: 100%;
+    background: #2B2B2B;
+    border: none;
+    color: #d1d5db;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.study-room-import-modal-cancel-button:hover {
+    background: #363636;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.study-room-import-modal-folder-item {
+    width: 100%;
+    margin-bottom: 8px;
+    text-align: left;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    color: #fff;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.study-room-import-modal-folder-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.study-room-import-modal-folder-item.selected {
+    border-color: #7c83fd;
+    background: #18181b;
+    color: #7c83fd;
+}
+
+.study-room-import-modal-file-upload {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #3A3A3A;
+    border-radius: 12px;
+    padding: 32px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(42, 42, 42, 0.3);
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+    color: #d1d5db;
+    font-size: 14px;
+}
+
+.study-room-import-modal-file-upload:hover {
+    border-color: #7c83fd;
+    background: rgba(124, 131, 253, 0.05);
+    transform: translateY(-1px);
+}
+
+.study-room-import-modal-file-upload::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(124, 131, 253, 0.05) 0%, rgba(124, 131, 253, 0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.study-room-import-modal-file-upload:hover::before {
+    opacity: 1;
+}
+
+.study-room-import-modal-file-upload-text {
+    color: #d1d5db;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.study-room-import-modal-file-upload-subtext {
+    color: #9ca3af;
+    font-size: 12px;
+    text-align: center;
+}
+
+.study-room-import-modal-file-input {
+    display: none;
+}
+
+/* Animations */
+@keyframes studyRoomModalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes studyRoomModalMount {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes studyRoomModalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* 5. Spacing & Layout Refinement */

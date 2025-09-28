@@ -19,6 +19,31 @@
     --icon-neutral: #9ca3af;
 }
 
+.focus-back-button {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    margin: 2rem;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    z-index: 20;
+}
+
+.focus-back-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--border-hover);
+    color: #ffffff;
+    transform: translateX(-2px);
+}
 * {
     box-sizing: border-box;
 }
@@ -74,32 +99,7 @@
     cursor: default;
 }
 
-.back-button {
-    position: absolute;
-    top: 2rem;
-    left: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.75rem;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-secondary);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 400;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    z-index: 20;
-}
 
-.back-button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: var(--text-primary);
-    transform: translateX(-2px);
-}
 
 .progress-header h1 {
     margin: 0;

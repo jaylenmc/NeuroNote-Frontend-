@@ -548,7 +548,7 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
               onMouseLeave={() => setHoveredTab(null)}
             >
               <span className="tab-icon">⚠️</span>
-              <span>Overdue <span className="tab-count animated-count">{cards.overdue?.length || 0}</span></span>
+              <span>Overdue: <span className="tab-count animated-count">{cards.overdue?.length || 0}</span></span>
             </button>
             <button 
               className={`tab ${activeTab === 'dueNow' ? 'active' : ''}`}
@@ -558,7 +558,7 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
               onMouseLeave={() => setHoveredTab(null)}
             >
               <span className="tab-icon">⏰</span>
-              <span>Due Now <span className="tab-count animated-count">{cards.dueNow?.length || 0}</span></span>
+              <span>Due Now: <span className="tab-count animated-count">{cards.dueNow?.length || 0}</span></span>
             </button>
             <button 
               className={`tab ${activeTab === 'dueSoon' ? 'active' : ''}`}
@@ -568,7 +568,7 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
               onMouseLeave={() => setHoveredTab(null)}
             >
               <span className="tab-icon">👁️</span>
-              <span>Due Soon <span className="tab-count animated-count">{cards.dueSoon?.length || 0}</span></span>
+              <span>Due Soon: <span className="tab-count animated-count">{cards.dueSoon?.length || 0}</span></span>
             </button>
             <button 
               className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`}
@@ -578,7 +578,7 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
               onMouseLeave={() => setHoveredTab(null)}
             >
               <span className="tab-icon">📅</span>
-              <span>Upcoming <span className="tab-count animated-count">{cards.upcoming?.length || 0}</span></span>
+              <span>Upcoming: <span className="tab-count animated-count">{cards.upcoming?.length || 0}</span></span>
             </button>
           </div>
         </div>
@@ -624,11 +624,29 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
               const ribbonColor = getRibbonColor(card.learning_status);
               const ribbonTooltip = getRibbonTooltip(card.learning_status);
 
+              // Get deck icon based on deck title or subject
+              const getDeckIcon = (deckTitle) => {
+                const title = deckTitle.toLowerCase();
+                if (title.includes('exam') || title.includes('test')) return '📝';
+                if (title.includes('programming') || title.includes('code')) return '💻';
+                if (title.includes('language') || title.includes('spanish') || title.includes('french')) return '🗣️';
+                if (title.includes('science') || title.includes('biology') || title.includes('chemistry')) return '🔬';
+                if (title.includes('math') || title.includes('calculus') || title.includes('algebra')) return '📐';
+                if (title.includes('history') || title.includes('social')) return '📚';
+                if (title.includes('business') || title.includes('economics')) return '💼';
+                if (title.includes('art') || title.includes('design')) return '🎨';
+                if (title.includes('music')) return '🎵';
+                if (title.includes('sports') || title.includes('fitness')) return '⚽';
+                return '📖'; // Default book icon
+              };
+
               return (
                 <div key={card.id} className="card-item" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="card-ribbon" style={{ backgroundColor: ribbonColor }} title={ribbonTooltip}></div>
                   <div className="card-deck-top">
-                    <span role="img" aria-label="deck">🌍</span> {card.deckTitle}
+                    <span className="card-deck-icon" role="img" aria-label="deck">
+                      {getDeckIcon(card.deckTitle)}
+                    </span>
+                    {card.deckTitle}
                   </div>
                   <div className="card-question-center">
                     {card.question}
@@ -666,8 +684,17 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
     return (
       <div className="action-panel">
         <div className="action-panel-header">
-          <h2 className="action-panel-title">Start Review Session</h2>
-          <p className="action-panel-subtitle">Ready to study? Choose your session type below.</p>
+          <h2 className="action-panel-title">Ready to study?</h2>
+          <p className="action-panel-subtitle">
+            {selectedDeckId 
+              ? shouldIncludeDueSoon 
+                ? `Review overdue, due now, and due soon cards for selected deck (${dueCards} + ${dueSoonCards} preview)`
+                : `Review overdue and due now cards for selected deck (${dueCards} cards)`
+              : shouldIncludeDueSoon 
+                ? `Review overdue, due now, and due soon cards (${dueCards} + ${dueSoonCards} preview)`
+                : `Review overdue and due now cards (${dueCards} cards)`
+            }
+          </p>
         </div>
         
         <div className="action-buttons">
@@ -700,18 +727,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
             </label>
           </div>
         
-        <div className="session-summary">
-          <p className="subtext">
-            {selectedDeckId 
-              ? shouldIncludeDueSoon 
-                ? `Review overdue, due now, and due soon cards for selected deck (${dueCards} + ${dueSoonCards} preview)`
-                : `Review overdue and due now cards for selected deck (${dueCards} cards)`
-              : shouldIncludeDueSoon 
-                ? `Review overdue, due now, and due soon cards (${dueCards} + ${dueSoonCards} preview)`
-                : `Review overdue and due now cards (${dueCards} cards)`
-            }
-          </p>
-        </div>
       </div>
     );
   };

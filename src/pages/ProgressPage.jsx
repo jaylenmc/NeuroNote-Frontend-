@@ -564,7 +564,7 @@ const ProgressPage = () => {
 
     return (
         <div className="progress-page">
-            <button className="back-button" onClick={handleBack}>
+            <button className="focus-back-button" onClick={handleBack}>
                 <ArrowLeft size={16} />
                 Back to Study Room
             </button>

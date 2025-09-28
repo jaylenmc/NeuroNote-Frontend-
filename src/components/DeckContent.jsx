@@ -58,6 +58,7 @@ export default function DeckContent() {
   const generatedInputRef = useRef(null);
   
   const [savedGenerated, setSavedGenerated] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const ribbonColors = [
     { value: null, label: 'All Cards', color: '#666' },
@@ -143,10 +144,16 @@ export default function DeckContent() {
   };
 
   async function handleDeleteDeck() {
-    if (!window.confirm('Are you sure you want to delete this deck?')) return;
+    console.log('Delete button clicked, showing confirmation modal');
+    console.log('Current showDeleteConfirm state:', showDeleteConfirm);
+    setShowDeleteConfirm(true);
+    console.log('Set showDeleteConfirm to true');
+  }
+
+  async function confirmDeleteDeck() {
     try {
       await api.delete(`/flashcards/deck/${deckId}/`);
-      navigate('/study-room');
+      navigate('/study-room/decks');
     } catch (err) {
       console.error('Error deleting deck:', err);
     }
@@ -538,88 +545,85 @@ export default function DeckContent() {
   return (
     <>
      <div className="main-content-header">
-          <button className="back-button" onClick={() => navigate('/study-room/decks')}><FiArrowLeft /> Back</button>
+           <button className="deck-back-button" onClick={() => navigate('/study-room/decks')}><FiArrowLeft /> Back</button>
+          
+          {/* Stats Bar - In the middle of header */}
+          <div className="deck-stats-bar">
+            <div className="stat-inline">
+              <span className="stat-piece stat-review"><span className="stat-emoji">⏱</span> <span className="stat-key">Avg. Review:</span> <span className="stat-val">3.2s</span></span>
+              <span className="stat-sep">|</span>
+              <span className="stat-piece stat-cards"><span className="stat-emoji">🃏</span> <span className="stat-key">Cards Due:</span> <span className="stat-val">5</span></span>
+              <span className="stat-sep">|</span>
+              {cards.length > 0 && deck && (() => {
+                const total = cards.length;
+                const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
+                return (
+                  <span className="stat-piece stat-mastered"><span className="stat-emoji">🌱</span> <span className="stat-key">Mastered:</span> <span className="stat-val">{mastered}/{total}</span></span>
+                );
+              })()}
+              <span className="stat-sep">|</span>
+              <span className="stat-piece stat-next"><span className="stat-emoji">⏰</span> <span className="stat-key">Next Due:</span> <span className="stat-val">2h 15m</span></span>
+            </div>
+          </div>
+          
           <button className="add-card-btn" onClick={() => setShowAdd(true)} disabled={!deck}><FiPlus /> Add New Card</button>
         </div>
       <div className="deck-content-page">
         <div className="deck-header">
           <div className="deck-header-content">
-            {/* Left Side - Deck Info and Stats */}
+            {/* Left Side (Content Info) */}
             <div className="deck-info-section">
               <div className="deck-header-info">
                 <div className="deck-info-left">
                   <div className="deck-title-section">
                     <div className="deck-title-with-icon">
-                      <Book className="deck-emoji" />
-                      <h1 className="deck-title">{deck?.title || 'Deck'}</h1>
+                      <div className="deck-title-left">
+                        <Book className="deck-emoji" />
+                        <h1 className="deck-title" data-full-title={deck?.title || 'Deck'}>{deck?.title || 'Deck'}</h1>
+                      </div>
                     </div>
-                    <span className="deck-subject">{deck?.subject || 'No subject'}</span>
-                    <div className="deck-subtitle">{cards.length} cards · Last updated 2 days ago</div>
-                    {/* Micro Stats Chips */}
-                    <div className="micro-stats-row">
-                      <span className="micro-stat-chip">
-                        <span className="chip-emoji time-icon">⏱️</span>
-                        Avg. Review Time: 3.2s
-                      </span>
-                      <span className="micro-stat-chip">
-                        <span className="chip-emoji due-icon">📚</span>
-                        Cards Due: 5
-                      </span>
-                      <span className="micro-stat-chip">
-                        <span className="chip-emoji mastered-icon">🧠</span>
-                        Mastered: 3 / 14
-                      </span>
+                    <span className="deck-subject-badge">{deck?.subject || 'No subject'}</span>
+                    <div className="deck-last-updated">Last updated 2 days ago</div>
+                    <div className="deck-title-actions">
+                      <button 
+                        className="deck-header-btn" 
+                        title="Edit Deck" 
+                        disabled={!deck}
+                        onClick={() => {
+                          if (!deck) return;
+                          setEditingDeck(deck);
+                          setEditDeckTitle(deck.title || '');
+                          setEditDeckSubject(deck.subject || '');
+                          setShowEditDeck(true);
+                        }}
+                      >
+                        <FiEdit2 />
+                        Edit Deck
+                      </button>
+                      <button 
+                        className="deck-header-btn deck-delete-btn" 
+                        title="Delete Deck" 
+                        disabled={!deck}
+                        onClick={handleDeleteDeck}
+                      >
+                        <FiTrash2 />
+                        Delete Deck
+                      </button>
                     </div>
-                    
-                    {/* Mastery Progress Info - Under Micro Stats */}
-                    {cards.length > 0 && deck && (() => {
-                      const total = cards.length;
-                      const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
-                      
-                      return (
-                        <div className="mastery-progress-info">
-                          <div className="next-card-due">
-                            <span className="due-icon">⏰</span>
-                            <span>Next card due in 2h 15m</span>
-                          </div>
-                        </div>
-                      );
-                    })()}
                   </div>
                 </div>
               </div>
+
               
-              {/* Actions Section - Inside Deck Info */}
-              <div className="deck-actions-section">
-                <div className="deck-header-actions">
-                  <button 
-                    className="deck-header-btn" 
-                    title="Edit Deck" 
-                    disabled={!deck}
-                    onClick={() => {
-                      if (!deck) return;
-                      setEditingDeck(deck);
-                      setEditDeckTitle(deck.title || '');
-                      setEditDeckSubject(deck.subject || '');
-                      setShowEditDeck(true);
-                    }}
-                  >
-                    <FiEdit2 />
-                  </button>
-                  <button className="deck-header-btn" title="Delete Deck" onClick={handleDeleteDeck}>
-                    <FiTrash2 />
-                  </button>
-                </div>
-              </div>
             </div>
-            
-            {/* Circular Progress Wheel - Far Right */}
+
+            {/* Right Side (Progress circle) */}
             {cards.length > 0 && deck && (() => {
               const total = cards.length;
               const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
               // Use the mastery_progress from the backend API response
               const masteredPct = Math.round(deck.mastery_progress || 0);
-              const circumference = 2 * Math.PI * 45; // radius of 45px
+              const circumference = 2 * Math.PI * 60; // radius of 60px
               const strokeDasharray = circumference;
               const strokeDashoffset = circumference - (masteredPct / 100) * circumference;
               
@@ -631,13 +635,13 @@ export default function DeckContent() {
                     </div>
                     <div className="circular-progress-wrapper">
                       <div className="circular-progress">
-                        <svg className="circular-progress-svg" width="120" height="120">
+                        <svg className="circular-progress-svg" width="160" height="160">
                           {/* Background circle */}
                           <circle
                             className="circular-progress-bg"
-                            cx="60"
-                            cy="60"
-                            r="45"
+                            cx="80"
+                            cy="80"
+                            r="60"
                             fill="none"
                             stroke="rgba(255, 255, 255, 0.1)"
                             strokeWidth="8"
@@ -645,16 +649,16 @@ export default function DeckContent() {
                           {/* Progress circle */}
                           <circle
                             className="circular-progress-fill"
-                            cx="60"
-                            cy="60"
-                            r="45"
+                            cx="80"
+                            cy="80"
+                            r="60"
                             fill="none"
                             stroke="#7c3aed"
                             strokeWidth="8"
                             strokeLinecap="round"
                             strokeDasharray={strokeDasharray}
                             strokeDashoffset={strokeDashoffset}
-                            transform="rotate(-90 60 60)"
+                            transform="rotate(-90 80 80)"
                           />
                         </svg>
                         <div className="circular-progress-text">
@@ -688,6 +692,7 @@ export default function DeckContent() {
             })()}
           </div>
         </div>
+        
         <div className="deck-search-filter">
           <div className="deck-search-bar">
             <input
@@ -887,7 +892,7 @@ export default function DeckContent() {
             </>
           )}
           {loading ? <div className="loading">Loading...</div> :
-            filteredCards.length === 0 ? (
+            filteredCards.length === 0 && cards.length > 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">🔍</div>
                 <h3>No cards found</h3>
@@ -1182,6 +1187,169 @@ export default function DeckContent() {
                 onClick={() => setShowNotesModal(false)}
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showDeleteConfirm && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            backdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+            <div 
+              style={{
+                background: '#1a1a1a',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '1rem',
+                padding: '2rem',
+                maxWidth: '500px',
+                width: '90%',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+              }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              marginBottom: '2rem',
+              paddingBottom: '1.25rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <h3 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: '600', 
+                margin: 0, 
+                color: '#fff' 
+              }}>
+                Delete Deck
+              </h3>
+              <button 
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#9ca3af',
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  borderRadius: '0.5rem',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => setShowDeleteConfirm(false)}
+                onMouseEnter={(e) => {
+                  e.target.style.color = '#fff';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = '#9ca3af';
+                  e.target.style.background = 'transparent';
+                }}
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '2.5rem' }}>
+              <p style={{ 
+                color: '#fff', 
+                fontSize: '1rem', 
+                lineHeight: '1.5', 
+                margin: '0 0 0.5rem 0' 
+              }}>
+                Are you sure you want to delete{' '}
+                <span style={{ 
+                  color: '#fbbf24', 
+                  fontWeight: '700',
+                  backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                  padding: '0.125rem 0.375rem',
+                  borderRadius: '0.375rem',
+                  border: '1px solid rgba(251, 191, 36, 0.2)'
+                }}>
+                  "{deck?.title || 'this deck'}"
+                </span>
+                ?
+              </p>
+              <p style={{ 
+                color: '#d1d5db', 
+                fontSize: '0.875rem', 
+                lineHeight: '1.6', 
+                margin: 0,
+                fontStyle: 'italic',
+                fontWeight: '500'
+              }}>
+                This action cannot be undone and will permanently remove all cards in this deck.
+              </p>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              gap: '1rem' 
+            }}>
+              <button 
+                style={{
+                  background: 'transparent',
+                  color: '#9ca3af',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1.5rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => setShowDeleteConfirm(false)}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                  e.target.style.color = '#fff';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'transparent';
+                  e.target.style.color = '#9ca3af';
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1.5rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  confirmDeleteDeck();
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#dc2626';
+                  e.target.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ef4444';
+                  e.target.style.transform = 'translateY(0)';
+                }}
+              >
+                <FiTrash2 size={18} />
+                Delete Deck
               </button>
             </div>
           </div>

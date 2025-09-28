@@ -1491,10 +1491,6 @@
     line-height: 1.5;
 }
 
-.review-options {
-    margin-top: 20px;
-}
-
 .multiple-choice-options,
 .true-false-options {
     display: grid;
