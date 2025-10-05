@@ -91,6 +91,19 @@ body.nightowl-root-bg .content-section {
   box-shadow: none !important;
 }
 
+/* Make nav items hover background when FlashcardsNightOwl is active */
+body:has(.nightowl-flashcards-bg) .nav-item:hover,
+.nightowl-flashcards-bg ~ .nav-item:hover {
+  background: var(--nightowl-bg-hover) !important;
+}
+
+/* Make folder items hover background and remove green border when FlashcardsNightOwl is active */
+body:has(.nightowl-flashcards-bg) .folder-item:hover,
+.nightowl-flashcards-bg ~ .folder-item:hover {
+  background: var(--nightowl-bg-hover) !important;
+  border-color: var(--nightowl-panel-border) !important;
+}
+
 .main-area {
   padding-bottom: 0px !important;
   padding-top: 0px !important;
@@ -617,7 +630,6 @@ body.nightowl-root-bg .content-section {
   stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dasharray 0.8s ease;
-  filter: drop-shadow(0 0 4px rgba(124, 131, 253, 0.5));
 }
 
 .nightowl-xp-center {

@@ -35,7 +35,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const ReviewWidget = ({ decks = [], selectedDeckId, setSelectedDeckId }) => {
+const ReviewWidget = ({ decks = [], selectedDeckId }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overdue');
   const [tooltip, setTooltip] = useState(null);

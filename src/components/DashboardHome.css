@@ -65,6 +65,20 @@ body:has(.dashboard-home-container) .dashboard-sidebar,
     backdrop-filter: blur(10px);
 }
 
+/* Make folder items darker when DashboardHome is active */
+body:has(.dashboard-home-container) .folder-item,
+.dashboard-home-container ~ .folder-item,
+.dashboard-home-container .folder-item {
+  background: #2C3038 !important;
+}
+
+/* Remove green border on folder item hover when DashboardHome is active */
+body:has(.dashboard-home-container) .folder-item:hover,
+.dashboard-home-container ~ .folder-item:hover,
+.dashboard-home-container .folder-item:hover {
+  border-color: var(--nightowl-panel-border) !important;
+}
+
 
 /* Remove any fixed heights that might be causing scroll issues */
 .dashboard-greeting,
@@ -558,7 +572,7 @@ body:has(.dashboard-home-container) .dashboard-sidebar,
 }
 
 .avatar-icon {
-  color: #FF6B6B;
+  color: #7c83fd;
 }
 
 .greeting-title {
@@ -577,6 +591,11 @@ body:has(.dashboard-home-container) .dashboard-sidebar,
   align-items: center;
   gap: 8px;
   color: var(--nightowl-text-steel);
+}
+
+.streak-area svg {
+  color: #FF6B6B;
+  filter: drop-shadow(0 0 4px rgba(255, 107, 107, 0.3));
 }
 
 .streak-count {
@@ -598,7 +617,6 @@ body:has(.dashboard-home-container) .dashboard-sidebar,
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 0.8rem;
-  animation: pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes pulse {
@@ -647,7 +665,6 @@ body:has(.dashboard-home-container) .dashboard-sidebar,
 
 .xp-ring svg {
   transform: rotate(-90deg);
-  filter: drop-shadow(0 0 6px rgba(78, 205, 196, 0.25));
 }
 
 .xp-ring-bg {
@@ -658,11 +675,10 @@ body:has(.dashboard-home-container) .dashboard-sidebar,
 
 .xp-ring-progress {
   fill: none;
-  stroke: #4ECDC4;
+  stroke: #7c83fd;
   stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dasharray 0.8s ease;
-  filter: drop-shadow(0 0 3px rgba(78, 205, 196, 0.3));
 }
 
 .xp-center {
@@ -701,11 +717,6 @@ body:has(.dashboard-home-container) .dashboard-sidebar,
   color: var(--nightowl-text-steel);
   font-size: 0.9rem;
   font-weight: 400;
-}
-
-/* Hover effects */
-.xp-container:hover .xp-ring svg {
-  filter: drop-shadow(0 0 8px rgba(78, 205, 196, 0.35));
 }
 
 /* Level-based color shifts - keeping cyan prominent */

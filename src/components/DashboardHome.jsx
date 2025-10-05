@@ -32,7 +32,7 @@ const DashboardHome = () => {
       setAchievementsError(null);
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
-        const response = await makeAuthenticatedRequest(`${apiUrl}achievements/user/`);
+        const response = await makeAuthenticatedRequest(`${apiUrl}achievements/user/?user_achievements=false`);
         if (!response) throw new Error('No response from server');
         if (response.status !== 200) throw new Error(response.data?.message || 'Failed to fetch achievements');
         setAchievements(response.data);

@@ -12,15 +12,20 @@ const Achievements = () => {
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [levelUpAchievement, setLevelUpAchievement] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Add Night Owl theme class to body
+    document.body.classList.add('achievements-root-bg');
+    
     const fetchAchievements = async () => {
       setLoading(true);
       setError(null);
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
-        const response = await makeAuthenticatedRequest(`${apiUrl}achievements/user/`);
+        const response = await makeAuthenticatedRequest(`${apiUrl}achievements/user/?user_achievements=false`);
         if (!response) throw new Error('No response from server');
         if (response.status !== 200) throw new Error(response.data?.message || 'Failed to fetch achievements');
         // Ensure we always set an array
@@ -33,6 +38,11 @@ const Achievements = () => {
       }
     };
     fetchAchievements();
+
+    // Cleanup function to remove class when component unmounts
+    return () => {
+      document.body.classList.remove('achievements-root-bg');
+    };
   }, []);
 
   // Generate categories from achievement families
@@ -67,48 +77,184 @@ const Achievements = () => {
     }
   };
 
+  // Get achievement icon and badge classes
+  const getAchievementIcon = (achievement) => {
+    const family = achievement.family?.toLowerCase() || '';
+    const tier = achievement.tier?.toLowerCase() || '';
+    const name = achievement.name?.toLowerCase() || '';
+    
+    // Map achievement names and families to specific themed icons
+    if (name.includes('midnight') || name.includes('night') || name.includes('owl')) {
+      return { icon: '🦉', badgeClass: 'general' };
+    } else if (name.includes('scholar') || name.includes('study') || name.includes('academic')) {
+      return { icon: '🎓', badgeClass: 'general' };
+    } else if (name.includes('streak') || name.includes('consistency') || name.includes('daily')) {
+      return { icon: '🔥', badgeClass: 'streak' };
+    } else if (name.includes('flashcard') || name.includes('deck') || name.includes('card')) {
+      return { icon: '📚', badgeClass: 'flashcards' };
+    } else if (name.includes('quiz') || name.includes('recall') || name.includes('test')) {
+      return { icon: '🎯', badgeClass: 'quiz' };
+    } else if (name.includes('group') || name.includes('collaborat') || name.includes('team')) {
+      return { icon: '👥', badgeClass: 'study-groups' };
+    } else if (name.includes('master') || name.includes('expert') || name.includes('pro')) {
+      return { icon: '🏆', badgeClass: 'trophy' };
+    } else if (name.includes('speed') || name.includes('fast') || name.includes('quick')) {
+      return { icon: '⚡', badgeClass: 'general' };
+    } else if (name.includes('memory') || name.includes('remember') || name.includes('retention')) {
+      return { icon: '🧠', badgeClass: 'general' };
+    } else if (family.includes('streak') || family.includes('consistency')) {
+      return { icon: '🔥', badgeClass: 'streak' };
+    } else if (family.includes('flashcards') || family.includes('deck')) {
+      return { icon: '📚', badgeClass: 'flashcards' };
+    } else if (family.includes('quiz') || family.includes('recall')) {
+      return { icon: '🎯', badgeClass: 'quiz' };
+    } else if (family.includes('study') && family.includes('group')) {
+      return { icon: '👥', badgeClass: 'study-groups' };
+    } else if (family.includes('general') || !family) {
+      return { icon: '⭐', badgeClass: 'general' };
+    }
+    
+    // Default fallback
+    return { icon: '🏆', badgeClass: 'trophy' };
+  };
+
+  const getTierClass = (tier) => {
+    const tierLower = tier?.toLowerCase() || '';
+    if (tierLower.includes('bronze')) return 'bronze';
+    if (tierLower.includes('silver')) return 'silver';
+    if (tierLower.includes('gold')) return 'gold';
+    if (tierLower.includes('legend')) return 'legend';
+    return '';
+  };
+
+  // Level-up animation function
+  const triggerLevelUpAnimation = (achievement) => {
+    setLevelUpAchievement(achievement.name);
+    setShowConfetti(true);
+    
+    // Remove animation class after animation completes
+    setTimeout(() => {
+      setLevelUpAchievement(null);
+    }, 2000);
+    
+    // Hide confetti after animation
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 3000);
+  };
+
+  // Create confetti pieces
+  const createConfetti = () => {
+    if (!showConfetti) return null;
+    
+    const confettiPieces = [];
+    for (let i = 0; i < 50; i++) {
+      confettiPieces.push(
+        <div
+          key={i}
+          className="confetti-piece"
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 2}s`,
+            animationDuration: `${2 + Math.random() * 2}s`
+          }}
+        />
+      );
+    }
+    
+    return (
+      <div className="confetti-container">
+        {confettiPieces}
+      </div>
+    );
+  };
+
+  // Calculate XP progress for dashboard ring
+  const totalXP = 23; // This would come from user data
+  const currentLevelXP = totalXP % 100; // Assuming 100 XP per level
+  const xpProgress = (currentLevelXP / 100) * 283; // 283 is circumference for radius 45
+
   return (
     <div className="achievements-page">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/dashboard')}
-        className="back-to-dashboard-btn"
-      >
-        <ArrowLeft size={20} />
-        Back to Dashboard
-      </button>
+      <div className="achievements-content">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="back-to-dashboard-btn"
+        >
+          <ArrowLeft size={20} />
+          Back to Dashboard
+        </button>
 
-      {/* Header Section */}
-      <div className="achievements-header">
+        {/* Header Section */}
+        <div className="achievements-header">
         <div className="header-gradient-bg" />
         
         <div className="header-title-section">
           <div className="header-icon">🏆</div>
-          <div>
+          <div className="header-title-area">
             <h1 className="header-title">Your Achievements</h1>
-            <div className="header-subtitle">Memory Architect – Level 3</div>
+            <div className="header-subtitle-row">
+              <div className="header-subtitle">Memory Architect</div>
+              <div className="level-badge">
+                <span className="level-badge-icon">⭐</span>
+                Level 3
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="header-progress-section">
-          <div className="progress-bar-container">
-            <div 
-                className="progress-bar-fill"
-                style={{width: `${totalCount ? (unlockedCount / totalCount) * 100 : 0}%`}}
-            />
-          </div>
-          <div className="progress-label">
-            {unlockedCount} / {totalCount} Achievements Unlocked
+          <div className="progress-section">
+            <div className="achievements-progress-ring">
+              <svg viewBox="0 0 100 100">
+                <circle className="achievements-ring-bg" cx="50" cy="50" r="45" />
+                <circle 
+                  className="achievements-ring-progress" 
+                  cx="50" 
+                  cy="50" 
+                  r="45"
+                  style={{
+                    strokeDasharray: `${totalCount ? ((unlockedCount / totalCount) * 283) : 0} 283`
+                  }}
+                />
+              </svg>
+              <div className="achievements-ring-center">
+                <span className="achievements-progress-value">{unlockedCount}</span>
+                <span className="achievements-progress-label">/{totalCount}</span>
+              </div>
+            </div>
+            <div className="progress-label-row">
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                <span className="progress-label-icon">🎯</span>
+                <div className="progress-label">
+                  Achievements Unlocked
+                </div>
+              </div>
+              <div className="progress-subtitle">
+                {totalCount > 0 ? `${Math.round((unlockedCount / totalCount) * 100)}% Complete` : 'No achievements yet'}
+              </div>
+            </div>
           </div>
 
           <div className="header-stats">
-              <div className="stat-item">
-                  <div className="stat-value" style={{color: '#4ECDC4'}}>23</div>
-                  <div className="stat-label">Total XP</div>
-              </div>
-              <div className="stat-item">
-                  <div className="stat-value" style={{color: '#FFD93D'}}>5</div>
-                  <div className="stat-label">Level</div>
+              <div className="dashboard-xp-ring">
+                <svg viewBox="0 0 100 100">
+                  <circle className="dashboard-xp-ring-bg" cx="50" cy="50" r="45" />
+                  <circle 
+                    className="dashboard-xp-ring-progress" 
+                    cx="50" 
+                    cy="50" 
+                    r="45"
+                    style={{
+                      strokeDasharray: `${xpProgress} 283`
+                    }}
+                  />
+                </svg>
+                <div className="dashboard-xp-ring-center">
+                  <span className="dashboard-xp-level">Level 3</span>
+                  <span className="dashboard-xp-points">{totalXP} XP</span>
+                </div>
               </div>
           </div>
         </div>
@@ -141,39 +287,42 @@ const Achievements = () => {
       <div className="achievement-grid">
         {loading && <div>Loading achievements...</div>}
         {error && <div style={{color: 'red'}}>Error: {error}</div>}
-        {!loading && !error && filteredAchievements.map(achievement => (
-          <div
-            key={achievement.name}
-            className={`achievement-card unlocked`}
-            style={{'--achievement-color': '#4ECDC4'}}
-          >
-            <div className="card-bg-glow" />
+        {!loading && !error && filteredAchievements.map(achievement => {
+          const { icon, badgeClass } = getAchievementIcon(achievement);
+          const tierClass = getTierClass(achievement.tier);
+          const isLevelUp = levelUpAchievement === achievement.name;
+          
+          return (
+            <div
+              key={achievement.name}
+              className={`achievement-card unlocked ${isLevelUp ? 'level-up' : ''}`}
+              onClick={() => triggerLevelUpAnimation(achievement)}
+            >
+              <div className="card-bg-glow" />
 
-            <div className="card-content">
-                <div className="card-icon">🏆</div>
-                <h3 className="card-title">{achievement.name}</h3>
-                <p className="card-description">{achievement.description}</p>
+              <div className="card-content">
+                  <div className={`achievement-icon-badge ${badgeClass} ${tierClass}`}>
+                    {icon}
+                  </div>
+                  
+                  <div className="card-text-content">
+                    <h3 className="card-title">{achievement.name}</h3>
+                    <p className="card-description">{achievement.description}</p>
+                  </div>
 
-                <div className="card-progress-bar-container">
-                    <div 
-                        className="card-progress-bar-fill"
-                        style={{width: '100%'}}
-                    />
-                </div>
-                <div className="card-progress-label">
-                    Completed
-                </div>
-
-                <div className="card-footer">
-                    <span className="card-category">{achievement.tier || achievement.family || 'General'}</span>
-                    <span className="card-xp">
-                        <Sparkles size={14} /> 10 XP
-                    </span>
-                </div>
+                  <div className="achievement-xp-pill">
+                    <Sparkles className="achievement-xp-icon" size={12} />
+                    10 XP
+                  </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+        </div>
       </div>
+      
+      {/* Confetti Animation */}
+      {createConfetti()}
     </div>
   );
 };
