@@ -1,7 +1,10 @@
 import React from 'react';
 import { Lock } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
 
-const Notification = ({ notification }) => {
+const GlobalNotification = () => {
+    const { notification } = useNotification();
+    
     if (!notification.show) return null;
 
     // Determine if this is a "Coming Soon" notification
@@ -10,7 +13,7 @@ const Notification = ({ notification }) => {
 
     return (
         <div 
-            className="dashboard-notification" 
+            className="global-notification" 
             style={{ 
                 backgroundColor: backgroundColor,
                 position: 'fixed',
@@ -21,10 +24,12 @@ const Notification = ({ notification }) => {
                 color: 'white',
                 zIndex: 3000,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                animation: 'slideInRight 0.3s ease',
+                animation: notification.fading ? 'slideOutRight 0.3s ease' : 'slideInRight 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                opacity: notification.fading ? 0 : 1,
+                transition: 'opacity 0.3s ease'
             }}
         >
             {isComingSoon && <Lock size={16} />}
@@ -33,4 +38,4 @@ const Notification = ({ notification }) => {
     );
 };
 
-export default Notification; 
+export default GlobalNotification;

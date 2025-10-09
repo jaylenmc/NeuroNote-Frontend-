@@ -2,10 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiClock, FiShuffle, FiPause, FiPlay, FiArrowLeft, FiSkipForward, FiCheck, FiX, FiRotateCcw } from 'react-icons/fi';
 import CardsToQuiz from '../components/CardsToQuiz';
+import FeedbackLoopSession from '../components/FeedbackLoopSession';
+import ProblemSolvingSession from '../components/ProblemSolvingSession';
+import PatternRecognitionSession from '../components/PatternRecognitionSession';
+import AICoach from '../components/AICoach';
 import api from '../api/axios';
 import { jwtDecode } from 'jwt-decode';
 import { isBackendDateTimeOverdue, isBackendDateTimeDueNow, isBackendDateTimeDueSoon } from '../utils/dateUtils';
 import './ReviewSession.css';
+import '../components/SessionTypeStyles.css';
+import '../components/FlashcardsNightOwl.css';
 
 function isTokenExpired(token) {
   if (!token) return true;
@@ -35,6 +41,9 @@ const ReviewSession = () => {
   // State for selected deck (from URL state or query params)
   const [selectedDeck, setSelectedDeck] = useState(null);
   
+  // State for selected study method
+  const [selectedStudyMethod, setSelectedStudyMethod] = useState(null);
+  
   // State for quiz feature
   const [showQuiz, setShowQuiz] = useState(false);
   const [reviewedCardsForQuiz, setReviewedCardsForQuiz] = useState([]);
@@ -53,8 +62,8 @@ const ReviewSession = () => {
     sessionSpeed: 'normal'
   });
   
-  // State for collapsible stats panel
-  const [statsPanelOpen, setStatsPanelOpen] = useState(false);
+  // State for attempt counter (for feedback loop sessions)
+  const [currentAttempts, setCurrentAttempts] = useState(0);
   
 
   // Color map for underlines
@@ -148,6 +157,17 @@ const ReviewSession = () => {
     checkAndRefreshToken();
   }, [navigate]);
 
+  // Apply Night Owl theme
+  useEffect(() => {
+    document.documentElement.classList.add('nightowl-root-bg');
+    document.body.classList.add('nightowl-root-bg');
+    
+    return () => {
+      document.documentElement.classList.remove('nightowl-root-bg');
+      document.body.classList.remove('nightowl-root-bg');
+    };
+  }, []);
+
   // Initialize review session
   useEffect(() => {
     const initializeReviewSession = async () => {
@@ -159,8 +179,15 @@ const ReviewSession = () => {
         const deckFromState = location.state?.selectedDeck;
         const deckFromQuery = new URLSearchParams(location.search).get('deck');
         const includeDueSoonFromState = location.state?.includeDueSoon || false;
+        const studyMethodFromState = location.state?.selectedStudyMethod;
         
         setIncludeDueSoon(includeDueSoonFromState);
+        setSelectedStudyMethod(studyMethodFromState);
+        
+        console.log('Initializing review session with:');
+        console.log('- selectedStudyMethod:', studyMethodFromState);
+        console.log('- selectedDeck:', deckFromState);
+        console.log('- includeDueSoon:', includeDueSoonFromState);
         
         let deckToUse = null;
         
@@ -242,6 +269,12 @@ const ReviewSession = () => {
       if (showQuiz) {
         return;
       }
+      
+      // Don't handle spacebar when typing in textarea or input
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+        return;
+      }
+      
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
         setIsFlipped((prev) => !prev);
@@ -257,6 +290,12 @@ const ReviewSession = () => {
       if (showQuiz) {
         return;
       }
+      
+      // Don't handle number keys when typing in textarea or input
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+        return;
+      }
+      
       const rating = parseInt(e.key);
       if (rating >= 0 && rating <= 5) {
         handleRatingSelect(rating);
@@ -464,6 +503,7 @@ const ReviewSession = () => {
     if (currentReviewCardIndex < reviewCards.length - 1) {
       setCurrentReviewCardIndex(currentReviewCardIndex + 1);
       setIsFlipped(false);
+      setCurrentAttempts(0); // Reset attempts for new card
     }
     // Note: Last card handling is now done in handleRatingSelect to avoid race conditions
   };
@@ -564,6 +604,50 @@ const ReviewSession = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Render the appropriate session type based on selected study method
+  const renderSessionType = () => {
+    console.log('renderSessionType called with selectedStudyMethod:', selectedStudyMethod);
+    
+    if (!selectedStudyMethod) {
+      console.log('No selectedStudyMethod, returning null');
+      return null;
+    }
+
+    const nextCard = currentReviewCardIndex < reviewCards.length - 1 
+      ? reviewCards[currentReviewCardIndex + 1] 
+      : null;
+
+    const sessionProps = {
+      currentCard,
+      onRatingSelect: handleRatingSelect,
+      isFlipped,
+      setIsFlipped,
+      sessionStats: motivationalStats,
+      onAttemptChange: setCurrentAttempts,
+      nextCard
+    };
+
+    console.log('Session props:', sessionProps);
+    console.log('Selected study method ID:', selectedStudyMethod.id);
+
+    switch (selectedStudyMethod.id) {
+      case 'doing-feedback':
+        console.log('Rendering FeedbackLoopSession');
+        return <FeedbackLoopSession {...sessionProps} />;
+      case 'understanding-problem-solving':
+        console.log('Rendering ProblemSolvingSession');
+        return <ProblemSolvingSession {...sessionProps} />;
+      case 'pattern-recognition':
+        console.log('Rendering PatternRecognitionSession');
+        return <PatternRecognitionSession {...sessionProps} />;
+      case 'recall-retention':
+      default:
+        console.log('Using default flashcard interface');
+        // Return null to use the default flashcard interface
+        return null;
+    }
+  };
+
   if (loading) {
     return (
       <div className="review-session-loading">
@@ -597,74 +681,21 @@ const ReviewSession = () => {
 
   return (
     <div className="review-session">
-      {/* Background decorative elements */}
-      <div className="background-elements">
-        <div className="floating-orb orb-1"></div>
-        <div className="floating-orb orb-2"></div>
-        <div className="floating-orb orb-3"></div>
-        <div className="geometric-shape shape-1"></div>
-        <div className="geometric-shape shape-2"></div>
-      </div>
-
-      {/* Collapsible Stats Panel */}
+      {/* AI Coach */}
       {!showQuiz && !sessionComplete && (
-        <div className={`stats-panel ${statsPanelOpen ? 'open' : ''}`}>
-          {/* Toggle Button */}
-          <button 
-            className="stats-toggle-btn"
-            onClick={() => setStatsPanelOpen(!statsPanelOpen)}
-            title={statsPanelOpen ? 'Hide Stats' : 'Show Stats'}
-          >
-            📊
-          </button>
-          
-          {/* Stats Content */}
-          <div className="stats-content">
-            <div className="stats-header">
-              <h4>Session Stats</h4>
-              <button 
-                className="close-btn"
-                onClick={() => setStatsPanelOpen(false)}
-                title="Close Stats"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="stats-body">
-              <div className="stat-item">
-                <span className="stat-label">Speed:</span>
-                <span className="stat-value">{motivationalStats.sessionSpeed}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Avg Time:</span>
-                <span className="stat-value">{motivationalStats.averageTime}s</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Streak:</span>
-                <span className="stat-value">{motivationalStats.streakCount} cards</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Improvement:</span>
-                <span className="stat-value">+{motivationalStats.improvementRate}%</span>
-              </div>
-            </div>
-            
-            {selectedDeck && (
-              <div className="deck-progress-section">
-                <h5>Deck Progress</h5>
-                <div className="deck-info">
-                  <span className="deck-title">{selectedDeck.title}</span>
-                  <div className="deck-stats">
-                    <span>{reviewCards.length} cards</span>
-                    <span>{Math.floor(reviewCards.length * 0.3)} mastered</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <AICoach
+          sessionStats={motivationalStats}
+          selectedStudyMethod={selectedStudyMethod}
+          currentCardIndex={currentReviewCardIndex}
+          totalCards={reviewCards.length}
+          onRecommendationClick={(rec) => {
+            console.log('AI Coach recommendation clicked:', rec);
+            // Here you could implement actions based on recommendations
+          }}
+        />
       )}
+
+
 
       {showQuiz ? (
         <CardsToQuiz 
@@ -707,7 +738,7 @@ const ReviewSession = () => {
         </div>
       ) : (
         <>
-          {/* Header with Progress and Stats */}
+          {/* Header with Timer Only */}
           <div className="review-header">
             <div className="header-left">
               <button className="end-session-btn" onClick={handleEndSession}>
@@ -715,25 +746,7 @@ const ReviewSession = () => {
               </button>
             </div>
             
-            {/* Centered Progress Section */}
-            <div className="review-progress-section">
-              <div className="progress-stats">
-                <div className="review-progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{width: `${((currentReviewCardIndex + 1) / reviewCards.length) * 100}%`}}
-                  />
-                </div>
-                
-                <div className="card-counter">
-                  <span className="current-card">{currentReviewCardIndex + 1}</span>
-                  <span className="separator">/</span>
-                  <span className="total-cards">{reviewCards.length}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Timer as Pill Badge */}
+            {/* Timer */}
             <div className="review-timer-section">
               <div className="timer-pill">
                 <FiClock className="timer-icon" />
@@ -745,67 +758,72 @@ const ReviewSession = () => {
             </div>
           </div>
 
-          {/* Flashcard */}
-          <div className="flashcard-container">
-            <button className="shuffle-btn" onClick={handleShuffle} title="Shuffle Cards">
-              <FiShuffle />
-            </button>
-            
-            <div 
-              className={`flashcard ${isFlipped ? 'flipped' : ''}`}
-              onClick={() => setIsFlipped(!isFlipped)}
-              tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setIsFlipped(!isFlipped)}
-            >
-              <div className="flashcard-inner">
-                <div className="flashcard-front">
-                  <h3>Question</h3>
-                  <p>{currentCard.question}</p>
+          {/* Render session type based on selected study method */}
+          {renderSessionType() || (
+            <>
+              {/* Default Flashcard Interface */}
+              <div className="flashcard-container">
+                <button className="shuffle-btn" onClick={handleShuffle} title="Shuffle Cards">
+                  <FiShuffle />
+                </button>
+                
+                <div 
+                  className={`flashcard ${isFlipped ? 'flipped' : ''}`}
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  tabIndex={0}
+                  onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setIsFlipped(!isFlipped)}
+                >
+                  <div className="flashcard-inner">
+                    <div className="flashcard-front">
+                      <h3>Question</h3>
+                      <p>{currentCard.question}</p>
+                    </div>
+                    <div className="flashcard-back">
+                      <h3>Answer</h3>
+                      <p>{currentCard.answer}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flashcard-back">
-                  <h3>Answer</h3>
-                  <p>{currentCard.answer}</p>
-                </div>
+
+                <button className="skip-btn" onClick={handleNextReviewCard} title="Skip Card">
+                  <FiSkipForward />
+                </button>
               </div>
-            </div>
 
-            <button className="skip-btn" onClick={handleNextReviewCard} title="Skip Card">
-              <FiSkipForward />
-            </button>
-          </div>
+              <div className="flip-hint">
+                Click or press Space to flip
+              </div>
 
-          <div className="flip-hint">
-            Click or press Space to flip
-          </div>
+              {/* Rating Controls */}
+              <div className="rating-controls">
+                {[5, 4, 3, 2, 1, 0].map((rating) => (
+                  <button
+                    key={rating}
+                    className={`rating-btn rating-${rating}`}
+                    onClick={() => {
+              
+                      handleRatingSelect(rating);
+                    }}
+                    style={{ borderBottomColor: ratingColors[rating] }}
+                  >
+                    <div className="rating-value">{rating}</div>
+                    <div className="rating-label">
+                      {rating === 5 && 'Perfect Recall'}
+                      {rating === 4 && 'Correct with Hesitation'}
+                      {rating === 3 && 'Correct with Difficulty'}
+                      {rating === 2 && 'Incorrect but Familiar'}
+                      {rating === 1 && 'Incorrect and Unfamiliar'}
+                      {rating === 0 && 'Complete Blackout'}
+                    </div>
+                  </button>
+                ))}
+              </div>
 
-          {/* Rating Controls */}
-          <div className="rating-controls">
-            {[5, 4, 3, 2, 1, 0].map((rating) => (
-              <button
-                key={rating}
-                className={`rating-btn rating-${rating}`}
-                onClick={() => {
-          
-                  handleRatingSelect(rating);
-                }}
-                style={{ borderBottomColor: ratingColors[rating] }}
-              >
-                <div className="rating-value">{rating}</div>
-                <div className="rating-label">
-                  {rating === 5 && 'Perfect Recall'}
-                  {rating === 4 && 'Correct with Hesitation'}
-                  {rating === 3 && 'Correct with Difficulty'}
-                  {rating === 2 && 'Incorrect but Familiar'}
-                  {rating === 1 && 'Incorrect and Unfamiliar'}
-                  {rating === 0 && 'Complete Blackout'}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <div className="rating-hint">
-            Press number keys 0-5 to rate quickly
-          </div>
+              <div className="rating-hint">
+                Press number keys 0-5 to rate quickly
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

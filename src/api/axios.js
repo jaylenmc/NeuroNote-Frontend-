@@ -3,7 +3,7 @@ import axios from 'axios';
 // Remove trailing slash from base URL if it exists
 const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
 
-console.log('API Base URL:', baseURL);
+// API Base URL configured
 
 const api = axios.create({
   baseURL,
@@ -47,8 +47,6 @@ const refreshToken = async () => {
       throw new Error('No refresh token available');
     }
 
-    console.log('Attempting to refresh token...');
-    
     // Send the refresh token in the request body
     const response = await refreshApi.post('/auth/token/refresh/', {
       refresh_token: refreshToken
@@ -60,7 +58,6 @@ const refreshToken = async () => {
 
     const { access } = response.data;
     sessionStorage.setItem('jwt_token', access);
-    console.log('Token refreshed successfully');
     return access;
   } catch (error) {
     console.error('Token refresh failed:', error.response?.data || error.message);
@@ -68,7 +65,6 @@ const refreshToken = async () => {
     
     // If the refresh token itself is invalid/expired, redirect to login
     if (error.response?.status === 401) {
-      console.log('Refresh token is invalid/expired, redirecting to login');
       sessionStorage.removeItem('jwt_token');
       sessionStorage.removeItem('refresh_token');
       sessionStorage.removeItem('user');
@@ -83,8 +79,6 @@ const refreshToken = async () => {
 api.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem('jwt_token');
-    console.log('Making request to:', config.url);
-    console.log('With token:', token ? 'Present' : 'Missing');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -92,7 +86,6 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -100,31 +93,14 @@ api.interceptors.request.use(
 // Add a response interceptor to handle token refresh
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', {
-      url: response.config.url,
-      method: response.config.method,
-      status: response.status,
-      data: response.data
-    });
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
-    
-    console.error('API Error:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
 
     // If the error is 401 (Unauthorized) and we haven't tried to refresh yet
     if (error.response?.status === 401 && !originalRequest._retry) {
-      console.log('Received 401 error, attempting token refresh...');
-      
       if (isRefreshing) {
-        console.log('Token refresh already in progress, queuing request...');
         // If we're already refreshing, queue this request
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -138,7 +114,6 @@ api.interceptors.response.use(
 
       originalRequest._retry = true;
       isRefreshing = true;
-      console.log('Starting token refresh process...');
 
       try {
         const newToken = await refreshToken();
@@ -146,10 +121,8 @@ api.interceptors.response.use(
         
         // Retry the original request with the new token
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        console.log('Retrying original request with new token...');
         return api(originalRequest);
       } catch (refreshError) {
-        console.error('Token refresh failed, processing queue with error...');
         processQueue(refreshError, null);
         return Promise.reject(refreshError);
       } finally {

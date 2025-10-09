@@ -26,11 +26,10 @@ const QuizResultsPage = () => {
     navigate(`/quiz/${quizId}/test`);
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 90) return '#4ecb7b'; // Green
-    if (score >= 70) return '#a78bfa'; // Purple
-    if (score >= 50) return '#fbbf24'; // Yellow
-    return '#ff6b6b'; // Red
+  const getScoreClass = (score) => {
+    if (score >= 80) return 'high-score'; // Green for 80%+
+    if (score >= 60) return 'medium-score'; // Yellowish orange for 60-79%
+    return 'low-score'; // Red for 0-59%
   };
 
   const getScoreMessage = (score) => {
@@ -70,137 +69,97 @@ const QuizResultsPage = () => {
       {/* Navbar */}
       <nav className="quiz-create-navbar">
         <div className="quiz-create-navbar-left">
-          <div className="quiz-create-navbar-title-static">{quizTitle || 'Quiz Results'}</div>
+          <button className="quiz-create-navbar-back-btn" onClick={handleBack}>
+            <FiArrowLeft style={{ marginRight: 6 }} /> Back
+          </button>
         </div>
         <div className="quiz-create-navbar-center-fixed">
           <span className="quiz-create-navbar-questions-count">Results</span>
         </div>
         <div className="quiz-create-navbar-right">
-          <button className="quiz-create-navbar-back-btn" onClick={handleBack}>
-            <FiArrowLeft style={{ marginRight: 6 }} /> Back
-          </button>
+          <div className="quiz-create-navbar-title-static" title={quizTitle || 'Quiz Results'}>
+            {quizTitle || 'Quiz Results'}
+          </div>
         </div>
       </nav>
 
       <div className="quiz-create-main-layout">
-        <main className="quiz-create-main-content" style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <main className="quiz-create-main-content">
           {/* Score Overview */}
-          <div className="quiz-create-section-header">Quiz Results</div>
           <div className="quiz-create-question-card fade-slide">
-            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <div style={{ 
-                fontSize: '4rem', 
-                fontWeight: '700', 
-                color: getScoreColor(score),
-                marginBottom: '1rem'
-              }}>
+            <div className="quiz-results-score-container">
+              <div className={`quiz-results-score-percentage ${getScoreClass(score)}`}>
                 {score}%
               </div>
-              <div style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: '600', 
-                color: '#f0f0f0',
-                marginBottom: '0.5rem'
-              }}>
+              <div className="quiz-results-score-message">
                 {getScoreMessage(score)}
               </div>
-              <div style={{ 
-                fontSize: '1.1rem', 
-                color: '#aaa',
-                marginBottom: '2rem'
-              }}>
+              <div className="quiz-results-score-details">
                 You got {correctAnswers} out of {totalQuestions} questions correct
               </div>
             </div>
 
             {/* Performance Breakdown */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ color: '#f0f0f0', marginBottom: '1rem' }}>Performance Breakdown</h3>
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ 
-                  flex: 1, 
-                  background: '#1f2021', 
-                  padding: '1rem', 
-                  borderRadius: '12px',
-                  border: '1.5px solid #232b2f'
-                }}>
-                  <div style={{ color: '#4ecb7b', fontSize: '1.5rem', fontWeight: '700' }}>
+            <div className="quiz-results-performance-section">
+              <h3 className="quiz-results-section-title">Performance Breakdown</h3>
+              <div className="quiz-results-stats-container">
+                <div className="quiz-results-stat-card">
+                  <div className="quiz-results-stat-value correct">
                     {correctAnswers}
                   </div>
-                  <div style={{ color: '#aaa', fontSize: '0.9rem' }}>Correct</div>
+                  <div className="quiz-results-stat-label">Correct</div>
                 </div>
-                <div style={{ 
-                  flex: 1, 
-                  background: '#1f2021', 
-                  padding: '1rem', 
-                  borderRadius: '12px',
-                  border: '1.5px solid #232b2f'
-                }}>
-                  <div style={{ color: '#ff6b6b', fontSize: '1.5rem', fontWeight: '700' }}>
+                <div className="quiz-results-stat-card">
+                  <div className="quiz-results-stat-value incorrect">
                     {totalQuestions - correctAnswers}
                   </div>
-                  <div style={{ color: '#aaa', fontSize: '0.9rem' }}>Incorrect</div>
+                  <div className="quiz-results-stat-label">Incorrect</div>
                 </div>
-                <div style={{ 
-                  flex: 1, 
-                  background: '#1f2021', 
-                  padding: '1rem', 
-                  borderRadius: '12px',
-                  border: '1.5px solid #232b2f'
-                }}>
-                  <div style={{ color: '#a78bfa', fontSize: '1.5rem', fontWeight: '700' }}>
+                <div className="quiz-results-stat-card">
+                  <div className="quiz-results-stat-value total">
                     {totalQuestions}
                   </div>
-                  <div style={{ color: '#aaa', fontSize: '0.9rem' }}>Total</div>
+                  <div className="quiz-results-stat-label">Total</div>
                 </div>
               </div>
             </div>
 
             {/* Wrong Questions Summary */}
             {wrongQuestions.length > 0 && (
-              <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ color: '#f0f0f0', marginBottom: '1rem' }}>
+              <div className="quiz-results-review-section">
+                <h3 className="quiz-results-section-title">
                   Questions to Review ({wrongQuestions.length})
                 </h3>
-                <div style={{ 
-                  background: '#1f2021', 
-                  padding: '1rem', 
-                  borderRadius: '12px',
-                  border: '1.5px solid #ff6b6b'
-                }}>
-                  <div style={{ color: '#ff6b6b', marginBottom: '0.5rem', fontWeight: '600' }}>
+                <div className="quiz-results-review-card">
+                  <div className="quiz-results-review-message">
                     You missed {wrongQuestions.length} question{wrongQuestions.length !== 1 ? 's' : ''}
                   </div>
-                  <div style={{ color: '#aaa', fontSize: '0.9rem' }}>
+                  <div className="quiz-results-review-subtext">
                     Review these questions to improve your understanding
+                  </div>
+                  <div className="quiz-results-missed-questions">
+                    {wrongQuestions.map((question, index) => (
+                      <div key={question.id} className="quiz-results-missed-question-item">
+                        <span className="quiz-results-question-number">Q{questions.indexOf(question) + 1}:</span>
+                        <span className="quiz-results-question-text">{question.prompt}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <div className="quiz-results-action-buttons">
               <button 
                 className="quiz-create-save-btn"
                 onClick={handleReview}
-                style={{ 
-                  background: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
               >
                 <FiEye /> Review Answers
               </button>
               <button 
-                className="quiz-create-save-btn"
+                className="quiz-create-save-btn quiz-retake-btn"
                 onClick={handleRetake}
-                style={{ 
-                  background: 'linear-gradient(135deg, #7c83fd 0%, #6366f1 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
               >
                 <FiRotateCcw /> Retake Quiz
               </button>

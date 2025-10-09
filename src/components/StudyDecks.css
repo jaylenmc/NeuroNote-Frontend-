@@ -1093,7 +1093,6 @@
   color: #8b5cf6;
   margin-bottom: 1.5rem;
   opacity: 0.7;
-  animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {

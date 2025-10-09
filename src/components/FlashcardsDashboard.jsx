@@ -142,16 +142,16 @@ const FlashcardsDashboard = ({
             };
         }
         
-        // Achievement messages
+        // High performance messages
         if (correctCards >= 15) {
             return {
-                message: `Incredible! ${correctCards} cards mastered — you're a study champion! 👑`,
-                type: 'achievement'
+                message: `Incredible! ${correctCards} cards mastered — you're a study champion!`,
+                type: 'level-up'
             };
         } else if (correctCards >= 10) {
             return {
                 message: `You mastered ${masteredCards} cards — almost leaderboard ready 👑`,
-                type: 'achievement'
+                type: 'level-up'
             };
         }
         
@@ -206,7 +206,7 @@ const FlashcardsDashboard = ({
             <div className="nightowl-flashcards-content">
                 <div className="nightowl-header-row">
                     <div className="nightowl-header-content">
-                        <h1 className="nightowl-header-title">Night Owl Flashcards 🦉</h1>
+                        <h1 className="nightowl-header-title">Launchpad 🚀</h1>
                         <div className="nightowl-header-subtitle-row">
                             <p className="nightowl-header-sub">Study smarter, not harder</p>
                             <span className="nightowl-streak-badge">
@@ -223,21 +223,6 @@ const FlashcardsDashboard = ({
                 </div>
 
                 <div className="nightowl-motivation-section">
-                    <div className={`nightowl-motivation-card nightowl-motivation-${motivationalData.type}`}>
-                        <div className="nightowl-motivation-icon">
-                            {motivationalData.type === 'level-up' && '🎉'}
-                            {motivationalData.type === 'achievement' && '✨'}
-                            {motivationalData.type === 'streak' && '🔥'}
-                            {motivationalData.type === 'motivation' && '💪'}
-                            {motivationalData.type === 'encouragement' && '🚀'}
-                        </div>
-                        <div className="nightowl-motivation-content">
-                            <p className="nightowl-motivation-message">{motivationalData.message}</p>
-                        </div>
-                        <div className="nightowl-motivation-flourish">
-                            {motivationalData.type === 'achievement' && '👑'}
-                        </div>
-                    </div>
                     
                     <div className="nightowl-sticky-notes">
                         {statsError && (

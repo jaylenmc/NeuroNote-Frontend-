@@ -65,7 +65,6 @@ html.nightowl-root-bg, body.nightowl-root-bg {
   padding: 32px 24px 48px 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
   overflow-x: visible;
   overflow-y: visible;
   min-height: 100vh;
@@ -169,12 +168,10 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 .nightowl-motivation-card {
   background: var(--nightowl-bg-panel);
   border-radius: 20px;
-  padding: 12px 24px;
   border: 1px solid var(--nightowl-panel-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
-  gap: 12px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -189,17 +186,6 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   border-color: var(--nightowl-panel-border);
 }
 
-.nightowl-motivation-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(180deg, #7c83fd 0%, #9ca3fd 100%);
-  border-radius: 0 2px 2px 0;
-}
-
 .nightowl-motivation-icon {
   font-size: 1.2rem;
   width: 32px;
@@ -207,9 +193,6 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  background: rgba(124, 131, 253, 0.1);
-  border: 1px solid rgba(124, 131, 253, 0.2);
   flex-shrink: 0;
 }
 
@@ -243,14 +226,7 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   border-color: rgba(255, 215, 0, 0.2);
 }
 
-.nightowl-motivation-achievement::before {
-  background: linear-gradient(180deg, #ff6b6b 0%, #ff8e8e 100%);
-}
 
-.nightowl-motivation-achievement .nightowl-motivation-icon {
-  background: rgba(255, 107, 107, 0.1);
-  border-color: rgba(255, 107, 107, 0.2);
-}
 
 .nightowl-motivation-streak::before {
   background: linear-gradient(180deg, #ff6b6b 0%, #ff8e8e 100%);
@@ -278,6 +254,7 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   background: rgba(124, 131, 253, 0.1);
   border-color: rgba(124, 131, 253, 0.2);
 }
+
 
 /* Sticky Notes */
 .nightowl-stats-error {
@@ -457,6 +434,7 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 
 /* Section Headers */
 .nightowl-section {
+  margin-top: 20px;
   margin-bottom: 32px;
 }
 
@@ -1595,24 +1573,6 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   opacity: 1;
 }
 
-.folder-content-item .delete-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.folder-content-item .delete-btn:hover {
-  background: rgba(255, 59, 48, 0.2);
-  color: #ff3b30;
-}
 
 /* Empty State Styling */
 .empty-folder-content {

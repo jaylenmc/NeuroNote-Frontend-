@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, ArrowLeft, BookOpen, HelpCircle, Target, RefreshCcw, BarChart2, MessageCircle, Play, Pause, RotateCcw, Settings, Coffee, Timer, Zap, FileText } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
+import { Sun, Moon, ArrowLeft, BookOpen, HelpCircle, Target, RefreshCcw, BarChart2, MessageCircle, Play, Pause, RotateCcw, Settings, Coffee, Timer, Zap, FileText, Lock } from 'lucide-react';
 import api from '../api/axios';
 import './StudyRoom.css';
 
@@ -65,6 +66,7 @@ const StudyRoom = () => {
   const [overlayContent, setOverlayContent] = useState(null);
   const [overlayType, setOverlayType] = useState(null);
   const [isLoadingOverlay, setIsLoadingOverlay] = useState(false);
+  const { showNotification } = useNotification();
 
   // Pomodoro timer state
   const [phase, setPhase] = useState('pomodoro');
@@ -451,6 +453,10 @@ const StudyRoom = () => {
     setOverlayType(null);
   };
 
+  const showComingSoonNotification = () => {
+    showNotification('Coming Soon!');
+  };
+
     return (
     <div className="study-room">
             <div className="study-room-header">
@@ -501,14 +507,28 @@ const StudyRoom = () => {
           {successMessage}
         </div>
       )}
+
       
       <div className="study-room-grid">
-                {tools.map((tool, index) => (
-          <div key={index} className="study-room-card" onClick={() => navigate(tool.route)} style={{ cursor: 'pointer' }}>
-            {React.cloneElement(tool.icon, { color: tool.color })}
-                        <span>{tool.label}</span>
-                    </div>
-                ))}
+                {tools.map((tool, index) => {
+          const isFocusCard = tool.label === 'Focus';
+          return (
+            <div 
+              key={index} 
+              className={`study-room-card ${isFocusCard ? 'locked' : ''}`} 
+              onClick={isFocusCard ? showComingSoonNotification : () => navigate(tool.route)} 
+              style={{ cursor: 'pointer' }}
+            >
+              {isFocusCard && (
+                <div className="lock-overlay">
+                  <Lock size={16} color="#ff6b6b" />
+                </div>
+              )}
+              {React.cloneElement(tool.icon, { color: tool.color })}
+              <span>{tool.label}</span>
+            </div>
+          );
+        })}
             </div>
       {/* Pinned Notes & Resources Section */}
       <div className="pinned-resources-section">

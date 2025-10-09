@@ -219,6 +219,7 @@ const ReviewPage = () => {
         <ReviewWidget 
           decks={decks}
           selectedDeckId={selectedDeckId}
+          selectedStudyMethod={selectedStudyMethod}
         />
       </div>
     </div>

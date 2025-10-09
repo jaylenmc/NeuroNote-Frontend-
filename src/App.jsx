@@ -12,6 +12,8 @@ import StudyRoomPage from './pages/StudyRoom';
 import DeckContent from './components/DeckContent';
 import { useAuth, AuthProvider } from './auth/AuthContext'; // or wherever it's defined
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import GlobalNotification from './components/GlobalNotification';
 import StudyDecks from './components/StudyDecks';
 import ReviewSession from './pages/ReviewSession';
 import ReviewPage from './pages/ReviewPage';
@@ -240,9 +242,12 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <NotificationProvider>
+          <Router>
+            <AppContent />
+            <GlobalNotification />
+          </Router>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNotification } from '../contexts/NotificationContext';
+import { FiFileText, FiBookOpen, FiFile } from 'react-icons/fi';
+import closedFolderIcon from '../assets/ClosedFolder.svg';
+import openFolderIcon from '../assets/OpenFolder.svg';
 import api from '../api/axios';
 import { formatDateForDisplay } from '../utils/dateUtils';
 
 
 // Import extracted components
 import Block from './Block';
-import Notification from './Notification';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import FolderView from './FolderView';
@@ -16,7 +19,6 @@ import DeckView from './DeckView';
 import FlashcardsDashboard from './FlashcardsDashboard';
 import NewFolderModal from './modals/NewFolderModal';
 import NewSubfolderModal from './modals/NewSubfolderModal';
-import ContextMenu from './ContextMenu';
 import DashboardHome from './DashboardHome';
 import QuizView from './QuizView';
 import ReviewCards from './ReviewCards';
@@ -64,7 +66,7 @@ function Dashboard({ initialView }) {
     const [navHistory, setNavHistory] = useState([{ view: 'dashboard', folder: null, deck: null }]);
     const [currentNavIndex, setCurrentNavIndex] = useState(0);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
-    const [notification, setNotification] = useState({ show: false, message: '' });
+    const { showNotification } = useNotification();
     const [isLoading, setIsLoading] = useState({
         initialLoad: true,
         folders: false,
@@ -145,8 +147,44 @@ function Dashboard({ initialView }) {
     const [showNewSubfolderModal, setShowNewSubfolderModal] = useState(false);
     const [newSubfolderName, setNewSubfolderName] = useState('');
     const [subfolderParentId, setSubfolderParentId] = useState(null);
-    const [sidebarContextMenu, setSidebarContextMenu] = useState({ show: false, x: 0, y: 0, folderId: null });
+    const [activeFlyout, setActiveFlyout] = useState(null); // { folderId, x, y }
+    const [showFoldersFlyout, setShowFoldersFlyout] = useState(false); // For folders-list overflow
+    const [expandedFlyoutFolders, setExpandedFlyoutFolders] = useState({}); // Track expanded folders in flyouts
+    const [flyoutPage, setFlyoutPage] = useState({}); // Track current page for each flyout
 
+    // Pagination constants
+    const ITEMS_PER_PAGE = 10; // Maximum items per flyout page
+    const MAX_FLYOUT_HEIGHT = 400; // Maximum flyout height in pixels
+
+    // Helper function to paginate content
+    const paginateContent = (items, page = 0) => {
+        const startIndex = page * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        return {
+            items: items.slice(startIndex, endIndex),
+            totalPages: Math.ceil(items.length / ITEMS_PER_PAGE),
+            currentPage: page,
+            hasNext: endIndex < items.length,
+            hasPrevious: page > 0
+        };
+    };
+
+
+    // Navigate to specific page in flyout
+    const navigateFlyoutPage = (folderId, direction) => {
+        const currentPage = flyoutPage[folderId] || 0;
+        const newPage = direction === 'next' ? currentPage + 1 : currentPage - 1;
+        setFlyoutPage(prev => ({ ...prev, [folderId]: newPage }));
+    };
+
+    // Toggle flyout folder expansion
+    const toggleFlyoutFolder = (folderId, e) => {
+        e.stopPropagation();
+        setExpandedFlyoutFolders(prev => ({
+            ...prev,
+            [folderId]: !prev[folderId]
+        }));
+    };
 
     // Mock data for progress tracking
     const [reviewProgress] = useState({
@@ -318,33 +356,6 @@ function Dashboard({ initialView }) {
         }
     };
 
-    const handleDeleteFolder = async (folderId) => {
-        try {
-            const folder = folders.find(f => f.id === folderId);
-            const response = await api.delete(`folders/user/${folderId}/`);
-            
-            if (!response) return;
-
-            if (response.status === 200 || response.status === 204) {
-                showNotification(`${folder.name} successfully deleted`);
-                
-                if (selectedFolder?.id === folderId) {
-                    for (let i = navHistory.length - 1; i >= 0; i--) {
-                        const prevState = navHistory[i];
-                        if (prevState.view !== 'folder' || prevState.folder?.id !== folderId) {
-                            handleNavigation(prevState.view, prevState.folder, prevState.deck);
-                            break;
-                        }
-                    }
-                }
-                
-                // Refresh folders to get the updated structure
-                await fetchFolders();
-            }
-        } catch (error) {
-            console.error('Error deleting folder:', error);
-        }
-    };
 
     const handleFolderClick = async (folderId, e) => {
         if (e.detail > 1) return;
@@ -584,12 +595,6 @@ function Dashboard({ initialView }) {
         }
     };
 
-    const showNotification = (message) => {
-        setNotification({ show: true, message });
-        setTimeout(() => {
-            setNotification({ show: false, message: '' });
-        }, 3000);
-    };
 
     const getCurrentViewTitle = () => {
         if (activeView === 'dashboard') {
@@ -935,10 +940,177 @@ function Dashboard({ initialView }) {
         }
     };
 
+    // Function to recursively find folder for flyout content
+    const findFolderForFlyout = (folders, folderId) => {
+        for (const folder of folders) {
+            if (folder.id === folderId) return folder;
+            if (folder.sub_folders) {
+                const result = findFolderForFlyout(folder.sub_folders, folderId);
+                if (result) return result;
+            }
+        }
+        return null;
+    };
+
+    // Function to render flyout content with pagination
+    const renderFlyoutContent = (folder) => {
+        if (!folder) return null;
+
+        const allItems = [
+            ...(folder.sub_folders || []).map(sf => ({ ...sf, type: 'subfolder' })),
+            ...(folder.items || []).map(item => ({ ...item, type: 'item' }))
+        ];
+
+        const totalItems = allItems.length;
+        const currentPage = flyoutPage[folder.id] || 0;
+        const paginated = paginateContent(allItems, currentPage);
+        const needsPagination = totalItems > ITEMS_PER_PAGE;
+
+        return (
+            <div className="flyout-content">
+                {/* Flyout Header with pagination info */}
+                {needsPagination && (
+                    <div className="flyout-header">
+                        <span className="flyout-page-info">
+                            {paginated.currentPage + 1} of {paginated.totalPages} pages
+                        </span>
+                    </div>
+                )}
+
+                {/* Render paginated content */}
+                <div className="flyout-items">
+                    {paginated.items.map(item => (
+                        <div key={item.id} className={item.type === 'subfolder' ? 'flyout-subfolder' : 'flyout-item'}>
+                            <div 
+                                className={item.type === 'subfolder' ? 'flyout-folder-item' : 'flyout-item-content'}
+                                onClick={(e) => {
+                                    if (item.type === 'subfolder') {
+                                        handleFolderClick(item.id, e);
+                                    } else {
+                                        // Handle item click
+                                        console.log('Item clicked:', item);
+                                    }
+                                }}
+                            >
+                                {item.type === 'subfolder' ? (
+                                    <>
+                                        <button
+                                            className="flyout-expand-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleFlyoutFolder(item.id, e);
+                                            }}
+                                        >
+                                            {expandedFlyoutFolders[item.id] ? 'v' : '>'}
+                                        </button>
+                                        <img 
+                                            src={expandedFlyoutFolders[item.id] ? openFolderIcon : closedFolderIcon} 
+                                            alt="subfolder" 
+                                            className="flyout-folder-icon"
+                                        />
+                                        <span className="flyout-folder-name" title={item.name}>
+                                            {item.name}
+                                        </span>
+                                        {/* Show nested content if expanded */}
+                                        {expandedFlyoutFolders[item.id] && item.sub_folders && (
+                                            <div className="flyout-nested-content">
+                                                {item.sub_folders.slice(0, 3).map(nestedSubfolder => (
+                                                    <div key={nestedSubfolder.id} className="flyout-nested-item">
+                                                        <img 
+                                                            src={closedFolderIcon} 
+                                                            alt="nested subfolder" 
+                                                            className="flyout-nested-icon"
+                                                        />
+                                                        <span className="flyout-nested-name">
+                                                            {nestedSubfolder.name}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                                {item.sub_folders.length > 3 && (
+                                                    <div className="flyout-more-items">
+                                                        +{item.sub_folders.length - 3} more
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flyout-item__icon">
+                                            {item.type === 'document' && <FiFileText size={12} color="#888" />}
+                                            {item.type === 'deck' && <FiBookOpen size={12} color="#888" />}
+                                            {item.type === 'quiz' && <FiFile size={12} color="#888" />}
+                                        </div>
+                                        <span className="flyout-item-name" title={item.title || item.name || item.topic}>
+                                            {item.title || item.name || item.topic || 'Untitled'}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {needsPagination && (
+                    <div className="flyout-pagination">
+                        <button 
+                            className="flyout-pagination-btn"
+                            onClick={() => navigateFlyoutPage(folder.id, 'previous')}
+                            disabled={!paginated.hasPrevious}
+                        >
+                            ← Previous
+                        </button>
+                        <span className="flyout-pagination-info">
+                            {paginated.items.length} of {totalItems} items
+                        </span>
+                        <button 
+                            className="flyout-pagination-btn"
+                            onClick={() => navigateFlyoutPage(folder.id, 'next')}
+                            disabled={!paginated.hasNext}
+                        >
+                            Next →
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Function to render folders-list flyout content
+    const renderFoldersListFlyout = () => {
+        if (!showFoldersFlyout) return null;
+
+        return (
+            <div className="folders-list-flyout">
+                <div className="folders-list-flyout-header">
+                    <span>All Folders ({folders.length})</span>
+                </div>
+                <div className="folders-list-flyout-content">
+                    {folders.map(folder => (
+                        <div 
+                            key={folder.id} 
+                            className={`folders-flyout-item ${selectedFolder?.id === folder.id && activeView === 'folder' ? 'active' : ''}`}
+                            onClick={(e) => handleFolderClick(folder.id, e)}
+                        >
+                            <img 
+                                src={expandedFolders[folder.id] ? openFolderIcon : closedFolderIcon} 
+                                alt="folder" 
+                                className="folders-flyout-icon"
+                            />
+                            <span className="folders-flyout-name" title={folder.name}>
+                                {folder.name}
+                            </span>
+                            {expandedFolders[folder.id] && <span className="folders-flyout-expanded">▼</span>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="dashboard-container">
-            <Notification notification={notification} />
-            
             <Sidebar
                 user={user}
                 showDropdown={showDropdown}
@@ -953,7 +1125,11 @@ function Dashboard({ initialView }) {
                 setShowNewFolderModal={setShowNewFolderModal}
                 handleFolderClick={handleFolderClick}
                 toggleFolder={toggleFolder}
-                setSidebarContextMenu={setSidebarContextMenu}
+                showNotification={showNotification}
+                activeFlyout={activeFlyout}
+                setActiveFlyout={setActiveFlyout}
+                showFoldersFlyout={showFoldersFlyout}
+                setShowFoldersFlyout={setShowFoldersFlyout}
             />
 
             <div className="main-area">
@@ -991,11 +1167,42 @@ function Dashboard({ initialView }) {
                 handleCreateSubfolder={handleCreateSubfolder}
             />
 
-            <ContextMenu
-                sidebarContextMenu={sidebarContextMenu}
-                setSidebarContextMenu={setSidebarContextMenu}
-                handleDeleteFolder={handleDeleteFolder}
-            />
+            {/* Flyout Panels - rendered outside sidebar */}
+            {activeFlyout && (
+                <div 
+                    className="flyout-panel"
+                    style={{
+                        position: 'fixed',
+                        left: activeFlyout.x,
+                        top: activeFlyout.y,
+                        zIndex: 1000
+                    }}
+                    onMouseEnter={() => setActiveFlyout(activeFlyout)}
+                    onMouseLeave={() => setActiveFlyout(null)}
+                >
+                    {(() => {
+                        const folder = findFolderForFlyout(folders, activeFlyout.folderId);
+                        return folder ? renderFlyoutContent(folder) : null;
+                    })()}
+                </div>
+            )}
+
+            {/* Folders List Flyout Panel */}
+            {showFoldersFlyout && (
+                <div 
+                    className="folders-list-flyout-panel"
+                    style={{
+                        position: 'fixed',
+                        left: showFoldersFlyout.x,
+                        top: showFoldersFlyout.y,
+                        zIndex: 1000
+                    }}
+                    onMouseEnter={() => setShowFoldersFlyout(showFoldersFlyout)}
+                    onMouseLeave={() => setShowFoldersFlyout(false)}
+                >
+                    {renderFoldersListFlyout()}
+                </div>
+            )}
         </div>
     );
 }

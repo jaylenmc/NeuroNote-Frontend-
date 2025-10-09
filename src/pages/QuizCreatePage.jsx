@@ -1,18 +1,20 @@
-import React, { useState, useRef } from 'react';
-import { FiPlusCircle, FiTrash2, FiCheckCircle, FiEye, FiArrowLeft, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import React, { useState, useRef, useEffect } from 'react';
+import { FiPlusCircle, FiTrash2, FiCheckCircle, FiEye, FiArrowLeft, FiChevronLeft, FiChevronRight, FiCheck } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../auth/AuthContext';
 import './QuizTakePage.css';
 
 const initialQuestion = () => ({
     prompt: '',
-    options: ['', '', ''],
+    options: [''],
     correct: 0,
     image: null,
     question_type: 'MC',
 });
 
 const QuizCreatePage = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [title, setTitle] = useState('');
     const [editingTitle, setEditingTitle] = useState(false);
@@ -23,7 +25,33 @@ const QuizCreatePage = () => {
     const [showSaved, setShowSaved] = useState(false);
     const [saveError, setSaveError] = useState(null);
     const [previewMode, setPreviewMode] = useState(false);
+    const [previewActiveQuestion, setPreviewActiveQuestion] = useState(0);
+    const [previewAnswers, setPreviewAnswers] = useState({}); // { qIdx: oIdx }
     const [questionTypeDropdown, setQuestionTypeDropdown] = useState(false);
+    const [draggedOption, setDraggedOption] = useState(null);
+
+    // Auto-resize any option textareas when content changes
+    useEffect(() => {
+        const autoResizeTextarea = (textarea) => {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        };
+
+        const textareas = document.querySelectorAll('.quiz-take-option textarea');
+        textareas.forEach(textarea => {
+            autoResizeTextarea(textarea);
+            
+            // Add input listener for real-time resizing
+            textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+        });
+
+        // Cleanup listeners
+        return () => {
+            textareas.forEach(textarea => {
+                textarea.removeEventListener('input', autoResizeTextarea);
+            });
+        };
+    }, [questions, activeQuestion]);
 
     // Progress indicator
     const progress = `${activeQuestion + 1}/${questions.length}`;
@@ -54,6 +82,15 @@ const QuizCreatePage = () => {
             ...q,
             options: [...q.options, '']
         } : q));
+        
+        // Focus the newly added option's textarea after a short delay
+        setTimeout(() => {
+            const textareas = document.querySelectorAll('.quiz-take-option textarea');
+            const lastTextarea = textareas[textareas.length - 1];
+            if (lastTextarea) {
+                lastTextarea.focus();
+            }
+        }, 50);
     };
     const handleRemoveOption = (qIdx, oIdx) => {
         setQuestions(qs => qs.map((q, i) => i === qIdx ? {
@@ -63,11 +100,25 @@ const QuizCreatePage = () => {
         } : q));
     };
     const handleSetCorrect = (qIdx, oIdx) => {
-        setQuestions(qs => qs.map((q, i) => i === qIdx ? { ...q, correct: oIdx } : q));
+        setQuestions(qs => qs.map((q, i) => {
+            if (i === qIdx) {
+                // Toggle: if clicking the already correct answer, uncheck it
+                return { ...q, correct: q.correct === oIdx ? -1 : oIdx };
+            }
+            return q;
+        }));
     };
     const handleAddQuestion = () => {
         setQuestions(qs => [...qs, initialQuestion()]);
         setActiveQuestion(questions.length);
+        
+        // Focus the question prompt textarea after a short delay
+        setTimeout(() => {
+            const questionPrompt = document.querySelector('.quiz-take-question-prompt');
+            if (questionPrompt) {
+                questionPrompt.focus();
+            }
+        }, 50);
     };
     const handleRemoveQuestion = (idx) => {
         const newQuestions = questions.filter((_, i) => i !== idx);
@@ -76,6 +127,54 @@ const QuizCreatePage = () => {
     };
     const handleQuestionTypeChange = (idx, value) => {
         setQuestions(qs => qs.map((q, i) => i === idx ? { ...q, question_type: value } : q));
+    };
+
+    // Drag and drop handlers
+    const handleDragStart = (qIdx, oIdx) => {
+        setDraggedOption({ qIdx, oIdx });
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault(); // Allow drop
+    };
+
+    const handleDrop = (qIdx, oIdx) => {
+        if (!draggedOption || draggedOption.qIdx !== qIdx) return;
+        
+        const fromIdx = draggedOption.oIdx;
+        const toIdx = oIdx;
+        
+        if (fromIdx === toIdx) {
+            setDraggedOption(null);
+            return;
+        }
+
+        setQuestions(qs => qs.map((q, i) => {
+            if (i === qIdx) {
+                const newOptions = [...q.options];
+                const [movedOption] = newOptions.splice(fromIdx, 1);
+                newOptions.splice(toIdx, 0, movedOption);
+                
+                // Update correct index if needed
+                let newCorrect = q.correct;
+                if (q.correct === fromIdx) {
+                    newCorrect = toIdx;
+                } else if (fromIdx < toIdx && q.correct > fromIdx && q.correct <= toIdx) {
+                    newCorrect = q.correct - 1;
+                } else if (fromIdx > toIdx && q.correct >= toIdx && q.correct < fromIdx) {
+                    newCorrect = q.correct + 1;
+                }
+                
+                return { ...q, options: newOptions, correct: newCorrect };
+            }
+            return q;
+        }));
+        
+        setDraggedOption(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedOption(null);
     };
 
     // Save logic
@@ -96,7 +195,8 @@ const QuizCreatePage = () => {
                 questions: transformedQuestions
             });
             setShowSaved(true);
-            setTimeout(() => setShowSaved(false), 1200);
+            // Redirect to quiz center after successful save
+            navigate('/quiz');
         } catch (err) {
             setSaveError('Failed to save quiz. Please try again.');
         } finally {
@@ -104,7 +204,16 @@ const QuizCreatePage = () => {
         }
     };
 
-    const handlePreview = () => setPreviewMode(!previewMode);
+    const handlePreview = () => {
+        setPreviewMode(prev => {
+            const next = !prev;
+            if (next) {
+                setPreviewActiveQuestion(0);
+                setPreviewAnswers({});
+            }
+            return next;
+        });
+    };
     const handleBack = () => window.history.back();
     const handlePreviousQuestion = () => {
         if (activeQuestion > 0) setActiveQuestion(activeQuestion - 1);
@@ -267,39 +376,74 @@ const QuizCreatePage = () => {
                     {currentQuestion.question_type === 'MC' && (
                         <div className="quiz-take-options-list">
                             {currentQuestion.options.map((opt, oIdx) => (
-                                <div key={oIdx} className={`quiz-take-option${currentQuestion.correct === oIdx ? ' selected' : ''}`}
-                                    onClick={() => handleSetCorrect(activeQuestion, oIdx)}
-                                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                                <div 
+                                    key={oIdx} 
+                                    className={`quiz-take-option${currentQuestion.correct === oIdx ? ' selected' : ''}${draggedOption?.oIdx === oIdx ? ' dragging' : ''}`}
+                                    draggable
+                                    onDragStart={() => handleDragStart(activeQuestion, oIdx)}
+                                    onDragOver={handleDragOver}
+                                    onDrop={() => handleDrop(activeQuestion, oIdx)}
+                                    onDragEnd={handleDragEnd}
+                                    style={{ cursor: 'move' }}
                                 >
-                                    <input
-                                        type="text"
+                                    {/* Mark as correct button */}
+                                    <button 
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            handleSetCorrect(activeQuestion, oIdx); 
+                                        }}
+                                        style={{ 
+                                            background: currentQuestion.correct === oIdx ? 'rgba(167,139,250,0.2)' : 'rgba(191,196,204,0.1)', 
+                                            border: currentQuestion.correct === oIdx ? '2px solid #A78BFA' : '2px solid rgba(191,196,204,0.2)',
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0,
+                                            transition: 'all 0.2s ease',
+                                            color: currentQuestion.correct === oIdx ? '#A78BFA' : '#bfc4cc'
+                                        }}
+                                        title={currentQuestion.correct === oIdx ? 'Correct answer' : 'Mark as correct'}
+                                    >
+                                        {currentQuestion.correct === oIdx && <FiCheck size={18} />}
+                                    </button>
+                                    
+                                    <textarea
                                         value={opt}
                                         onChange={e => handleOptionChange(activeQuestion, oIdx, e.target.value)}
                                         placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
                                         spellCheck={false}
+                                        rows={1}
                                         style={{ 
-                                            flex: 1, 
+                                            flex: 1,
                                             background: 'transparent', 
                                             border: 'none', 
                                             color: 'inherit', 
                                             fontSize: '1.1rem',
-                                            outline: 'none'
+                                            outline: 'none',
+                                            resize: 'none',
+                                            overflow: 'hidden',
+                                            whiteSpace: 'pre-wrap',
+                                            overflowWrap: 'anywhere',
+                                            wordBreak: 'break-word'
+                                        }}
+                                        onInput={e => {
+                                            e.target.style.height = 'auto';
+                                            e.target.style.height = `${e.target.scrollHeight}px`;
                                         }}
                                     />
-                                    {currentQuestion.correct === oIdx && (
-                                        <FiCheckCircle style={{ color: '#5fffd7', marginLeft: 4 }} />
-                                    )}
-                                    {currentQuestion.options.length > 2 && (
-                                        <button style={{ 
-                                            background: 'none', 
-                                            border: 'none', 
-                                            color: '#bfc4cc', 
-                                            cursor: 'pointer',
-                                            padding: '4px',
-                                            borderRadius: '4px',
-                                            marginLeft: 4 
-                                        }} onClick={e => { e.stopPropagation(); handleRemoveOption(activeQuestion, oIdx); }}>
-                                            <FiTrash2 />
+                                    
+                                    {/* Delete option button */}
+                                    {currentQuestion.options.length > 1 && (
+                                        <button 
+                                            className="quiz-option-delete-btn"
+                                            onClick={e => { e.stopPropagation(); handleRemoveOption(activeQuestion, oIdx); }}
+                                            title="Delete option"
+                                        >
+                                            <FiTrash2 size={20} />
                                         </button>
                                     )}
                                 </div>
@@ -340,6 +484,36 @@ const QuizCreatePage = () => {
                 </button>
             </div>
 
+            {/* Navigation buttons in bottom corners - positioned above footer */}
+            <div style={{
+                position: 'fixed',
+                bottom: '90px',
+                left: 0,
+                right: 0,
+                pointerEvents: 'none',
+                zIndex: 25
+            }}>
+                <button 
+                    className="quiz-take-nav-btn quiz-take-nav-btn-back"
+                    onClick={handlePreviousQuestion}
+                    disabled={activeQuestion === 0}
+                    title="Previous question"
+                    style={{ pointerEvents: 'auto' }}
+                >
+                    <FiChevronLeft />
+                </button>
+                
+                <button 
+                    className="quiz-take-nav-btn quiz-take-nav-btn-forward"
+                    onClick={handleNextQuestion}
+                    disabled={activeQuestion === questions.length - 1}
+                    title="Next question"
+                    style={{ pointerEvents: 'auto' }}
+                >
+                    <FiChevronRight />
+                </button>
+            </div>
+
             {/* Save/Preview Footer */}
             <footer style={{ 
                 position: 'fixed', 
@@ -359,10 +533,10 @@ const QuizCreatePage = () => {
                     <span style={{ color: '#bfc4cc', fontWeight: 500 }}>📝 {questions.length} Questions</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <button className="quiz-take-navbar-back-btn" onClick={handleSaveQuiz} disabled={saving}>
+                    <button className="quiz-save-draft-btn" onClick={handleSaveQuiz} disabled={saving}>
                         {saving ? 'Saving…' : 'Save Draft'}
                     </button>
-                    <button className="quiz-take-navbar-back-btn" onClick={handlePreview}>
+                    <button className="quiz-preview-btn" onClick={handlePreview}>
                         <FiEye /> Preview
                     </button>
                 </div>
@@ -370,13 +544,106 @@ const QuizCreatePage = () => {
                 {saveError && <div style={{ color: '#e05a5a', marginLeft: 16 }}>{saveError}</div>}
             </footer>
 
-            {/* Preview Modal (placeholder) */}
+            {/* Preview Modal - renders current draft as take-quiz experience */}
             {previewMode && (
-                <div className="quiz-create-preview-modal">
-                    <div className="quiz-create-preview-content">
-                        <button className="quiz-create-preview-close" onClick={handlePreview}>×</button>
-                        <h2>Quiz Preview (Coming Soon)</h2>
-                        <p>This will show a test version of your quiz in dark mode.</p>
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.6)',
+                        zIndex: 100,
+                        display: 'flex',
+                        alignItems: 'stretch',
+                        justifyContent: 'center'
+                    }}
+                    role="dialog"
+                    aria-modal="true"
+                >
+                    <div style={{
+                        flex: 1,
+                        overflow: 'auto',
+                        background: 'transparent'
+                    }}>
+                        <div className="quiz-take-bg" style={{ minHeight: '100vh' }}>
+                            <nav className="quiz-take-navbar">
+                                <div className="quiz-take-navbar-left">
+                                    <button className="quiz-take-navbar-back-btn" onClick={handlePreview}>
+                                        <FiArrowLeft style={{ marginRight: 6 }} /> Close Preview
+                                    </button>
+                                </div>
+                                <div className="quiz-take-navbar-center-fixed">
+                                    <div className="quiz-take-progress-container">
+                                        <div className="quiz-take-progress-bar">
+                                            <div
+                                                className="quiz-take-progress-fill"
+                                                style={{ width: `${questions.length ? ((previewActiveQuestion + 1) / questions.length) * 100 : 0}%` }}
+                                            />
+                                        </div>
+                                        <span className="quiz-take-questions-left">{questions.length ? (previewActiveQuestion + 1) : 0}/{questions.length}</span>
+                                    </div>
+                                </div>
+                                <div className="quiz-take-navbar-right">
+                                    <div className="quiz-take-navbar-title">{title || 'Untitled Quiz'}</div>
+                                </div>
+                            </nav>
+
+                            <div className="quiz-take-main">
+                                <div className="quiz-take-question-card">
+                                    <div className="quiz-take-question-header">Question {questions.length ? (previewActiveQuestion + 1) : 0}</div>
+                                    <div className="quiz-take-question-prompt">
+                                        {questions[previewActiveQuestion]?.prompt || 'No question'}
+                                    </div>
+                                    {questions[previewActiveQuestion]?.question_type === 'MC' && (
+                                        <div className="quiz-take-options-list">
+                                            {questions[previewActiveQuestion]?.options?.map((option, oIdx) => {
+                                                const isSelected = previewAnswers[previewActiveQuestion] === oIdx;
+                                                let optionClass = 'quiz-take-option';
+                                                if (isSelected) optionClass += ' selected';
+                                                return (
+                                                    <button
+                                                        key={oIdx}
+                                                        className={optionClass}
+                                                        type="button"
+                                                        onClick={() => setPreviewAnswers(prev => ({ ...prev, [previewActiveQuestion]: oIdx }))}
+                                                    >
+                                                        {option || `Option ${String.fromCharCode(65 + oIdx)}`}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    {questions[previewActiveQuestion]?.question_type === 'WR' && (
+                                        <div className="quiz-take-options-list">
+                                            <div className="quiz-take-option" style={{ cursor: 'text' }}>
+                                                <textarea
+                                                    placeholder="Type your answer..."
+                                                    style={{ width: '100%', background: 'transparent', border: 'none', color: 'inherit', outline: 'none', resize: 'none' }}
+                                                    rows={3}
+                                                    onChange={(e) => setPreviewAnswers(prev => ({ ...prev, [previewActiveQuestion]: e.target.value }))}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button
+                                className="quiz-take-nav-btn quiz-take-nav-btn-back"
+                                onClick={() => setPreviewActiveQuestion(q => Math.max(0, q - 1))}
+                                disabled={previewActiveQuestion === 0}
+                                title="Previous question"
+                            >
+                                <FiChevronLeft />
+                            </button>
+                            <button
+                                className="quiz-take-nav-btn quiz-take-nav-btn-forward"
+                                onClick={() => setPreviewActiveQuestion(q => Math.min(questions.length - 1, q + 1))}
+                                disabled={previewActiveQuestion === Math.max(0, questions.length - 1)}
+                                title="Next question"
+                            >
+                                <FiChevronRight />
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { FiHome, FiBook, FiPlus, FiSettings, FiLogOut, FiAward, FiUsers } from 'react-icons/fi';
+import { FiHome, FiBook, FiPlus, FiSettings, FiLogOut, FiAward, FiUsers, FiFileText, FiBookOpen, FiFile } from 'react-icons/fi';
+import { Lock } from 'lucide-react';
 import closedFolderIcon from '../assets/ClosedFolder.svg';
 import openFolderIcon from '../assets/OpenFolder.svg';
 
@@ -17,17 +18,218 @@ const Sidebar = ({
     setShowNewFolderModal,
     handleFolderClick,
     toggleFolder,
-    setSidebarContextMenu
+    showNotification,
+    activeFlyout,
+    setActiveFlyout,
+    showFoldersFlyout,
+    setShowFoldersFlyout
 }) => {
+    // Constants for content limits
+    const MAX_INLINE_ITEMS = 5;
+    const MAX_INLINE_SUBFOLDERS = 3;
+    const MAX_VISIBLE_FOLDERS = 8; // Maximum folders to show in main folders-list
+
+    // Helper function to determine if content should be shown in flyout
+    const shouldShowFlyout = (subfolders, items) => {
+        const totalContent = (subfolders?.length || 0) + (items?.length || 0);
+        const hasManySubfolders = (subfolders?.length || 0) > MAX_INLINE_SUBFOLDERS;
+        const hasManyItems = (items?.length || 0) > MAX_INLINE_ITEMS;
+        return totalContent > MAX_INLINE_ITEMS || hasManySubfolders || hasManyItems;
+    };
+
+    // Helper function to handle flyout mouse events
+    const handleFlyoutMouseEnter = (folderId, event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setActiveFlyout({ folderId, x: rect.right + 5, y: rect.top });
+    };
+
+    const handleFlyoutMouseLeave = () => {
+        setActiveFlyout(null);
+    };
+
+    // Helper function to handle folders-list flyout
+    const handleFoldersFlyoutMouseEnter = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setShowFoldersFlyout({ show: true, x: rect.left, y: rect.bottom + 5 });
+    };
+
+    const handleFoldersFlyoutMouseLeave = () => {
+        setShowFoldersFlyout(false);
+    };
+
+    // Helper function to determine if folders-list should show flyout
+    const shouldShowFoldersFlyout = () => {
+        return folders.length > MAX_VISIBLE_FOLDERS;
+    };
+
+    // Function to render flyout content with recursive subfolder support
+    const renderFlyoutContent = (folder, depth = 0) => {
+        if (!folder) return null;
+
+        return (
+            <div className="flyout-content">
+                {/* Render subfolders */}
+                {folder.sub_folders && folder.sub_folders.map(subfolder => (
+                    <div key={subfolder.id} className="flyout-subfolder">
+                        <div 
+                            className="flyout-folder-item"
+                            onClick={(e) => handleFolderClick(subfolder.id, e)}
+                            onMouseEnter={(e) => {
+                                // If this subfolder has deeper content, show nested flyout
+                                if (subfolder.sub_folders && subfolder.sub_folders.length > 0) {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setActiveFlyout({ 
+                                        folderId: subfolder.id, 
+                                        x: rect.right + 5, 
+                                        y: rect.top,
+                                        depth: depth + 1
+                                    });
+                                }
+                            }}
+                            onMouseLeave={() => {
+                                // Only clear if we're not hovering over a nested flyout
+                                setTimeout(() => {
+                                    if (activeFlyout && activeFlyout.folderId !== subfolder.id) {
+                                        setActiveFlyout(null);
+                                    }
+                                }, 100);
+                            }}
+                        >
+                            <img 
+                                src={closedFolderIcon} 
+                                alt="subfolder" 
+                                className="flyout-folder-icon"
+                            />
+                            <span className="flyout-folder-name" title={subfolder.name}>
+                                {subfolder.name}
+                            </span>
+                            {subfolder.sub_folders && subfolder.sub_folders.length > 0 && (
+                                <span className="flyout-nested-indicator">▶</span>
+                            )}
+                        </div>
+                    </div>
+                ))}
+                
+                {/* Render items */}
+                {folder.items && folder.items.map(item => (
+                    <div key={item.id} className="flyout-item">
+                        <div className="flyout-item__icon">
+                            {item.type === 'document' && <FiFileText size={12} color="#888" />}
+                            {item.type === 'deck' && <FiBookOpen size={12} color="#888" />}
+                            {item.type === 'quiz' && <FiFile size={12} color="#888" />}
+                        </div>
+                        <span className="flyout-item-name" title={item.title || item.name || item.topic}>
+                            {item.title || item.name || item.topic || 'Untitled'}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    // Recursive function to render subfolders with flyout after 1 level
+    const renderSubfoldersRecursively = (subfolders, depth = 0) => {
+        if (!subfolders || subfolders.length === 0) return null;
+
+        // After 1 level of nesting, use flyout for deeper content
+        const MAX_NESTING_DEPTH = 1;
+        const useFlyoutForDepth = depth >= MAX_NESTING_DEPTH;
+
+        return subfolders.map(subfolder => {
+            const useFlyout = useFlyoutForDepth || shouldShowFlyout(subfolder.sub_folders, subfolder.items);
+            
+            return (
+                <div key={subfolder.id} className="subfolder-item">
+                    <div 
+                        className={`folder-item subfolder ${selectedFolder?.id === subfolder.id && activeView === 'folder' ? 'active' : ''}`}
+                        onClick={(e) => { console.log('Subfolder click:', subfolder.id); handleFolderClick(subfolder.id, e); }}
+                        style={{ fontSize: '12px' }}
+                        onMouseEnter={useFlyout ? (e) => handleFlyoutMouseEnter(subfolder.id, e) : undefined}
+                        onMouseLeave={useFlyout ? handleFlyoutMouseLeave : undefined}
+                    >
+                        {!useFlyout && (
+                            <button
+                                className={`folder-expand-btn${expandedFolders[subfolder.id] ? ' expanded' : ''}`}
+                                onClick={(e) => { e.stopPropagation(); toggleFolder(subfolder.id, e); }}
+                            >
+                                {expandedFolders[subfolder.id] ? 'v' : '>'}
+                            </button>
+                        )}
+                        <img 
+                            src={useFlyout ? closedFolderIcon : (expandedFolders[subfolder.id] ? openFolderIcon : closedFolderIcon)} 
+                            alt="subfolder" 
+                            className="folder-icon"
+                            style={{ width: '14px', height: '14px' }}
+                        />
+                        <span className="folder-name" title={subfolder.name}>
+                            {subfolder.name.length > Math.max(8 - depth, 5) ? 
+                                subfolder.name.slice(0, Math.max(6 - depth, 3)) + '...' : 
+                                subfolder.name
+                            }
+                        </span>
+                        {useFlyout && <span className="flyout-indicator">⋯</span>}
+                    </div>
+                    {!useFlyout && expandedFolders[subfolder.id] && (
+                        <div className={`folder-contents expanded`}>
+                            {/* Render items for this subfolder */}
+                            {subfolder.items && subfolder.items.length > 0 && renderFolderItems(subfolder)}
+                            
+                            {/* Recursively render deeper subfolders (only if not at depth limit) */}
+                            {!useFlyoutForDepth && renderSubfoldersRecursively(subfolder.sub_folders, depth + 1)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    };
+
+    // Function to render folders-list flyout content
+    const renderFoldersListFlyout = () => {
+        if (!showFoldersFlyout) return null;
+
+        const visibleFolders = folders.slice(0, MAX_VISIBLE_FOLDERS);
+        const hiddenFolders = folders.slice(MAX_VISIBLE_FOLDERS);
+
+        return (
+            <div className="folders-list-flyout">
+                <div className="folders-list-flyout-header">
+                    <span>All Folders ({folders.length})</span>
+                </div>
+                <div className="folders-list-flyout-content">
+                    {folders.map(folder => (
+                        <div 
+                            key={folder.id} 
+                            className={`folders-flyout-item ${selectedFolder?.id === folder.id && activeView === 'folder' ? 'active' : ''}`}
+                            onClick={(e) => handleFolderClick(folder.id, e)}
+                        >
+                            <img 
+                                src={expandedFolders[folder.id] ? openFolderIcon : closedFolderIcon} 
+                                alt="folder" 
+                                className="folders-flyout-icon"
+                            />
+                            <span className="folders-flyout-name" title={folder.name}>
+                                {folder.name}
+                            </span>
+                            {expandedFolders[folder.id] && <span className="folders-flyout-expanded">▼</span>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+
     const renderFolderItems = (folder) => {
         if (!folder.items || folder.items.length === 0) return null;
         
         return folder.items.map(item => (
             <div key={item.id} className="folder-item-content">
+                <div className="folder-item-content__icon">
+                    {item.type === 'document' && <FiFileText size={14} color="#888" />}
+                    {item.type === 'deck' && <FiBookOpen size={14} color="#888" />}
+                    {item.type === 'quiz' && <FiFile size={14} color="#888" />}
+                </div>
                 <span className="item-name" title={item.title || item.name || item.topic}>
-                    {item.type === 'document' && '📄 '}
-                    {item.type === 'deck' && '🃏 '}
-                    {item.type === 'quiz' && '📝 '}
                     {(item.title || item.name || item.topic || 'Untitled').length > 15 
                         ? (item.title || item.name || item.topic || 'Untitled').slice(0, 12) + '...'
                         : (item.title || item.name || item.topic || 'Untitled')
@@ -35,6 +237,12 @@ const Sidebar = ({
                 </span>
             </div>
         ));
+    };
+
+    const handleStudyGroupsClick = () => {
+        if (showNotification) {
+            showNotification('Coming Soon!');
+        }
     };
     return (
         <div className={`dashboard-sidebar ${activeView === 'dashboard' ? 'dashboard-home-active' : ''}`}>
@@ -90,9 +298,12 @@ const Sidebar = ({
                     <span>Achievements</span>
                 </div>
                 <div 
-                    className={`nav-item ${location.pathname === '/study-groups' ? 'active' : ''}`}
-                    onClick={() => navigate('/study-groups')}
+                    className={`nav-item locked ${location.pathname === '/study-groups' ? 'active' : ''}`}
+                    onClick={handleStudyGroupsClick}
                 >
+                    <div className="nav-item-lock-overlay">
+                        <Lock size={12} color="#ff6b6b" />
+                    </div>
                     <FiUsers className="nav-icon" />
                     <span>Study Groups</span>
                 </div>
@@ -104,15 +315,11 @@ const Sidebar = ({
                         </button>
                     </div>
                     <div className="folders-list">
-                        {folders.map(folder => (
+                        {(shouldShowFoldersFlyout() ? folders.slice(0, MAX_VISIBLE_FOLDERS) : folders).map(folder => (
                             <React.Fragment key={folder.id}>
                                 <div 
                                     className={`folder-item ${selectedFolder?.id === folder.id && activeView === 'folder' ? 'active' : ''}`}
                                     onClick={(e) => handleFolderClick(folder.id, e)}
-                                    onContextMenu={(e) => {
-                                        e.preventDefault();
-                                        setSidebarContextMenu({ show: true, x: e.clientX, y: e.clientY, folderId: folder.id });
-                                    }}
                                 >
                                     <button 
                                         className={`folder-expand-btn ${expandedFolders[folder.id] ? 'expanded' : ''}`}
@@ -130,74 +337,73 @@ const Sidebar = ({
                                 {expandedFolders[folder.id] && (
                                     <div className={`folder-contents ${expandedFolders[folder.id] ? 'expanded' : ''}`}>
                                         {/* Render subfolders first, directly under folder-contents */}
-                                        {folder.sub_folders && folder.sub_folders.map(subfolder => (
-                                            <div key={subfolder.id} className="subfolder-item">
-                                                <div 
-                                                    className={`folder-item subfolder ${selectedFolder?.id === subfolder.id && activeView === 'folder' ? 'active' : ''}`}
-                                                    onClick={(e) => { console.log('Subfolder click:', subfolder.id); handleFolderClick(subfolder.id, e); }}
-                                                    onContextMenu={(e) => {
-                                                        e.preventDefault();
-                                                        setSidebarContextMenu({ show: true, x: e.clientX, y: e.clientY, folderId: subfolder.id });
-                                                    }}
-                                                    style={{ fontSize: '12px' }}
-                                                >
-                                                    <button
-                                                        className={`folder-expand-btn${expandedFolders[subfolder.id] ? ' expanded' : ''}`}
-                                                        onClick={(e) => { e.stopPropagation(); toggleFolder(subfolder.id, e); }}
+                                        {folder.sub_folders && folder.sub_folders.map(subfolder => {
+                                            const useFlyout = shouldShowFlyout(subfolder.sub_folders, subfolder.items);
+                                            
+                                            return (
+                                                <div key={subfolder.id} className="subfolder-item">
+                                                    <div 
+                                                        className={`folder-item subfolder ${selectedFolder?.id === subfolder.id && activeView === 'folder' ? 'active' : ''}`}
+                                                        onClick={(e) => { console.log('Subfolder click:', subfolder.id); handleFolderClick(subfolder.id, e); }}
+                                                        style={{ fontSize: '12px' }}
+                                                        onMouseEnter={useFlyout ? (e) => handleFlyoutMouseEnter(subfolder.id, e) : undefined}
+                                                        onMouseLeave={useFlyout ? handleFlyoutMouseLeave : undefined}
                                                     >
-                                                        {expandedFolders[subfolder.id] ? 'v' : '>'}
-                                                    </button>
-                                                    <img 
-                                                        src={expandedFolders[subfolder.id] ? openFolderIcon : closedFolderIcon} 
-                                                        alt="subfolder" 
-                                                        className="folder-icon"
-                                                        style={{ width: '14px', height: '14px' }}
-                                                    />
-                                                    <span className="folder-name" title={subfolder.name}>
-                                                        {subfolder.name.length > 10 ? subfolder.name.slice(0, 7) + '...' : subfolder.name}
-                                                    </span>
-                                                </div>
-                                                {expandedFolders[subfolder.id] && (
-                                                    <div className={`folder-contents expanded`}>
-                                                        {/* Recursively render subfolders and items for this subfolder */}
-                                                        {subfolder.sub_folders && subfolder.sub_folders.map(childSubfolder => (
-                                                            <div key={childSubfolder.id} className="subfolder-item">
-                                                                <div 
-                                                                    className={`folder-item subfolder ${selectedFolder?.id === childSubfolder.id && activeView === 'folder' ? 'active' : ''}`}
-                                                                    onClick={(e) => { console.log('Subfolder click:', childSubfolder.id); handleFolderClick(childSubfolder.id, e); }}
-                                                                    onContextMenu={(e) => {
-                                                                        e.preventDefault();
-                                                                        setSidebarContextMenu({ show: true, x: e.clientX, y: e.clientY, folderId: childSubfolder.id });
-                                                                    }}
-                                                                    style={{ fontSize: '12px' }}
-                                                                >
-                                                                    <img 
-                                                                        src={closedFolderIcon} 
-                                                                        alt="subfolder" 
-                                                                        className="folder-icon"
-                                                                        style={{ width: '14px', height: '14px' }}
-                                                                    />
-                                                                    <span className="folder-name" title={childSubfolder.name}>
-                                                                        {childSubfolder.name.length > 10 ? childSubfolder.name.slice(0, 7) + '...' : childSubfolder.name}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                        {/* Render items for this subfolder if any */}
-                                                        {subfolder.items && subfolder.items.length > 0 && renderFolderItems(subfolder)}
+                                                        {!useFlyout && (
+                                                            <button
+                                                                className={`folder-expand-btn${expandedFolders[subfolder.id] ? ' expanded' : ''}`}
+                                                                onClick={(e) => { e.stopPropagation(); toggleFolder(subfolder.id, e); }}
+                                                            >
+                                                                {expandedFolders[subfolder.id] ? 'v' : '>'}
+                                                            </button>
+                                                        )}
+                                                        <img 
+                                                            src={useFlyout ? closedFolderIcon : (expandedFolders[subfolder.id] ? openFolderIcon : closedFolderIcon)} 
+                                                            alt="subfolder" 
+                                                            className="folder-icon"
+                                                            style={{ width: '14px', height: '14px' }}
+                                                        />
+                                                        <span className="folder-name" title={subfolder.name}>
+                                                            {subfolder.name.length > 10 ? subfolder.name.slice(0, 7) + '...' : subfolder.name}
+                                                        </span>
+                                                        {useFlyout && <span className="flyout-indicator">⋯</span>}
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                    {!useFlyout && expandedFolders[subfolder.id] && (
+                                                        <div className={`folder-contents expanded`}>
+                                                            {/* Render items for this subfolder */}
+                                                            {subfolder.items && subfolder.items.length > 0 && renderFolderItems(subfolder)}
+                                                            
+                                                            {/* Recursively render subfolders at any nesting level */}
+                                                            {renderSubfoldersRecursively(subfolder.sub_folders)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                         {/* Render folder items (documents, decks, etc.) but do NOT show empty state in sidebar */}
                                         {folder.items && folder.items.length > 0 && renderFolderItems(folder)}
                                     </div>
                                 )}
                             </React.Fragment>
                         ))}
+                        
+                        {/* Show overflow indicator and flyout trigger */}
+                        {shouldShowFoldersFlyout() && (
+                            <div 
+                                className="folders-overflow-indicator"
+                                onMouseEnter={handleFoldersFlyoutMouseEnter}
+                                onMouseLeave={handleFoldersFlyoutMouseLeave}
+                            >
+                                <span className="overflow-text">
+                                    +{folders.length - MAX_VISIBLE_FOLDERS} more folders
+                                </span>
+                                <span className="overflow-icon">⋯</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
         </div>
     );
 };

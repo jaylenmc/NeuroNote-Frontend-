@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FiFileText, FiEdit2, FiPlus, FiUpload, FiGrid, FiList, FiShare2, FiTrash2, FiFolderPlus, FiSearch, FiBell, FiClock, FiX, FiSave, FiFolder, FiFile, FiBookOpen, FiCalendar } from 'react-icons/fi';
+import { FiFileText, FiEdit2, FiPlus, FiUpload, FiGrid, FiList, FiShare2, FiFolderPlus, FiSearch, FiBell, FiClock, FiX, FiSave, FiFolder, FiFile, FiBookOpen, FiCalendar } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import deckIcon from '../assets/deck.svg';
 import testIcon from '../assets/test.svg';
@@ -318,16 +318,6 @@ const FolderView = ({
                                     title="Share"
                                 >
                                     <FiShare2 />
-                                </button>
-                                <button 
-                                    className="folder-item__action folder-item__action--delete"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Delete action
-                                    }}
-                                    title="Delete"
-                                >
-                                    <FiTrash2 />
                                 </button>
                             </div>
                         </div>

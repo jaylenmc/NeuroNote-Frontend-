@@ -6,45 +6,15 @@
     box-sizing: border-box;
 }
 
-:root {
-    --primary-bg: #0a0a0a;
-    --secondary-bg: #1a1a1a;
-    --card-bg: #2a2a2a;
-    --accent-primary: #7c83fd;
-    --accent-secondary: #4ecdc4;
-    --accent-success: #10b981;
-    --accent-warning: #f59e0b;
-    --accent-danger: #ef4444;
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-muted: #6b7280;
-    --border-color: #374151;
-    --border-hover: #4b5563;
-    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.15);
-    --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.2);
-    --progress-track: #374151;
-    --icon-neutral: #6b7280;
-}
-
 .focus-page {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: var(--primary-bg);
-    color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    z-index: 10;
-    cursor: default;
+    min-height: 100vh;
+    background: #18191c;
+    color: #f5f5f5;
+    font-family: 'Inter', 'system-ui', 'sans-serif';
     margin: 0;
     padding: 0;
-    overflow-y: auto;
+    position: relative;
+    overflow-x: hidden;
 }
 
 
@@ -65,7 +35,7 @@
     gap: 0.4rem;
     padding: 0.5rem 0.75rem;
     background: transparent;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
     border-radius: 8px;
     cursor: pointer;
@@ -78,7 +48,7 @@
 
 .focus-back-button:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: var(--border-hover);
+    border-color: rgba(255, 255, 255, 0.3);
     color: #ffffff;
     transform: translateX(-2px);
 }
@@ -127,12 +97,12 @@
 
 .focus-tabs {
     display: flex;
-    background: var(--secondary-bg);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 0.5rem;
     margin: 0 2rem 2rem 2rem;
-    box-shadow: var(--shadow-medium);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(10px);
     justify-content: stretch;
     gap: 0.5rem;
@@ -147,7 +117,7 @@
     padding: 0.75rem 1rem;
     background: transparent;
     border: none;
-    color: var(--text-secondary);
+    color: #AAAAAA;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.9rem;
@@ -158,13 +128,14 @@
 }
 
 .tab-button.active {
-    background: rgba(160, 160, 160, 0.15);
-    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    color: #EDEDED;
+    font-weight: 500;
 }
 
 .tab-button:hover {
-    background: rgba(160, 160, 160, 0.1);
-    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    color: #EDEDED;
 }
 
 .tab-icon {
@@ -195,13 +166,14 @@
 }
 
 .focus-content {
-    background: var(--secondary-bg);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 2rem;
     margin: 0 2rem 2rem 2rem;
-    box-shadow: var(--shadow-medium);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(10px);
+    min-height: 500px;
 }
 
 /* Overview Tab */
@@ -217,12 +189,12 @@
 }
 
 .stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    background: #1F1F1F;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 1.5rem;
     text-align: center;
-    box-shadow: var(--shadow-medium);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
 }
@@ -241,13 +213,13 @@
 .stat-value {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #EDEDED;
     margin-bottom: 0.25rem;
 }
 
 .stat-label {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: #AAAAAA;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -260,7 +232,7 @@
 .section-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #EDEDED;
     margin: 0 0 1rem 0;
 }
 
@@ -268,6 +240,13 @@
     background: transparent;
     border: none;
     padding: 1rem;
+}
+
+/* Dedicated goal card to avoid inherited styles elsewhere */
+.focus-goal-card {
+  background: transparent;
+  border: none;
+  padding: 1rem;
 }
 
 .goal-stamp-form {
@@ -313,7 +292,8 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
-    align-self: flex-start;
+  align-self: center;
+  width: 100%;
 }
 
 .goal-stamp-btn:hover {
@@ -324,8 +304,6 @@
 
 
 .stamped-goal-card {
-    background: var(--primary-bg);
-    border: 1px solid var(--accent-success);
     border-radius: 8px;
     padding: 1rem;
     position: relative;
@@ -406,12 +384,8 @@
 }
 
 .add-task-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: var(--shadow-medium);
-    backdrop-filter: blur(10px);
 }
 
 .add-task-form {
@@ -598,12 +572,8 @@
 }
 
 .distraction-input-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: var(--shadow-medium);
-    backdrop-filter: blur(10px);
 }
 
 .distraction-textarea {
@@ -649,12 +619,8 @@
 }
 
 .distraction-history {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: var(--shadow-medium);
-    backdrop-filter: blur(10px);
 }
 
 .distraction-history h4 {
@@ -712,19 +678,10 @@
 }
 
 .analytics-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: var(--shadow-medium);
-    backdrop-filter: blur(10px);
     transition: all 0.3s ease;
-}
-
-.analytics-card:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.15);
+    cursor: default;
 }
 
 .analytics-card h4 {

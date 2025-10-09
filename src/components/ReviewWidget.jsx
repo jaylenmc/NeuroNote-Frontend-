@@ -35,7 +35,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const ReviewWidget = ({ decks = [], selectedDeckId }) => {
+const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overdue');
   const [tooltip, setTooltip] = useState(null);
@@ -222,11 +222,11 @@ const ReviewWidget = ({ decks = [], selectedDeckId }) => {
       const selectedDeck = decks.find(d => d.id === selectedDeckId);
   
   
-      navigate('/review-session', { state: { selectedDeck, includeDueSoon } });
+      navigate('/review-session', { state: { selectedDeck, includeDueSoon, selectedStudyMethod } });
     } else {
   
   
-      navigate('/review-session', { state: { includeDueSoon: shouldIncludeDueSoon } });
+      navigate('/review-session', { state: { includeDueSoon: shouldIncludeDueSoon, selectedStudyMethod } });
     }
   };
 

@@ -75,7 +75,6 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -83,6 +82,7 @@
     color: #fff;
     transition: all 0.3s ease;
     font-weight: 500;
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .study-room-back-button:hover {
@@ -94,7 +94,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -113,7 +113,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -132,7 +132,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -1098,7 +1098,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -1556,6 +1556,33 @@
   background: #23283a !important;
   box-shadow: none !important;
   filter: none !important;
+}
+
+/* Lock overlay styles */
+.study-room-card.locked {
+  position: relative;
+  opacity: 0.8;
+}
+
+.study-room-card.locked:hover {
+  background: #23283a !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.lock-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 } 
 
 .pinned-resources-section {

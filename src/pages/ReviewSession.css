@@ -11,21 +11,50 @@ html, body, #root {
 
 .review-session {
   min-height: 100vh;
-  background: var(--background-color);
-  color: var(--text-color);
+  background: var(--nightowl-bg-main);
+  color: var(--nightowl-text-main);
   overflow: hidden;
   position: relative;
+}
+
+/* Review Timer Section */
+.review-timer-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Attempts Pill */
+.attempts-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(124, 131, 253, 0.1);
+  border: 1px solid rgba(124, 131, 253, 0.2);
+  border-radius: 20px;
+  color: #7c83fd;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.attempts-icon {
+  font-size: 16px;
+}
+
+.attempts-text {
+  white-space: nowrap;
 }
 
 /* Loading State */
 .review-session-loading {
   min-height: 100vh;
-  background: var(--background-color);
+  background: var(--nightowl-bg-main);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   margin-top: 64px;
 }
 
@@ -48,12 +77,12 @@ html, body, #root {
 .review-session-error,
 .review-session-empty {
   min-height: 100vh;
-  background: var(--background-color);
+  background: var(--nightowl-bg-main);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   text-align: center;
   padding: 2rem;
   margin-top: 64px;
@@ -91,7 +120,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--background-color);
+  background: var(--nightowl-bg-main);
   overflow: hidden;
 }
 
@@ -153,7 +182,7 @@ html, body, #root {
 .take-quiz-btn {
   background: rgba(167, 139, 250, 0.2);
   border: 1px solid #A78BFA;
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   padding: 12px 24px;
   border-radius: 0.75rem;
   cursor: pointer;
@@ -221,7 +250,7 @@ html, body, #root {
   gap: 0.25rem;
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
 }
 
 .current-card {
@@ -279,7 +308,6 @@ html, body, #root {
 .timer-pill:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
 }
 
 .timer-icon {
@@ -292,12 +320,13 @@ html, body, #root {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-secondary);
+  cursor: default;
 }
 
 .pause-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 50%;
@@ -310,10 +339,9 @@ html, body, #root {
 }
 
 .pause-btn:hover {
-  background: rgba(167, 139, 250, 0.2);
-  border-color: #A78BFA;
-  color: #A78BFA;
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--nightowl-text-main);
 }
 
 /* Flashcard Container */
@@ -333,7 +361,7 @@ html, body, #root {
 .skip-btn {
   background: var(--card-background);
   border: 1px solid var(--border-color);
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -411,7 +439,7 @@ html, body, #root {
 
 .flashcard-front p,
 .flashcard-back p {
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   font-size: 1.1rem;
   line-height: 1.6;
   max-width: 100%;
@@ -440,7 +468,7 @@ html, body, #root {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--border-color);
   border-bottom: 4px solid;
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   padding: 1rem;
   border-radius: 0.75rem;
   cursor: pointer;
@@ -504,15 +532,15 @@ html, body, #root {
 .end-session-btn:hover {
   background: rgba(255, 107, 107, 0.15);
   border-color: rgba(255, 107, 107, 0.3);
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   transform: translateY(-1px);
 }
 
 /* Deck Selection Styles */
 .deck-selection {
   min-height: 100vh;
-  background: var(--background-color);
-  color: var(--text-color);
+  background: var(--nightowl-bg-main);
+  color: var(--nightowl-text-main);
   padding: 2rem;
   box-sizing: border-box;
   display: flex;
@@ -555,7 +583,7 @@ html, body, #root {
   border: 2px solid var(--border-color);
   border-radius: 1rem;
   padding: 2rem;
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
@@ -641,7 +669,7 @@ html, body, #root {
 }
 
 .deck-card h4 {
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   margin: 0 0 0.5rem 0;
   font-size: 1.2rem;
 }
@@ -670,7 +698,7 @@ html, body, #root {
 .start-review-btn {
   background: rgba(167, 139, 250, 0.2);
   border: 1px solid #A78BFA;
-  color: var(--text-color);
+  color: var(--nightowl-text-main);
   padding: 12px 32px;
   border-radius: 0.75rem;
   cursor: pointer;
@@ -995,211 +1023,7 @@ html, body, #root {
   100% { transform: rotate(360deg); }
 }
 
-/* Collapsible Stats Panel */
-.stats-panel {
-  position: fixed;
-  top: 50%;
-  right: -280px;
-  transform: translateY(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stats-panel.open {
-  right: 0;
-}
-
-.stats-toggle-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.75rem 0 0 0.75rem;
-  padding: 1rem;
-  color: var(--text-color);
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  position: relative;
-  z-index: 11;
-}
-
-.stats-toggle-btn:hover {
-  background: rgba(167, 139, 250, 0.2);
-  border-color: #A78BFA;
-  transform: translateX(-2px);
-}
-
-.stats-panel.open .stats-toggle-btn {
-  border-radius: 0.75rem 0 0 0.75rem;
-  position: absolute;
-  left: -52px;
-  transform: none;
-}
-
-.stats-content {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: none;
-  border-radius: 0 0.75rem 0.75rem 0;
-  padding: 1.5rem;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 280px;
-  max-height: 70vh;
-  overflow-y: auto;
-  transform: translateX(100%);
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stats-panel.open .stats-content {
-  transform: translateX(0);
-  opacity: 1;
-}
-
-.stats-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stats-header h4 {
-  color: #A78BFA;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 1.5rem;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  color: var(--text-color);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.stats-body {
-  margin-bottom: 1rem;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.stat-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.stat-value {
-  color: #A78BFA;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.deck-progress-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1rem;
-}
-
-.deck-progress-section h5 {
-  color: #A78BFA;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.75rem 0;
-}
-
-.deck-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.deck-title {
-  color: var(--text-color);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.deck-stats {
-  display: flex;
-  justify-content: space-between;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-}
-
-/* Responsive Design for Stats Panel */
-@media (max-width: 1200px) {
-  .stats-panel {
-    right: -240px;
-  }
-  
-  .stats-content {
-    width: 240px;
-  }
-  
-  .stats-panel.open .stats-toggle-btn {
-    left: -60px;
-    transform: none;
-  }
-  
-  .stats-panel.open .stats-toggle-btn:hover {
-    transform: translateX(-2px);
-  }
-}
-
 @media (max-width: 768px) {
-  .stats-panel {
-    position: fixed;
-    bottom: 1rem;
-    right: -280px;
-    top: auto;
-    transform: none;
-  }
-  
-  .stats-panel.open {
-    right: 1rem;
-  }
-  
-  .stats-content {
-    width: 280px;
-    max-height: 50vh;
-  }
-  
-  .stats-panel.open .stats-toggle-btn {
-    left: -60px;
-    transform: none;
-  }
-  
-  .stats-panel.open .stats-toggle-btn:hover {
-    transform: translateX(-2px);
-  }
-  
   .background-elements {
     display: none;
   }

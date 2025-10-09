@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactDOM from 'react-dom';
 import { FiArrowLeft, FiMoreVertical, FiEye, FiPlay, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { FaBrain } from 'react-icons/fa';
 import api from '../api/axios';
 import './QuizPage.css';
 import { formatDateForDisplay } from '../utils/dateUtils';
 
-const motivationalQuotes = [
-  "Test your knowledge, grow your mind.",
-  "Every quiz is a step toward mastery.",
-  " Challenge yourself, discover your potential.",
-  "Knowledge is power, testing is growth!",
-  "Quiz now, remember forever."
-];
 
 const formatDate = (dateString) => {
     if (!dateString) return '—';
@@ -92,13 +86,14 @@ const QuizPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('quizzes');
-    const [quoteIdx, setQuoteIdx] = useState(0);
     const [showGenerateModal, setShowGenerateModal] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [decks, setDecks] = useState([]);
     const [selectedDeck, setSelectedDeck] = useState('');
     const [questionCount, setQuestionCount] = useState(10);
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+    const [dropdownFlipped, setDropdownFlipped] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -106,16 +101,12 @@ const QuizPage = () => {
         fetchDecks();
     }, []);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setQuoteIdx(idx => (idx + 1) % motivationalQuotes.length);
-        }, 4000);
-        return () => clearInterval(interval);
-    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (openDropdown && !event.target.closest('.quiz-actions-dropdown')) {
+            if (openDropdown && 
+                !event.target.closest('.quiz-actions-dropdown') && 
+                !event.target.closest('.dropdown-menu')) {
                 setOpenDropdown(null);
             }
         };
@@ -130,9 +121,7 @@ const QuizPage = () => {
         try {
             setLoading(true);
             setError(null);
-            console.log('Fetching quizzes...');
             const response = await api.get('/test/quiz/');
-            console.log('Quizzes response:', response.data);
             setQuizzes(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error('Error fetching quizzes:', error);
@@ -215,8 +204,27 @@ const QuizPage = () => {
         navigate('/study-room');
     };
 
-    const handleDropdownToggle = (quizId) => {
-        setOpenDropdown(openDropdown === quizId ? null : quizId);
+    const handleDropdownToggle = (quizId, event) => {
+        if (openDropdown === quizId) {
+            setOpenDropdown(null);
+        } else {
+            const buttonRect = event.currentTarget.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            // Calculate available space below the button
+            const spaceBelow = viewportHeight - buttonRect.bottom;
+            const dropdownHeight = 150; // Estimated dropdown height
+            
+            // If there's not enough space below, position above the button
+            const shouldFlipUp = spaceBelow < dropdownHeight;
+            
+            setDropdownPosition({
+                top: 0, // Will be handled by CSS
+                right: 0 // Will be handled by CSS
+            });
+            setDropdownFlipped(shouldFlipUp);
+            setOpenDropdown(quizId);
+        }
     };
 
     const handleDropdownAction = (action, quizId) => {
@@ -240,60 +248,64 @@ const QuizPage = () => {
     const QuizActionsDropdown = ({ quiz }) => {
         const isOpen = openDropdown === quiz.id;
         
+        const dropdownContent = isOpen ? (
+            <div 
+                className={`dropdown-menu ${dropdownFlipped ? 'flipped' : ''}`}
+            >
+                {quiz.last_score !== null && quiz.last_score !== undefined ? (
+                    <>
+                        <button 
+                            className="dropdown-item"
+                            onClick={() => handleDropdownAction('view', quiz.id)}
+                        >
+                            <FiEye size={14} />
+                            View Results
+                        </button>
+                        <button 
+                            className="dropdown-item"
+                            onClick={() => handleDropdownAction('retake', quiz.id)}
+                        >
+                            <FiPlay size={14} />
+                            Retake Quiz
+                        </button>
+                    </>
+                ) : (
+                    <button 
+                        className="dropdown-item"
+                        onClick={() => handleDropdownAction('retake', quiz.id)}
+                    >
+                        <FiPlay size={14} />
+                        Start Quiz
+                    </button>
+                )}
+                <button 
+                    className="dropdown-item"
+                    onClick={() => handleDropdownAction('edit', quiz.id)}
+                >
+                    <FiEdit size={14} />
+                    Edit Quiz
+                </button>
+                <button 
+                    className="dropdown-item delete"
+                    onClick={() => handleDropdownAction('delete', quiz.id)}
+                >
+                    <FiTrash2 size={14} />
+                    Delete Quiz
+                </button>
+            </div>
+        ) : null;
+        
         return (
             <div className="quiz-actions-dropdown">
                 <button 
                     className="dropdown-toggle"
-                    onClick={() => handleDropdownToggle(quiz.id)}
+                    onClick={(e) => handleDropdownToggle(quiz.id, e)}
                     title="More actions"
                 >
                     <FiMoreVertical size={16} />
                 </button>
                 
-                {isOpen && (
-                    <div className="dropdown-menu">
-                        {quiz.last_score !== null && quiz.last_score !== undefined ? (
-                            <>
-                                <button 
-                                    className="dropdown-item"
-                                    onClick={() => handleDropdownAction('view', quiz.id)}
-                                >
-                                    <FiEye size={14} />
-                                    View Results
-                                </button>
-                                <button 
-                                    className="dropdown-item"
-                                    onClick={() => handleDropdownAction('retake', quiz.id)}
-                                >
-                                    <FiPlay size={14} />
-                                    Retake Quiz
-                                </button>
-                            </>
-                        ) : (
-                            <button 
-                                className="dropdown-item"
-                                onClick={() => handleDropdownAction('retake', quiz.id)}
-                            >
-                                <FiPlay size={14} />
-                                Start Quiz
-                            </button>
-                        )}
-                        <button 
-                            className="dropdown-item"
-                            onClick={() => handleDropdownAction('edit', quiz.id)}
-                        >
-                            <FiEdit size={14} />
-                            Edit Quiz
-                        </button>
-                        <button 
-                            className="dropdown-item delete"
-                            onClick={() => handleDropdownAction('delete', quiz.id)}
-                        >
-                            <FiTrash2 size={14} />
-                            Delete Quiz
-                        </button>
-                    </div>
-                )}
+                {dropdownContent}
             </div>
         );
     };
@@ -329,7 +341,7 @@ const QuizPage = () => {
         <div className="quiz-page">
             <div className="quiz-header">
                 <div className="quiz-header-left">
-                    <button className="back-button" onClick={handleBack}>
+                    <button className="quiz-back-button" onClick={handleBack}>
                         <FiArrowLeft /> Back to Study Room
                     </button>
                 </div>
@@ -338,7 +350,10 @@ const QuizPage = () => {
                         <span style={{ color: 'white' }}>🎲</span> Generate Quiz
                     </button>
                 <button className="create-button" onClick={handleCreateQuiz}>
-                        <span style={{ color: 'white' }}>➕</span> Create New Quiz
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg> Create New Quiz
                 </button>
             </div>
             </div>
@@ -351,7 +366,7 @@ const QuizPage = () => {
                             <span className="quiz-title-text">Quiz Center</span>
                         </h2>
                         <p className="quiz-session-subtitle">
-                            {motivationalQuotes[quoteIdx]}
+                            Test your knowledge, grow your mind.
                         </p>
                     </div>
                 </div>
@@ -361,14 +376,15 @@ const QuizPage = () => {
             {!Array.isArray(quizzes) || quizzes.length === 0 ? (
                 <div className="no-quizzes">
                     <div className="empty-state-illustration">
-                        <div className="empty-state-icon">🧠</div>
-                        <h2 className="empty-state-title">No Quizzes Yet</h2>
-                        <p className="empty-state-description">Ready to test your knowledge? Create your first quiz and start learning!</p>
-                    </div>
-                        <div className="no-quizzes-actions">
-                            <button className="generate-button" onClick={handleGenerateQuiz}>Generate Quiz</button>
-                    <button className="create-button" onClick={handleCreateQuiz}>Create Quiz</button>
+                        <div className="empty-state-content">
+                            <h2 className="empty-state-title">No Quizzes Yet</h2>
+                            <p className="empty-state-description">Ready to test your knowledge? Create your first quiz and start learning!</p>
+                            <div className="no-quizzes-actions">
+                                <button className="generate-button" onClick={handleGenerateQuiz}>Generate Quiz</button>
+                                <button className="create-button" onClick={handleCreateQuiz}>Create Quiz</button>
+                            </div>
                         </div>
+                    </div>
                 </div>
             ) : (
                 <div className="quiz-table-container">
@@ -384,9 +400,8 @@ const QuizPage = () => {
                         </thead>
                         <tbody>
                                 {quizzes.map((quiz, index) => {
-                                console.log('Rendering quiz:', quiz);
                                 return (
-                                        <tr key={quiz.id} className="quiz-row" style={{
+                                        <tr key={quiz.id} className={`quiz-row ${openDropdown === quiz.id ? 'dropdown-open' : ''}`} style={{
                                             animation: `fadeInUp 0.4s ease ${index * 0.1}s both`
                                         }}>
                                         <td className="quiz-td-center quiz-title">

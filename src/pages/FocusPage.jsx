@@ -208,7 +208,7 @@ const FocusPage = () => {
                         {/* Goal Card */}
                         <div className="goal-section">
                             <h3 className="section-title">Today's Goal</h3>
-                            <div className="goal-card">
+                            <div className="focus-goal-card">
                                 {!isIntentionStamped ? (
                                     <form className="goal-stamp-form" onSubmit={e => { e.preventDefault(); if (dailyIntention.trim()) { setIsIntentionStamped(true); setIsEditingIntention(false); } }}>
                                         <textarea
@@ -329,13 +329,23 @@ const FocusPage = () => {
                                                 <option key={deck.id} value={deck.id}>{deck.title}</option>
                                             ))}
                                         </select>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={newTaskTime}
                                             onChange={(e) => setNewTaskTime(e.target.value)}
-                                            placeholder="Time (e.g., 2h, 30m)"
                                             className="time-input"
-                                        />
+                                        >
+                                            <option value="">No time limit</option>
+                                            <option value="15m">15 minutes</option>
+                                            <option value="30m">30 minutes</option>
+                                            <option value="45m">45 minutes</option>
+                                            <option value="1h">1 hour</option>
+                                            <option value="1.5h">1.5 hours</option>
+                                            <option value="2h">2 hours</option>
+                                            <option value="3h">3 hours</option>
+                                            <option value="4h">4 hours</option>
+                                            <option value="6h">6 hours</option>
+                                            <option value="8h">8 hours</option>
+                                        </select>
                                     </div>
                                     <button type="submit" className="add-task-btn">
                                         <FiPlus /> Add Task
