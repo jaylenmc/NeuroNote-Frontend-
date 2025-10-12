@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiClock, FiShuffle, FiPause, FiPlay, FiArrowLeft, FiSkipForward, FiCheck, FiX, FiRotateCcw } from 'react-icons/fi';
+import { FiClock, FiShuffle, FiPause, FiPlay, FiArrowLeft, FiSkipForward, FiCheck, FiX, FiRotateCcw, FiZap, FiSend, FiCpu, FiEye, FiEyeOff } from 'react-icons/fi';
 import CardsToQuiz from '../components/CardsToQuiz';
 import FeedbackLoopSession from '../components/FeedbackLoopSession';
 import ProblemSolvingSession from '../components/ProblemSolvingSession';
 import PatternRecognitionSession from '../components/PatternRecognitionSession';
 import AICoach from '../components/AICoach';
+import { useNotification } from '../contexts/NotificationContext';
 import api from '../api/axios';
 import { jwtDecode } from 'jwt-decode';
 import { isBackendDateTimeOverdue, isBackendDateTimeDueNow, isBackendDateTimeDueSoon } from '../utils/dateUtils';
@@ -27,6 +28,7 @@ function isTokenExpired(token) {
 const ReviewSession = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showNotification } = useNotification();
   
   // State for review session
   const [reviewCards, setReviewCards] = useState([]);
@@ -65,6 +67,10 @@ const ReviewSession = () => {
   // State for attempt counter (for feedback loop sessions)
   const [currentAttempts, setCurrentAttempts] = useState(0);
   
+  // State for AI assistant
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiConversation, setAiConversation] = useState([]);
 
   // Color map for underlines
   const ratingColors = [
@@ -604,6 +610,61 @@ const ReviewSession = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Generate AI Summary for current card
+  const generateAISummary = () => {
+    // Mock AI summary based on card content
+    return {
+      keyPoints: [
+        'Core concept: ' + currentCard.question.substring(0, 50) + '...',
+        'This relates to fundamental principles in the subject',
+        'Remember to connect this with related topics'
+      ],
+      breakdown: {
+        what: 'This card covers a key concept that builds foundational understanding',
+        why: 'Understanding this helps you grasp more advanced topics later',
+        how: 'Break it down into smaller parts and connect to real-world examples'
+      },
+      relatedConcepts: [
+        'Related Topic 1',
+        'Related Topic 2',
+        'Advanced Application'
+      ],
+      mnemonicSuggestion: 'Try creating a memory palace or story to remember this'
+    };
+  };
+
+  // Handle AI question submission
+  const handleAskAI = () => {
+    if (!aiQuestion.trim()) return;
+
+    // Add user question
+    const newConversation = [
+      ...aiConversation,
+      {
+        type: 'user',
+        text: aiQuestion,
+        timestamp: new Date().toLocaleTimeString()
+      }
+    ];
+
+    // Generate mock AI response
+    const aiResponses = [
+      "Great question! Let me break this down for you. The key concept here is about understanding the relationship between the components. Think of it like building blocks where each part supports the next.",
+      "That's an interesting angle to explore! This concept connects to several other areas. The main thing to remember is the fundamental principle behind it.",
+      "Good thinking! To answer that, consider the context: this is particularly important because it forms the foundation for more advanced topics.",
+      "Excellent question! Let's think about this step by step: First, understand the basic definition. Then, consider how it applies in practice. Finally, connect it to what you already know."
+    ];
+
+    const aiResponse = {
+      type: 'ai',
+      text: aiResponses[Math.floor(Math.random() * aiResponses.length)],
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setAiConversation([...newConversation, aiResponse]);
+    setAiQuestion('');
+  };
+
   // Render the appropriate session type based on selected study method
   const renderSessionType = () => {
     console.log('renderSessionType called with selectedStudyMethod:', selectedStudyMethod);
@@ -624,7 +685,8 @@ const ReviewSession = () => {
       setIsFlipped,
       sessionStats: motivationalStats,
       onAttemptChange: setCurrentAttempts,
-      nextCard
+      nextCard,
+      showNotification
     };
 
     console.log('Session props:', sessionProps);
@@ -761,37 +823,168 @@ const ReviewSession = () => {
           {/* Render session type based on selected study method */}
           {renderSessionType() || (
             <>
-              {/* Default Flashcard Interface */}
-              <div className="flashcard-container">
-                <button className="shuffle-btn" onClick={handleShuffle} title="Shuffle Cards">
-                  <FiShuffle />
-                </button>
-                
-                <div 
-                  className={`flashcard ${isFlipped ? 'flipped' : ''}`}
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  tabIndex={0}
-                  onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setIsFlipped(!isFlipped)}
-                >
-                  <div className="flashcard-inner">
-                    <div className="flashcard-front">
-                      <h3>Question</h3>
-                      <p>{currentCard.question}</p>
+              {/* Default Flashcard Interface with AI Assistant */}
+              <div className={`flashcard-with-ai-container ${isFlipped && showAIAssistant ? 'ai-visible' : ''}`}>
+                <div className="flashcard-section">
+                  <div className="flashcard-container">
+                    <button className="shuffle-btn" onClick={handleShuffle} title="Shuffle Cards">
+                      <FiShuffle />
+                    </button>
+                    
+                    <div 
+                      className={`flashcard ${isFlipped ? 'flipped' : ''}`}
+                      onClick={() => setIsFlipped(!isFlipped)}
+                      tabIndex={0}
+                      onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setIsFlipped(!isFlipped)}
+                    >
+                      <div className="flashcard-inner">
+                        <div className="flashcard-front">
+                          <h3>Question</h3>
+                          <p>{currentCard.question}</p>
+                        </div>
+                        <div className="flashcard-back">
+                          <h3>Answer</h3>
+                          <p>{currentCard.answer}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flashcard-back">
-                      <h3>Answer</h3>
-                      <p>{currentCard.answer}</p>
-                    </div>
+
+                    <button className="skip-btn" onClick={handleNextReviewCard} title="Skip Card">
+                      <FiSkipForward />
+                    </button>
                   </div>
+
+                  <div className="flip-hint">
+                    Click or press Space to flip
+                  </div>
+
+                  {/* AI Assistant Toggle */}
+                  {isFlipped && (
+                    <div className="ai-toggle-section">
+                      <button 
+                        className={`ai-toggle-btn ${showAIAssistant ? 'active' : ''}`}
+                        onClick={() => setShowAIAssistant(!showAIAssistant)}
+                      >
+                        {showAIAssistant ? <FiEyeOff /> : <FiEye />}
+                        {showAIAssistant ? 'Hide AI Assistant' : 'Show AI Assistant'}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <button className="skip-btn" onClick={handleNextReviewCard} title="Skip Card">
-                  <FiSkipForward />
-                </button>
-              </div>
+                {/* AI Assistant Panel */}
+                {isFlipped && showAIAssistant && (
+                  <div className="ai-assistant-panel">
+                    <div className="ai-panel-header">
+                      <div className="ai-header-title">
+                        <FiCpu className="ai-header-icon" />
+                        <h3>AI Learning Assistant</h3>
+                      </div>
+                      <button 
+                        className="close-ai-panel"
+                        onClick={() => setShowAIAssistant(false)}
+                      >
+                        <FiX />
+                      </button>
+                    </div>
 
-              <div className="flip-hint">
-                Click or press Space to flip
+                    <div className="ai-panel-content">
+                      {/* AI Summary */}
+                      <div className="ai-summary-section">
+                        <h4>
+                          <FiZap />
+                          AI Breakdown
+                        </h4>
+                        
+                        <div className="ai-key-points">
+                          <h5>Key Points</h5>
+                          <ul>
+                            {generateAISummary().keyPoints.map((point, idx) => (
+                              <li key={idx}>{point}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="ai-breakdown-grid">
+                          <div className="breakdown-item">
+                            <div className="breakdown-label">What?</div>
+                            <div className="breakdown-text">{generateAISummary().breakdown.what}</div>
+                          </div>
+                          <div className="breakdown-item">
+                            <div className="breakdown-label">Why?</div>
+                            <div className="breakdown-text">{generateAISummary().breakdown.why}</div>
+                          </div>
+                          <div className="breakdown-item">
+                            <div className="breakdown-label">How?</div>
+                            <div className="breakdown-text">{generateAISummary().breakdown.how}</div>
+                          </div>
+                        </div>
+
+                        <div className="ai-related-concepts">
+                          <h5>Related Concepts</h5>
+                          <div className="concept-chips">
+                            {generateAISummary().relatedConcepts.map((concept, idx) => (
+                              <span key={idx} className="concept-chip">{concept}</span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="ai-mnemonic">
+                          <h5>💡 Memory Tip</h5>
+                          <p>{generateAISummary().mnemonicSuggestion}</p>
+                        </div>
+                      </div>
+
+                      {/* Conversation History */}
+                      {aiConversation.length > 0 && (
+                        <div className="ai-conversation-history">
+                          <h5>Conversation</h5>
+                          <div className="conversation-messages">
+                            {aiConversation.map((message, idx) => (
+                              <div key={idx} className={`message ${message.type}`}>
+                                <div className="message-content">{message.text}</div>
+                                <div className="message-time">{message.timestamp}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Ask AI */}
+                      <div className="ai-question-section">
+                        <h5>Ask AI a Question</h5>
+                        <div className="ai-question-input-group">
+                          <input
+                            type="text"
+                            value={aiQuestion}
+                            onChange={(e) => setAiQuestion(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleAskAI()}
+                            placeholder="Ask anything about this card..."
+                            className="ai-question-input"
+                          />
+                          <button 
+                            onClick={handleAskAI}
+                            className="ai-send-btn"
+                            disabled={!aiQuestion.trim()}
+                          >
+                            <FiSend />
+                          </button>
+                        </div>
+                        <div className="ai-question-suggestions">
+                          <button onClick={() => setAiQuestion("Can you explain this in simpler terms?")}>
+                            Simplify this
+                          </button>
+                          <button onClick={() => setAiQuestion("What's a real-world example?")}>
+                            Real example
+                          </button>
+                          <button onClick={() => setAiQuestion("How does this relate to other concepts?")}>
+                            Show connections
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Rating Controls */}
