@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiClock, FiShuffle, FiPause, FiPlay, FiArrowLeft, FiSkipForward, FiCheck, FiX, FiRotateCcw, FiZap, FiSend, FiCpu, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FaBrain } from 'react-icons/fa';
 import CardsToQuiz from '../components/CardsToQuiz';
 import FeedbackLoopSession from '../components/FeedbackLoopSession';
 import ProblemSolvingSession from '../components/ProblemSolvingSession';
@@ -63,6 +64,9 @@ const ReviewSession = () => {
     improvementRate: 0,
     sessionSpeed: 'normal'
   });
+  
+  // State for floating emoji animations
+  const [floatingEmojis, setFloatingEmojis] = useState([]);
   
   // State for attempt counter (for feedback loop sessions)
   const [currentAttempts, setCurrentAttempts] = useState(0);
@@ -318,6 +322,19 @@ const ReviewSession = () => {
     }
   }, [cardRatings, sessionStartTime]);
 
+  // Prevent body scroll when AI panel is open
+  useEffect(() => {
+    if (showAIAssistant) {
+      document.body.classList.add('ai-panel-open');
+    } else {
+      document.body.classList.remove('ai-panel-open');
+    }
+
+    return () => {
+      document.body.classList.remove('ai-panel-open');
+    };
+  }, [showAIAssistant]);
+
   const fetchReviewCards = async (token, deckToUse = null, includeDueSoonParam = null) => {
     try {
       const deckId = deckToUse?.id || selectedDeck?.id;
@@ -462,11 +479,101 @@ const ReviewSession = () => {
     }
   };
 
+  // Function to play success sound
+  const playReviewSessionSuccessSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const now = audioContext.currentTime;
+      
+      // Create a celebratory fanfare sound with multiple tones
+      // First note - C5
+      const osc1 = audioContext.createOscillator();
+      const gain1 = audioContext.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(523.25, now); // C5
+      gain1.gain.setValueAtTime(0, now);
+      gain1.gain.linearRampToValueAtTime(0.15, now + 0.05);
+      gain1.gain.linearRampToValueAtTime(0, now + 0.3);
+      osc1.connect(gain1);
+      gain1.connect(audioContext.destination);
+      
+      // Second note - E5 (after slight delay)
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(659.25, now + 0.05); // E5
+      gain2.gain.setValueAtTime(0, now + 0.05);
+      gain2.gain.linearRampToValueAtTime(0.15, now + 0.1);
+      gain2.gain.linearRampToValueAtTime(0, now + 0.35);
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      
+      // Third note - G5 (completes the chord)
+      const osc3 = audioContext.createOscillator();
+      const gain3 = audioContext.createGain();
+      osc3.type = 'sine';
+      osc3.frequency.setValueAtTime(783.99, now + 0.1); // G5
+      gain3.gain.setValueAtTime(0, now + 0.1);
+      gain3.gain.linearRampToValueAtTime(0.15, now + 0.15);
+      gain3.gain.linearRampToValueAtTime(0, now + 0.4);
+      osc3.connect(gain3);
+      gain3.connect(audioContext.destination);
+      
+      // High triumphant note - C6
+      const osc4 = audioContext.createOscillator();
+      const gain4 = audioContext.createGain();
+      osc4.type = 'sine';
+      osc4.frequency.setValueAtTime(1046.50, now + 0.2); // C6
+      gain4.gain.setValueAtTime(0, now + 0.2);
+      gain4.gain.linearRampToValueAtTime(0.2, now + 0.25);
+      gain4.gain.linearRampToValueAtTime(0, now + 0.5);
+      osc4.connect(gain4);
+      gain4.connect(audioContext.destination);
+      
+      // Start all oscillators
+      osc1.start(now);
+      osc2.start(now + 0.05);
+      osc3.start(now + 0.1);
+      osc4.start(now + 0.2);
+      
+      // Stop all oscillators
+      osc1.stop(now + 0.3);
+      osc2.stop(now + 0.35);
+      osc3.stop(now + 0.4);
+      osc4.stop(now + 0.5);
+    } catch (error) {
+      // Silently fail if audio context is not available
+    }
+  };
+
+  // Function to trigger floating emoji animation
+  const triggerFloatingEmoji = (rating) => {
+    // Only show for ratings above 2 (3, 4, 5)
+    if (rating > 2) {
+      const newEmoji = {
+        id: Date.now(),
+        rating
+      };
+      setFloatingEmojis(prev => [...prev, newEmoji]);
+      
+      // Play success sound
+      playReviewSessionSuccessSound();
+      
+      // Remove the emoji after animation completes
+      setTimeout(() => {
+        setFloatingEmojis(prev => prev.filter(emoji => emoji.id !== newEmoji.id));
+      }, 1200);
+    }
+  };
+
   const handleRatingSelect = async (rating) => {
     if (!reviewCards[currentReviewCardIndex] || sessionComplete) return;
 
     const currentCard = reviewCards[currentReviewCardIndex];
     const deckId = selectedDeck?.id || currentCard.card_deck;
+    
+    // Trigger floating emoji animation for ratings above 2
+    triggerFloatingEmoji(rating);
     
     // Collect review data locally instead of making individual API calls
     const reviewData = {
@@ -686,7 +793,8 @@ const ReviewSession = () => {
       sessionStats: motivationalStats,
       onAttemptChange: setCurrentAttempts,
       nextCard,
-      showNotification
+      showNotification,
+      onShuffle: handleShuffle
     };
 
     console.log('Session props:', sessionProps);
@@ -801,11 +909,26 @@ const ReviewSession = () => {
       ) : (
         <>
           {/* Header with Timer Only */}
-          <div className="review-header">
+          <div className="review-header-flashcards">
             <div className="header-left">
               <button className="end-session-btn" onClick={handleEndSession}>
                 <FiArrowLeft /> Back to Study Room
               </button>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="header-progress-bar">
+              <div className="progress-bar-container">
+                <div 
+                  className="progress-bar-fill" 
+                  style={{ 
+                    width: `${Math.max((currentReviewCardIndex / reviewCards.length) * 100, 1)}%` 
+                  }}
+                ></div>
+              </div>
+              <div className="progress-text">
+                {currentReviewCardIndex + 1} of {reviewCards.length} cards
+              </div>
             </div>
             
             {/* Timer */}
@@ -824,7 +947,7 @@ const ReviewSession = () => {
           {renderSessionType() || (
             <>
               {/* Default Flashcard Interface with AI Assistant */}
-              <div className={`flashcard-with-ai-container ${isFlipped && showAIAssistant ? 'ai-visible' : ''}`}>
+              <div className={`flashcard-with-ai-container ${showAIAssistant ? 'ai-visible' : ''}`}>
                 <div className="flashcard-section">
                   <div className="flashcard-container">
                     <button className="shuffle-btn" onClick={handleShuffle} title="Shuffle Cards">
@@ -839,6 +962,42 @@ const ReviewSession = () => {
                     >
                       <div className="flashcard-inner">
                         <div className="flashcard-front">
+                          {/* Learning Status Badge - Only on Question Side */}
+                          <div className="learning-status-badge">
+                            {(() => {
+                              const getStatusInfo = (status) => {
+                                switch (status) {
+                                  case 'mstrd':
+                                    return { text: 'Mastered', color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' };
+                                  case 'strgl':
+                                    return { text: 'Struggling', color: '#EF4444', bgColor: 'rgba(239, 68, 68, 0.1)' };
+                                  case 'unseen':
+                                    return { text: 'Unseen', color: '#3B82F6', bgColor: 'rgba(59, 130, 246, 0.1)' };
+                                  case 'imprv':
+                                  default:
+                                    return { text: 'In Progress', color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' };
+                                }
+                              };
+                              const statusInfo = getStatusInfo(currentCard?.learning_status);
+                              return (
+                                <span 
+                                  className="status-text"
+                                  style={{
+                                    color: statusInfo.color,
+                                    backgroundColor: statusInfo.bgColor,
+                                    padding: '6px 12px',
+                                    borderRadius: '10px',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '600',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em'
+                                  }}
+                                >
+                                  {statusInfo.text}
+                                </span>
+                              );
+                            })()}
+                          </div>
                           <h3>Question</h3>
                           <p>{currentCard.question}</p>
                         </div>
@@ -859,26 +1018,24 @@ const ReviewSession = () => {
                   </div>
 
                   {/* AI Assistant Toggle */}
-                  {isFlipped && (
-                    <div className="ai-toggle-section">
-                      <button 
-                        className={`ai-toggle-btn ${showAIAssistant ? 'active' : ''}`}
-                        onClick={() => setShowAIAssistant(!showAIAssistant)}
-                      >
-                        {showAIAssistant ? <FiEyeOff /> : <FiEye />}
-                        {showAIAssistant ? 'Hide AI Assistant' : 'Show AI Assistant'}
-                      </button>
-                    </div>
-                  )}
+                  <div className="ai-toggle-section">
+                    <button 
+                      className={`ai-toggle-btn ${showAIAssistant ? 'active' : ''}`}
+                      onClick={() => setShowAIAssistant(!showAIAssistant)}
+                    >
+                      {showAIAssistant ? <FiEyeOff /> : <FiEye />}
+                      {showAIAssistant ? 'Hide Neuro Assistant' : 'Show Neuro Assistant'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* AI Assistant Panel */}
-                {isFlipped && showAIAssistant && (
+                {showAIAssistant && (
                   <div className="ai-assistant-panel">
                     <div className="ai-panel-header">
                       <div className="ai-header-title">
-                        <FiCpu className="ai-header-icon" />
-                        <h3>AI Learning Assistant</h3>
+                        <FaBrain className="ai-header-icon" />
+                        <h3>NeuroNote</h3>
                       </div>
                       <button 
                         className="close-ai-panel"
@@ -889,68 +1046,24 @@ const ReviewSession = () => {
                     </div>
 
                     <div className="ai-panel-content">
-                      {/* AI Summary */}
-                      <div className="ai-summary-section">
-                        <h4>
-                          <FiZap />
-                          AI Breakdown
-                        </h4>
-                        
-                        <div className="ai-key-points">
-                          <h5>Key Points</h5>
-                          <ul>
-                            {generateAISummary().keyPoints.map((point, idx) => (
-                              <li key={idx}>{point}</li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="ai-breakdown-grid">
-                          <div className="breakdown-item">
-                            <div className="breakdown-label">What?</div>
-                            <div className="breakdown-text">{generateAISummary().breakdown.what}</div>
+                      {/* Scrollable conversation area */}
+                      <div className="ai-conversation-scrollable">
+                        {/* Conversation History */}
+                        {aiConversation.length > 0 && (
+                          <div className="ai-conversation-history">
+                            <div className="conversation-messages">
+                              {aiConversation.map((message, idx) => (
+                                <div key={idx} className={`message ${message.type}`}>
+                                  <div className="message-content">{message.text}</div>
+                                  <div className="message-time">{message.timestamp}</div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="breakdown-item">
-                            <div className="breakdown-label">Why?</div>
-                            <div className="breakdown-text">{generateAISummary().breakdown.why}</div>
-                          </div>
-                          <div className="breakdown-item">
-                            <div className="breakdown-label">How?</div>
-                            <div className="breakdown-text">{generateAISummary().breakdown.how}</div>
-                          </div>
-                        </div>
-
-                        <div className="ai-related-concepts">
-                          <h5>Related Concepts</h5>
-                          <div className="concept-chips">
-                            {generateAISummary().relatedConcepts.map((concept, idx) => (
-                              <span key={idx} className="concept-chip">{concept}</span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="ai-mnemonic">
-                          <h5>💡 Memory Tip</h5>
-                          <p>{generateAISummary().mnemonicSuggestion}</p>
-                        </div>
+                        )}
                       </div>
 
-                      {/* Conversation History */}
-                      {aiConversation.length > 0 && (
-                        <div className="ai-conversation-history">
-                          <h5>Conversation</h5>
-                          <div className="conversation-messages">
-                            {aiConversation.map((message, idx) => (
-                              <div key={idx} className={`message ${message.type}`}>
-                                <div className="message-content">{message.text}</div>
-                                <div className="message-time">{message.timestamp}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Ask AI */}
+                      {/* Fixed question section */}
                       <div className="ai-question-section">
                         <h5>Ask AI a Question</h5>
                         <div className="ai-question-input-group">
@@ -982,6 +1095,7 @@ const ReviewSession = () => {
                           </button>
                         </div>
                       </div>
+
                     </div>
                   </div>
                 )}
@@ -1011,6 +1125,14 @@ const ReviewSession = () => {
                   </button>
                 ))}
               </div>
+
+              {/* Floating Emoji Animations */}
+              {floatingEmojis.map((emoji) => (
+                <div key={emoji.id} className="review-session-floating-emoji">
+                  <span className="review-session-emoji-icon">🎉</span>
+                  <span className="review-session-emoji-text">+5</span>
+                </div>
+              ))}
 
               <div className="rating-hint">
                 Press number keys 0-5 to rate quickly

@@ -670,13 +670,13 @@ body:has(.dashboard-home-container) .folder-item:hover,
 .xp-ring-bg {
   fill: none;
   stroke: rgba(78, 205, 196, 0.1);
-  stroke-width: 8;
+  stroke-width: 6;
 }
 
 .xp-ring-progress {
   fill: none;
   stroke: #7c83fd;
-  stroke-width: 8;
+  stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dasharray 0.8s ease;
 }

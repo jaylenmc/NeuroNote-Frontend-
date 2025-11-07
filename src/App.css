@@ -1,3 +1,75 @@
+.hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 3rem;
+}
+
+.hero-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.hero-content-left {
+  flex: 1;
+  text-align: left;
+}
+
+.hero-media {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-video {
+  width: 100%;
+  max-width: 520px;
+  height: 320px;
+  border-radius: 12px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  object-fit: cover;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: #d1d5db;
+  margin: 0.5rem 0 1.5rem 0;
+  max-width: 480px;
+}
+
+.cta-btn {
+  background: #7c83fd;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.75rem 2.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 1.5rem;
+  display: inline-block;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cta-btn:hover {
+  background: #686fdc;
+  transform: translateY(-2px);
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 * {
@@ -9,9 +81,11 @@
 
 html, body {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
+  background: #18191C;
+  color: #ffffff;
 }
 
 .app {
@@ -19,10 +93,11 @@ html, body {
   min-height: 100vh;
 }
 
+
 .landing-hero {
   min-height: 100vh;
   width: 100%;
-  background: #000000;
+  background: #18191C;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,23 +106,8 @@ html, body {
 .hero-content {
   text-align: center;
   padding: 2rem;
-  
 }
 
-.nn-navbar-global {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 1rem;
-  z-index: 1000;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 3rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2rem;
-}
 
 .hero-title {
   font-size: 2.7rem;
@@ -56,44 +116,22 @@ html, body {
   margin-bottom: 0.5rem;
 }
 
-.hero-subtitle {
-  font-size: 1.2rem;
-  color: #ffffff;
-  margin: 0.3rem auto 0 auto;
-  max-width: 500px;
-}
-
-.cta-btn {
-  background: #ffffff;
-  color: #000000;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 2rem;
-  padding: 0.6rem 2.2rem;
-  cursor: pointer;
-  text-decoration: none;
-  margin-top: 1.5rem;
-  display: inline-block;
-}
 
 /* Global Navbar */
 .nn-navbar-global {
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 1rem;
+  left: 0;
+  width: 100%;
   z-index: 1000;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 3rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border-radius: 2rem;
+  padding: 0 3rem;
+  background: transparent;
+  box-shadow: none;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  height: 5rem;
 }
 
 .nn-navbar-global .nn-logo {
@@ -109,12 +147,11 @@ html, body {
   flex-shrink: 0;
 }
 
-.nn-navbar-global .nn-logo-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  cursor: default;
-  color: white;
-  letter-spacing: 0.01em;
+.nn-logo-image {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .nn-navbar-global .nn-nav-links a {
@@ -132,28 +169,33 @@ html, body {
 
 .nn-navbar-global .nn-nav-links a:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
-  text-shadow: 0 8px 20px rgba(26,26,26,0.3);
+  text-shadow: none;
+}
+
+.nn-navbar-global.scrolled {
+  background: #1f2024;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .nn-signup-btn-minimal {
-  background: white;
-  color: black !important;
+  background: #7c83fd;
+  color: #ffffff !important;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   border-radius: 8px;
-  padding: 0.2rem 0.65rem;
-  box-shadow: 0 2px 8px rgba(107, 138, 196, 0.15);
-  transition: all 0.18s ease;
+  padding: 0.35rem 0.85rem;
+  box-shadow: 0 4px 16px rgba(124, 131, 253, 0.25);
+  transition: all 0.2s ease;
   transform: none !important;
   margin-left: 3rem;
 }
 
 .nn-signup-btn-minimal:hover {
-  background: var(--primary-blue);
+  background: #686fdc;
   color: #ffffff !important;
-  box-shadow: 0 4px 18px rgba(107, 138, 196, 0.2);
+  box-shadow: 0 6px 20px rgba(124, 131, 253, 0.25);
   transform: none !important;
 }
 
@@ -163,7 +205,7 @@ html, body {
   position: relative;
   width: 100%;
   overflow: hidden;
-  background: #1a1a1a;
+  background: #ffffff;
 }
 
 .hero-content {
@@ -403,22 +445,21 @@ html, body {
     padding: 1.5rem 2rem;
   }
   
-  .nn-hero-minimal-centered {
-    padding: 2rem;
-  }
-  
-  .nn-hero-center-content {
+  .hero-wrapper {
+    flex-direction: column;
     text-align: center;
-    padding: 1rem;
   }
-  
-  .nn-hero-animated-svg {
-    max-width: 400px;
-    margin-top: 2rem;
+
+  .hero-content-left {
+    text-align: center;
   }
-  
-  .nn-hero-title-minimal {
-    font-size: 2.5rem;
+
+  .hero-title {
+    font-size: 2.6rem;
+  }
+
+  .hero-video {
+    max-width: 460px;
   }
 }
 

@@ -1,26 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext'; // or wherever you defined its
 import generateState from './utils/auth';
 
 function Home() {
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [videoError, setVideoError] = useState(false);
-  const videoRef = useRef(null);
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.addEventListener('loadeddata', () => {
-        setIsVideoLoaded(true);
-      });
-      video.addEventListener('error', () => {
-        setVideoError(true);
-      });
-    }
-  }, []);
 
   // Redirect to dashboard if user is already logged in
   useEffect(() => {
@@ -30,49 +15,24 @@ function Home() {
   }, [user, navigate]);
 
   return (
-    <div style={{ background: 'var(--background)' }}>
+    <div style={{ background: 'rgb(24, 25, 28)' }}>
       {/* Hero Section */}
-      <section className="section text-center" style={{ position: 'relative', minHeight: '100vh', padding: 0, maxWidth: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {!videoError && (
-          <video 
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="background-video"
-            style={{
-              opacity: isVideoLoaded ? 1 : 0,
-              transition: 'opacity 0.5s ease-in-out'
-            }}
-          >
-            <source src="/background.mp4" type="video/mp4"/>
-          </video>
-        )}
-        {(!isVideoLoaded || videoError) && (
-          <div 
-            className="background-video"
-            style={{
-              background: 'linear-gradient(45deg, #ffffff 0%, #808080 50%, #000000 100%)',
-              opacity: 0.9
-            }}
-          />
-        )}
-        <div style={{ 
-          position: 'relative',
-          zIndex: 2,
-          opacity: isVideoLoaded ? 1 : 0,
-          transition: 'opacity 0.5s ease-in-out',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          width: '100%'
-        }}>
-          <div className="hero-content">
+      <section className="section hero-section" style={{ minHeight: '80vh', background: '#18191C' }}>
+        <div className="hero-wrapper">
+          <div className="hero-content hero-content-left">
             <h1 className="hero-title">Master Any Subject<br />Backed By Brain Science</h1>
             <p className="hero-subtitle">Minimal, modern note-taking powered by AI.</p>
             <Link to='/signin' className="cta-btn">Get Started</Link>
+          </div>
+          <div className="hero-media">
+            <video
+              className="hero-video"
+              src="/NeuroNote Practice Record.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
           </div>
         </div>
       </section>

@@ -112,6 +112,16 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
+.study-method-option.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.study-method-option.locked:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
 .study-method-option.selected {
     background: rgba(124, 131, 253, 0.1);
     border-left: 3px solid #7c83fd;
@@ -137,6 +147,14 @@
     font-size: 0.95rem;
     margin-bottom: 0.25rem;
     line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.locked-badge {
+    font-size: 0.85rem;
+    opacity: 0.8;
 }
 
 .study-method-description {

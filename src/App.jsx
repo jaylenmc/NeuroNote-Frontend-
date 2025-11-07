@@ -1,5 +1,5 @@
 // src/App.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import Home from './Home';  // Import the Home page component
 import About from './About'; // Import the About page component
@@ -50,6 +50,17 @@ const ProtectedRoute = ({ children }) => {
 function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   // Hide navbar on these routes
   const hideNavbarRoutes = ['/dashboard', '/signin', '/auth/callback/', '/study-room', '/review', '/chat', '/login', '/register', '/quiz', '/focus', '/progress', '/study-groups', '/achievements', '/notes-editor'];
@@ -58,9 +69,13 @@ function Navbar() {
   }
   
   return (
-    <nav className="nn-navbar-global">
+    <nav className={`nn-navbar-global ${isScrolled ? 'scrolled' : ''}`}>
       <div className="nn-logo">
-        <span className="nn-logo-text">NeuroNote</span>
+        <img
+          className="nn-logo-image"
+          src="/NeuroNote Logo Transparent.png"
+          alt="NeuroNote Logo"
+        />
       </div>
       <div className="nn-nav-links">
         <Link to="/">Home</Link>

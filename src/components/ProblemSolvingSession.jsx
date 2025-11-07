@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiHelpCircle, FiCheck, FiArrowRight, FiZap, FiTarget, FiEdit, FiAlertCircle, FiMessageCircle } from 'react-icons/fi';
+import { FiHelpCircle, FiCheck, FiArrowRight, FiZap, FiTarget, FiEdit, FiAlertCircle, FiMessageCircle, FiLoader } from 'react-icons/fi';
+import api from '../api/axios';
 
 const ProblemSolvingSession = ({ 
   currentCard, 
@@ -25,6 +26,10 @@ const ProblemSolvingSession = ({
   const [stepsFeedback, setStepsFeedback] = useState([]);
   const [summaryChecked, setSummaryChecked] = useState(false);
   const [summaryFeedback, setSummaryFeedback] = useState([]);
+  const [isCheckingExplanation, setIsCheckingExplanation] = useState(false);
+  const [isCheckingConnection, setIsCheckingConnection] = useState(false);
+  const [claudeFeedback, setClaudeFeedback] = useState('');
+  const [claudeFeedbackHeader, setClaudeFeedbackHeader] = useState('');
 
   // Reset state when card changes
   useEffect(() => {
@@ -43,51 +48,136 @@ const ProblemSolvingSession = ({
     setStepsFeedback([]);
     setSummaryChecked(false);
     setSummaryFeedback([]);
+    setIsCheckingExplanation(false);
+    setIsCheckingConnection(false);
+    setClaudeFeedback('');
+    setClaudeFeedbackHeader('');
     generateSocraticQuestions();
   }, [currentCard?.id]);
 
-  // Feynman Technique - Analyze explanation clarity
-  const analyzeExplanation = () => {
+  // Helper function to parse markdown formatting from Claude response
+  const parseMarkdownFormatting = (text) => {
+    if (!text) return { header: '', body: '' };
+    
+    // Remove score lines (e.g., "Score: 7" or "Score: 7/10" or "• Score: 8")
+    let formatted = text.replace(/^.*Score:\s*\d+.*$/gmi, '');
+    
+    // Extract first h4 header (## Header) and remove it from body
+    const h4Match = formatted.match(/^##\s+(.+)$/m);
+    let header = '';
+    if (h4Match) {
+      header = h4Match[1].trim();
+      formatted = formatted.replace(/^##\s+(.+)$/m, ''); // Remove the first h4
+    }
+    
+    // Convert remaining markdown to HTML-like structure for better display
+    // Convert common subheadings to h4 (Strengths, Improvements, etc.)
+    // First handle bold format: **Strengths:** -> <h4>Strengths</h4>
+    formatted = formatted.replace(/\*\*(Strengths|Improvements|Suggested improved version):?\*\*/gi, '<h4>$1</h4>');
+    
+    // Then handle plain format: Strengths: -> <h4>Strengths</h4> (at start of line or after newline)
+    formatted = formatted.replace(/(^|\n)(Strengths|Improvements|Suggested improved version):/gim, '$1<h4>$2</h4>');
+    
+    // Remaining headers (## Header) -> styled headers
+    formatted = formatted.replace(/^##\s+(.+)$/gm, '<h4>$1</h4>');
+    formatted = formatted.replace(/^###\s+(.+)$/gm, '<h5>$1</h5>');
+    
+    // Wrap "Strengths" and "Improvements" sections in section dividers
+    // Process these first, before other wrapping
+    formatted = formatted.replace(
+      /(<h4>(Strengths|Improvements)[^<]*<\/h4>)([\s\S]*?)(?=<h[4-5]>|<strong>|<div class="claude|$)/gi,
+      '<div class="claude-section">$1$3</div>'
+    );
+    
+    // Wrap "Suggested improved version" section in a styled container
+    // Match h4 with "Suggested improved version" and everything until next h4/h5/strong/div or end
+    formatted = formatted.replace(
+      /(<h4>Suggested improved version[^<]*<\/h4>)([\s\S]*?)(?=<h[4-5]>|<strong>|<div class="claude|$)/gi,
+      '<div class="claude-suggestion-box">$1$2</div>'
+    );
+    
+    // Bold (**text**) -> <strong> (but skip if already converted to h3)
+    formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    
+    // Italic (*text*) -> <em>
+    formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    
+    // Bullet points (- item) -> styled list items
+    formatted = formatted.replace(/^-\s+(.+)$/gm, '<li>$1</li>');
+    
+    // Numbers (1. item) -> ordered list items
+    formatted = formatted.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+    
+    return { header, body: formatted.trim() };
+  };
+
+  // Feynman Technique - Analyze explanation clarity with backend
+  const analyzeExplanation = async () => {
     if (!userExplanation.trim()) return;
     
-    const feedback = [];
-    let score = 0;
+    setIsCheckingExplanation(true);
+    setAiFeedback([]);
+    setClaudeFeedback('');
     
-    // Simple analysis - in a real app, this would be AI-powered
-    const wordCount = userExplanation.split(' ').length;
-    const hasExample = userExplanation.toLowerCase().includes('example') || 
-                       userExplanation.toLowerCase().includes('like') ||
-                       userExplanation.toLowerCase().includes('such as');
-    const isSimple = !userExplanation.match(/\b(moreover|furthermore|subsequently|nevertheless)\b/i);
-    
-    if (wordCount < 20) {
-      feedback.push({ type: 'warning', message: 'Your explanation is quite brief. Try to add more detail.' });
-    } else {
-      feedback.push({ type: 'success', message: 'Good length for an explanation!' });
-      score += 25;
+    try {
+      const response = await api.post('/tutor/upsexplain/?type=explain', {
+        question: currentCard.question,
+        explanation: userExplanation
+      });
+      
+      // Claude returns text response with score and feedback
+      const claudeResponse = response.data;
+      const { header, body } = parseMarkdownFormatting(claudeResponse);
+      setClaudeFeedbackHeader(header);
+      setClaudeFeedback(body);
+      
+      // Extract score from response (look for patterns like "Score: 7/10" or "Score: 70%")
+      const scoreMatch = claudeResponse.match(/Score:\s*(\d+)(?:\/10)?/i) || 
+                        claudeResponse.match(/(\d+)%/);
+      let extractedScore = 50; // default
+      
+      if (scoreMatch) {
+        const scoreValue = parseInt(scoreMatch[1]);
+        // Convert to percentage if it's out of 10
+        extractedScore = scoreValue <= 10 ? scoreValue * 10 : scoreValue;
+      }
+      
+      setClarityScore(extractedScore);
+      
+      // Create simple feedback based on score (80% threshold for passing)
+      const feedback = [];
+      if (extractedScore >= 80) {
+        feedback.push({ type: 'success', message: 'Excellent explanation! You can proceed to the next step.' });
+      } else if (extractedScore >= 60) {
+        feedback.push({ type: 'suggestion', message: 'Good progress! Aim for 80% to proceed. Review feedback to improve.' });
+      } else {
+        feedback.push({ type: 'warning', message: 'Your explanation needs work. Aim for at least 80% to continue.' });
+      }
+      
+      setAiFeedback(feedback);
+      
+      if (showNotification) {
+        showNotification(
+          extractedScore >= 80 ? 
+            'Great work! You can continue to the next step.' : 
+            'Keep working on it - aim for 80% to proceed',
+          extractedScore >= 80 ? 'success' : null
+        );
+      }
+    } catch (error) {
+      console.error('Error analyzing explanation:', error);
+      const feedback = [{ 
+        type: 'warning', 
+        message: 'Failed to analyze explanation. Please try again.' 
+      }];
+      setAiFeedback(feedback);
+      
+      if (showNotification) {
+        showNotification('Error analyzing explanation. Please try again.');
+      }
+    } finally {
+      setIsCheckingExplanation(false);
     }
-    
-    if (hasExample) {
-      feedback.push({ type: 'success', message: 'Great! You included an example to illustrate your point.' });
-      score += 25;
-    } else {
-      feedback.push({ type: 'suggestion', message: 'Try adding a real-world example to make it clearer.' });
-    }
-    
-    if (isSimple) {
-      feedback.push({ type: 'success', message: 'Your language is clear and accessible!' });
-      score += 25;
-    } else {
-      feedback.push({ type: 'warning', message: 'Try using simpler language - explain as if to a 10-year-old.' });
-    }
-    
-    if (userExplanation.includes('?')) {
-      feedback.push({ type: 'success', message: 'You\'re asking questions - that\'s good metacognition!' });
-      score += 25;
-    }
-    
-    setAiFeedback(feedback);
-    setClarityScore(Math.min(score, 100));
   };
 
   // Problem-Based Learning - Generate scenario
@@ -186,72 +276,92 @@ const ProblemSolvingSession = ({
     setInsights(prev => [...prev, { text: insight, timestamp: new Date() }]);
   };
 
-  // Check solution steps logic
+  // Check solution steps and summary together with backend (connection type)
+  const checkConnectionWithBackend = async () => {
+    if (solutionSteps.length < 2 || !problemSolution.trim()) {
+      if (showNotification) {
+        showNotification('Please provide at least 2 steps and a summary before checking');
+      }
+      return;
+    }
+    
+    setIsCheckingConnection(true);
+    setStepsFeedback([]);
+    setSummaryFeedback([]);
+    
+    try {
+      const response = await api.post('/tutor/upsexplain/?type=connection', {
+        question: currentCard.question,
+        principles: solutionSteps,
+        solution_summary: problemSolution
+      });
+      
+      // Claude returns text response with pass/fail and feedback
+      const claudeResponse = response.data;
+      const { header, body } = parseMarkdownFormatting(claudeResponse);
+      
+      // Parse the response for pass/fail
+      const isPassed = claudeResponse.toLowerCase().includes('pass') && 
+                      !claudeResponse.toLowerCase().includes('fail');
+      
+      const feedback = [{
+        type: isPassed ? 'success' : 'suggestion',
+        message: isPassed ? 
+          'Your principles and solution are well connected!' : 
+          'Review the feedback to improve your connection between principles and solution.'
+      }];
+      
+      // Store the full Claude feedback (formatted)
+      setStepsFeedback(feedback);
+      setSummaryFeedback([{ 
+        type: 'info', 
+        header: header,
+        message: body 
+      }]);
+      
+      setStepsChecked(true);
+      setSummaryChecked(true);
+      
+      if (showNotification) {
+        showNotification(
+          isPassed ? 
+            'Great connection between principles and solution!' : 
+            'Review feedback to improve your answer',
+          isPassed ? 'success' : null
+        );
+      }
+    } catch (error) {
+      console.error('Error checking connection:', error);
+      const feedback = [{ 
+        type: 'warning', 
+        message: 'Failed to analyze connection. Please try again.' 
+      }];
+      setStepsFeedback(feedback);
+      
+      if (showNotification) {
+        showNotification('Error analyzing connection. Please try again.');
+      }
+    } finally {
+      setIsCheckingConnection(false);
+    }
+  };
+
+  // Legacy check functions (now just mark as checked for UI flow)
   const checkSolutionSteps = () => {
     if (solutionSteps.length < 2) return;
-    
-    const feedback = [];
-    
-    // Stock data analysis - in real app, backend would process this
-    if (solutionSteps.length >= 3) {
-      feedback.push({ type: 'success', message: 'Good detail! You\'ve broken down the problem into clear steps.' });
-    } else {
-      feedback.push({ type: 'suggestion', message: 'Consider adding more intermediate steps for clarity.' });
-    }
-    
-    // Check if steps use relevant keywords from the concept
-    const hasRelevantTerms = solutionSteps.some(step => 
-      step.toLowerCase().includes(currentCard.question.split(' ')[0].toLowerCase())
-    );
-    
-    if (hasRelevantTerms) {
-      feedback.push({ type: 'success', message: 'Your steps reference the concept - good connection!' });
-    } else {
-      feedback.push({ type: 'warning', message: 'Make sure your steps connect back to the core concept.' });
-    }
-    
-    setStepsFeedback(feedback);
     setStepsChecked(true);
   };
 
-  // Check final summary logic
   const checkFinalSummary = () => {
     if (!problemSolution.trim()) return;
-    
-    const feedback = [];
-    const wordCount = problemSolution.split(' ').length;
-    
-    // Stock data analysis - in real app, backend would process this
-    if (wordCount >= 30) {
-      feedback.push({ type: 'success', message: 'Comprehensive summary with good detail!' });
-    } else {
-      feedback.push({ type: 'suggestion', message: 'Try to provide more detail in your summary.' });
-    }
-    
-    // Check if summary mentions the steps
-    const referencesSteps = problemSolution.toLowerCase().includes('step') || 
-                           problemSolution.toLowerCase().includes('first') ||
-                           problemSolution.toLowerCase().includes('then');
-    
-    if (referencesSteps) {
-      feedback.push({ type: 'success', message: 'Great! Your summary ties together your reasoning steps.' });
-    } else {
-      feedback.push({ type: 'suggestion', message: 'Consider referencing your step-by-step reasoning.' });
-    }
-    
-    // Check if it applies to real-world
-    const hasApplication = problemSolution.toLowerCase().includes('apply') ||
-                          problemSolution.toLowerCase().includes('use') ||
-                          problemSolution.toLowerCase().includes('real');
-    
-    if (hasApplication) {
-      feedback.push({ type: 'success', message: 'Excellent real-world application!' });
-    } else {
-      feedback.push({ type: 'warning', message: 'Make sure to explain how this applies in practice.' });
-    }
-    
-    setSummaryFeedback(feedback);
     setSummaryChecked(true);
+  };
+
+  const resetClarityFeedback = () => {
+    setAiFeedback([]);
+    setClaudeFeedback('');
+    setClaudeFeedbackHeader('');
+    setClarityScore(0);
   };
 
   // Feynman Technique Step
@@ -264,68 +374,86 @@ const ProblemSolvingSession = ({
         </div>
 
         <div className="feynman-content">
-          <div className="question-card">
-            <div className="question-icon">📚</div>
-            <p className="question-text">{currentCard.question}</p>
-          </div>
+          {aiFeedback.length === 0 && (
+            <>
+              <div className="question-card">
+                <div className="question-icon">📚</div>
+                <p className="question-text">{currentCard.question}</p>
+              </div>
 
-          <div className="explain-box">
-            <div className="explain-header">
-              <h3>Explain this concept as if teaching it to a 10-year-old</h3>
-              <p>Use simple language, examples, and avoid jargon</p>
-            </div>
-            <textarea
-              value={userExplanation}
-              onChange={(e) => setUserExplanation(e.target.value)}
-              placeholder="Type your explanation here... Try to make it as simple and clear as possible."
-              rows="8"
-            />
-          </div>
+              <div className="explain-box">
+                <div className="explain-header">
+                  <div className="explain-header-text">
+                    <h3>Explain this concept as if teaching it to a 10-year-old</h3>
+                    <p>Use simple language, examples, and avoid jargon</p>
+                  </div>
+                  <button
+                    className="analyze-btn action-btn explain-analyze-btn"
+                    onClick={analyzeExplanation}
+                    disabled={!userExplanation.trim() || isCheckingExplanation}
+                  >
+                    {isCheckingExplanation ? <FiLoader className="spinner-icon" /> : <FiCheck />}
+                    {isCheckingExplanation ? 'Analyzing...' : 'Check Clarity'}
+                  </button>
+                </div>
+                <textarea
+                  value={userExplanation}
+                  onChange={(e) => setUserExplanation(e.target.value)}
+                  placeholder="Type your explanation here... Try to make it as simple and clear as possible."
+                  rows="8"
+                />
+              </div>
+            </>
+          )}
 
           {aiFeedback.length > 0 && (
             <div className="clarity-feedback">
-              <div className="clarity-score-section">
-                <h4>Clarity Score</h4>
-                <div className="clarity-meter">
-                  <div className="clarity-fill" style={{ width: `${clarityScore}%` }}></div>
-                </div>
-                <span className="clarity-percentage">{clarityScore}%</span>
-              </div>
-
-              <div className="feedback-items">
-                {aiFeedback.map((item, index) => (
-                  <div key={index} className={`feedback-item ${item.type}`}>
-                    {item.type === 'success' && '✓'}
-                    {item.type === 'warning' && '⚠️'}
-                    {item.type === 'suggestion' && '💡'}
-                    <span>{item.message}</span>
+              {claudeFeedback && (
+                <div className="claude-detailed-feedback">
+                  <div className="claude-feedback-header">
+                    <h2 className="claude-feedback-title">NeuroNote AI Detailed Feedback:</h2>
+                    <div 
+                      className={`claude-feedback-score ${
+                        clarityScore >= 80 ? 'score-excellent' : 
+                        clarityScore >= 60 ? 'score-good' : 
+                        'score-poor'
+                      }`}
+                    >
+                      Score: {clarityScore}%
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <div 
+                    className="claude-feedback-text" 
+                    dangerouslySetInnerHTML={{ __html: claudeFeedback }}
+                  />
+                </div>
+              )}
             </div>
           )}
 
-          <div className="feynman-actions">
-            <button 
-              className="analyze-btn action-btn"
-              onClick={analyzeExplanation}
-              disabled={!userExplanation.trim()}
-            >
-              <FiCheck />
-              Check Clarity
-            </button>
-            <button 
-              className="continue-btn action-btn"
-              onClick={handleNextStep}
-              disabled={clarityScore < 50}
-              title={clarityScore < 50 ? 'Improve your clarity score to continue' : 'Continue to next step'}
-            >
-              Continue to Problem Solving
-            </button>
-          </div>
+          {aiFeedback.length > 0 && (
+            <div className="feynman-actions">
+              {clarityScore >= 80 ? (
+                <button 
+                  className="continue-btn action-btn"
+                  onClick={handleNextStep}
+                  title="Continue to next step"
+                >
+                  Continue to Problem Solving
+                </button>
+              ) : (
+                <button 
+                  className="retry-btn action-btn"
+                  onClick={resetClarityFeedback}
+                >
+                  Retry Explanation
+                </button>
+              )}
+            </div>
+          )}
 
-          {clarityScore < 50 && aiFeedback.length > 0 && (
-            <div className="action-hint">Achieve 50% clarity score to continue</div>
+          {clarityScore < 80 && aiFeedback.length > 0 && (
+            <div className="action-hint">Refine your explanation and try again</div>
           )}
         </div>
       </div>
@@ -354,17 +482,8 @@ const ProblemSolvingSession = ({
             <div className="solution-area-header">
               <div>
                 <h3>Your Solution Approach</h3>
-                <p className="solution-hint">Break down your solution into steps. What principles apply?</p>
+                <p className="solution-hint">Break down your solution into steps (principles). What principles apply?</p>
               </div>
-              {solutionSteps.length >= 2 && !stepsChecked && (
-                <button 
-                  className="check-steps-btn"
-                  onClick={checkSolutionSteps}
-                >
-                  <FiCheck />
-                  Check Steps
-                </button>
-              )}
             </div>
 
             <div className="solution-steps-list">
@@ -376,18 +495,6 @@ const ProblemSolvingSession = ({
               ))}
             </div>
 
-            {stepsChecked && stepsFeedback.length > 0 && (
-              <div className="steps-feedback">
-                {stepsFeedback.map((item, index) => (
-                  <div key={index} className={`feedback-item ${item.type}`}>
-                    {item.type === 'success' && '✓'}
-                    {item.type === 'warning' && '⚠️'}
-                    {item.type === 'suggestion' && '💡'}
-                    <span>{item.message}</span>
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div className="add-step-section">
               <div className="input-group">
@@ -415,39 +522,92 @@ const ProblemSolvingSession = ({
           <div className="final-solution-area">
             <div className="solution-summary-header">
               <label>Final Solution Summary:</label>
-              {problemSolution.trim() && !summaryChecked && (
-                <button 
-                  className="check-summary-btn"
-                  onClick={checkFinalSummary}
-                >
-                  <FiCheck />
-                  Check Summary
-                </button>
-              )}
             </div>
             <textarea
               value={problemSolution}
               onChange={(e) => {
                 setProblemSolution(e.target.value);
-                setSummaryChecked(false); // Reset check when editing
+                setStepsChecked(false); // Reset check when editing
+                setSummaryChecked(false);
               }}
               placeholder="Summarize your complete solution and how it applies the concept..."
               rows="5"
             />
-
-            {summaryChecked && summaryFeedback.length > 0 && (
-              <div className="summary-feedback">
-                {summaryFeedback.map((item, index) => (
-                  <div key={index} className={`feedback-item ${item.type}`}>
-                    {item.type === 'success' && '✓'}
-                    {item.type === 'warning' && '⚠️'}
-                    {item.type === 'suggestion' && '💡'}
-                    <span>{item.message}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+
+          {/* Unified Check Button */}
+          <div className="connection-check-section">
+            <button 
+              className={`check-connection-btn action-btn ${(solutionSteps.length < 2 || !problemSolution.trim() || isCheckingConnection) ? 'disabled' : ''}`}
+              onClick={() => {
+                const isDisabled = solutionSteps.length < 2 || !problemSolution.trim() || isCheckingConnection;
+                
+                if (isDisabled) {
+                  let reason = '';
+                  if (isCheckingConnection) {
+                    reason = 'Please wait for the current analysis to complete.';
+                  } else if (solutionSteps.length < 2) {
+                    reason = 'Please add at least 2 principle steps before checking.';
+                  } else if (!problemSolution.trim()) {
+                    reason = 'Please provide a solution summary before checking.';
+                  }
+                  
+                  if (showNotification && reason) {
+                    showNotification(reason);
+                  }
+                  return;
+                }
+                
+                checkConnectionWithBackend();
+              }}
+            >
+              {isCheckingConnection ? <FiLoader className="spinner-icon" /> : <FiCheck />}
+              {isCheckingConnection ? 'Analyzing Connection...' : 'Check with NeuroNote AI'}
+            </button>
+          </div>
+
+          {isCheckingConnection && (
+            <div className="checking-feedback">
+              <FiLoader className="spinner-icon" />
+              <span>NeuroNote AI is analyzing your principles and solution...</span>
+            </div>
+          )}
+
+          {(stepsChecked || summaryChecked) && (stepsFeedback.length > 0 || summaryFeedback.length > 0) && (
+            <div className="connection-feedback">
+              {stepsFeedback.length > 0 && (
+                <div className="steps-feedback">
+                  {stepsFeedback.map((item, index) => (
+                    <div key={index} className={`feedback-item ${item.type}`}>
+                      {item.type === 'success' && '✓'}
+                      {item.type === 'warning' && '⚠️'}
+                      {item.type === 'suggestion' && '💡'}
+                      {item.type === 'info' && 'ℹ️'}
+                      <span>{item.message}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {summaryFeedback.length > 0 && (
+                <div className="claude-detailed-feedback">
+                  {summaryFeedback.map((item, index) => (
+                    <div key={index}>
+                      {item.header && (
+                        <div className="claude-feedback-header">
+                          <h4 className="claude-feedback-title">{item.header}</h4>
+                        </div>
+                      )}
+                      <div 
+                        className="claude-feedback-text"
+                        dangerouslySetInnerHTML={{ __html: item.message }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="pbl-actions">
             <button 
@@ -474,14 +634,14 @@ const ProblemSolvingSession = ({
             </button>
           </div>
 
-          {!stepsChecked && solutionSteps.length >= 2 && (
-            <div className="action-hint">Click "Check Steps" to validate your reasoning</div>
+          {!stepsChecked && !summaryChecked && solutionSteps.length >= 2 && problemSolution.trim() && (
+            <div className="action-hint">Click "Check with NeuroNote AI" to validate your solution</div>
           )}
-          {stepsChecked && !summaryChecked && problemSolution.trim() && (
-            <div className="action-hint">Click "Check Summary" to validate before continuing</div>
+          {(stepsChecked && summaryChecked) && (
+            <div className="action-hint">Review the feedback and continue to reflection when ready</div>
           )}
           {(solutionSteps.length < 2 || !problemSolution.trim()) && (
-            <div className="action-hint">Add at least 2 reasoning steps and a final summary</div>
+            <div className="action-hint">Add at least 2 principle steps and a final summary before checking</div>
           )}
         </div>
       </div>
@@ -546,9 +706,22 @@ const ProblemSolvingSession = ({
 
           <div className="socratic-actions">
             <button 
-              className="complete-btn action-btn"
-              onClick={handleNextStep}
-              disabled={Object.keys(socraticAnswers).length < 2}
+              className={`complete-btn action-btn ${Object.keys(socraticAnswers).length < 2 ? 'disabled' : ''}`}
+              onClick={() => {
+                const isDisabled = Object.keys(socraticAnswers).length < 2;
+                
+                if (isDisabled) {
+                  const answeredCount = Object.keys(socraticAnswers).length;
+                  const reason = `Please answer at least 2 reflective questions to complete. You have answered ${answeredCount} question${answeredCount !== 1 ? 's' : ''}.`;
+                  
+                  if (showNotification) {
+                    showNotification(reason);
+                  }
+                  return;
+                }
+                
+                handleNextStep();
+              }}
               title={Object.keys(socraticAnswers).length < 2 ? 'Answer at least 2 questions' : 'Complete understanding session'}
             >
               Complete Understanding Session

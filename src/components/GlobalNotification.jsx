@@ -8,8 +8,8 @@ const GlobalNotification = () => {
     if (!notification.show) return null;
 
     // Determine if this is a "Coming Soon" notification
-    const isComingSoon = notification.message === 'Coming Soon!';
-    const backgroundColor = isComingSoon ? '#7c83fd' : (notification.type === 'success' ? '#10b981' : '#f44336');
+    const isComingSoon = notification.message === 'Coming Soon!' || notification.message === 'Coming Soon';
+    const backgroundColor = notification.type === 'success' ? '#10b981' : '#7c83fd';
 
     return (
         <div 

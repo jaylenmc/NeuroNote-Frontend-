@@ -7,6 +7,7 @@ import ReviewWidget from '../components/ReviewWidget';
 import api from '../api/axios';
 import './ReviewPage.css';
 import { useAuth } from '../auth/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 
 const motivationalQuotes = [
   "Let's sharpen your memory.",
@@ -43,13 +44,15 @@ const studyMethods = [
     title: 'Pattern Recognition + Applied Learning',
     description: 'Identify patterns and apply knowledge to real-world scenarios',
     icon: '🔗',
-    color: '#ff6b6b'
+    color: '#ff6b6b',
+    locked: true
   }
 ];
 
 const ReviewPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showNotification } = useNotification();
   // Deck dropdown state
   const [decks, setDecks] = useState([]);
   const [selectedDeckId, setSelectedDeckId] = useState(null);
@@ -110,6 +113,10 @@ const ReviewPage = () => {
 
   // Study Method handlers
   const handleStudyMethodSelect = (method) => {
+    if (method.locked) {
+      showNotification('Coming Soon');
+      return;
+    }
     setSelectedStudyMethod(method);
     setShowStudyMethodDropdown(false);
     // Here you could add logic to apply the study method
@@ -146,14 +153,17 @@ const ReviewPage = () => {
                 {studyMethods.map((method) => (
                   <div
                     key={method.id}
-                    className={`study-method-option ${selectedStudyMethod?.id === method.id ? 'selected' : ''}`}
+                    className={`study-method-option ${selectedStudyMethod?.id === method.id ? 'selected' : ''} ${method.locked ? 'locked' : ''}`}
                     onClick={() => handleStudyMethodSelect(method)}
                   >
                     <div className="study-method-icon" style={{ color: method.color }}>
                       {method.icon}
                     </div>
                     <div className="study-method-content">
-                      <div className="study-method-title">{method.title}</div>
+                      <div className="study-method-title">
+                        {method.title}
+                        {method.locked && <span className="locked-badge">🔒</span>}
+                      </div>
                       <div className="study-method-description">{method.description}</div>
                     </div>
                   </div>
