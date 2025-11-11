@@ -464,25 +464,31 @@ const ProblemSolvingSession = ({
   if (currentStep === 'problem-based') {
     return (
       <div className="problem-solving-pbl">
-        <div className="session-title-center">
-          <h2 className="session-main-title">🧩 Understanding + Problem Solving</h2>
-          <div className="session-subtitle">Apply your knowledge to solve real-world scenarios</div>
+        <div className="scenario-card">
+          <div className="scenario-content">
+            <h3>🌍 Real-World Scenario</h3>
+            <p>{generateProblemScenario()}</p>
+          </div>
         </div>
 
         <div className="pbl-content">
-          <div className="scenario-card">
-            <div className="scenario-icon">🌍</div>
-            <div className="scenario-content">
-              <h3>Real-World Scenario</h3>
-              <p>{generateProblemScenario()}</p>
-            </div>
-          </div>
-
           <div className="solution-area">
             <div className="solution-area-header">
               <div>
                 <h3>Your Solution Approach</h3>
                 <p className="solution-hint">Break down your solution into steps (principles). What principles apply?</p>
+              </div>
+              <div className="solution-area-help" role="tooltip">
+                <button
+                  type="button"
+                  className="solution-help-btn"
+                  aria-label="Solution guidance"
+                >
+                  <FiHelpCircle />
+                </button>
+                <div className="solution-help-tooltip">
+                  Give real world connections about this topic
+                </div>
               </div>
             </div>
 

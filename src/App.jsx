@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import Home from './Home';  // Import the Home page component
 import About from './About'; // Import the About page component
+import Pricing from './pages/Pricing';
+import FeaturesPage from './pages/Features';
 import './App.css'; // Import the CSS file
 import Signin from './auth/signin';
 import Authentication from './api/OAuthSuccess';
@@ -110,8 +112,8 @@ function AppContent() {
           <Route path='/auth/callback/' element={<Authentication />} />
           <Route path="/" element={<Home />} /> {/* Home page route */}
           <Route path="/about" element={<About />} /> {/* About page route */}
-          <Route path="/features" element={<div>Features Page</div>} />
-          <Route path="/pricing" element={<div>Pricing Page</div>} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/signup" element={<div>Sign Up Page</div>} />
           <Route 
             path="/dashboard/*" 

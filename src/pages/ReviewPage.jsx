@@ -221,7 +221,10 @@ const ReviewPage = () => {
       <div className="review-session-title-block enhanced-title-block">
         <div className="review-greeting">{userName} <span className="wave">👋</span></div>
         <h2 className="review-session-title gradient-title">
-          <FaBrain className="brain-icon" /> Review Session
+          <span className="review-session-title-inner">
+            <FaBrain className="brain-icon" />
+            <span>Review Session</span>
+          </span>
         </h2>
         <p className="review-session-subtitle dynamic-quote">{motivationalQuotes[quoteIdx]}</p>
       </div>

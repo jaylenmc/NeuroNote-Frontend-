@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Star, BookOpen, Users, Calendar, Filter, ChevronDown, Lock, Sparkles, Zap, Target, Medal, ArrowLeft } from 'lucide-react';
+import { Trophy, Star, BookOpen, Users, Calendar, Filter, ChevronDown, Target, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './Achievements.css';
 import { makeAuthenticatedRequest } from '../utils/api';
@@ -174,6 +174,25 @@ const Achievements = () => {
   const currentLevelXP = totalXP % 100; // Assuming 100 XP per level
   const xpProgress = (currentLevelXP / 100) * 283; // 283 is circumference for radius 45
 
+  const getAchievementAccent = (badgeClass) => {
+    switch (badgeClass) {
+      case 'streak':
+        return { accent: '#f87171', soft: 'rgba(248, 113, 113, 0.16)' };
+      case 'flashcards':
+        return { accent: '#a78bfa', soft: 'rgba(167, 139, 250, 0.18)' };
+      case 'quiz':
+        return { accent: '#fbbf24', soft: 'rgba(251, 191, 36, 0.16)' };
+      case 'study-groups':
+        return { accent: '#60a5fa', soft: 'rgba(96, 165, 250, 0.18)' };
+      case 'general':
+        return { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.14)' };
+      default:
+        return { accent: '#a855f7', soft: 'rgba(168, 85, 247, 0.18)' };
+    }
+  };
+
+  const unlockedPercent = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
+
   return (
     <div className="achievements-page">
       <div className="achievements-content">
@@ -186,102 +205,91 @@ const Achievements = () => {
           Back to Dashboard
         </button>
 
-        {/* Header Section */}
-        <div className="achievements-header">
-        <div className="header-gradient-bg" />
-        
-        <div className="header-title-section">
-          <div className="header-icon">🏆</div>
-          <div className="header-title-area">
-            <h1 className="header-title">Your Achievements</h1>
-            <div className="header-subtitle-row">
-              <div className="header-subtitle">Memory Architect</div>
-              <div className="level-badge">
-                <span className="level-badge-icon">⭐</span>
-                Level 3
+        {/* Summary Section */}
+        <div className="achievements-summary-grid">
+          <div className="summary-panel">
+            <div className="summary-heading">
+              <span className="summary-icon">🏆</span>
+              <div>
+                <h1 className="summary-title">Your Achievements</h1>
+                <p className="summary-subtitle">Track your mastery journey across study sessions.</p>
+              </div>
+            </div>
+
+            <div className="summary-stat-grid">
+              <div className="summary-stat">
+                <span className="summary-stat-label">Achievements Unlocked</span>
+                <span className="summary-stat-value">{unlockedCount}</span>
+                <span className="summary-stat-meta">
+                  {totalCount > 0 ? `${unlockedPercent}% complete (${unlockedCount}/${totalCount})` : 'Unlock your first badge to begin.'}
+                </span>
+              </div>
+
+              <div className="summary-stat">
+                <span className="summary-stat-label">Current Level</span>
+                <span className="summary-stat-value">Level 3</span>
+                <span className="summary-stat-meta">Memory Architect 🧠</span>
+              </div>
+
+              <div className="summary-stat">
+                <span className="summary-stat-label">Latest Unlock</span>
+                <span className="summary-stat-value">{filteredAchievements[0]?.name || '––'}</span>
+                <span className="summary-stat-meta">{filteredAchievements[0]?.family || 'Keep streaking to unlock more.'}</span>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="header-progress-section">
-          <div className="progress-section">
-            <div className="achievements-progress-ring">
+          <div className="level-panel">
+            <div className="level-ring">
               <svg viewBox="0 0 100 100">
-                <circle className="achievements-ring-bg" cx="50" cy="50" r="45" />
-                <circle 
-                  className="achievements-ring-progress" 
-                  cx="50" 
-                  cy="50" 
+                <circle className="level-ring-bg" cx="50" cy="50" r="45" />
+                <circle
+                  className="level-ring-progress"
+                  cx="50"
+                  cy="50"
                   r="45"
                   style={{
-                    strokeDasharray: `${totalCount ? ((unlockedCount / totalCount) * 283) : 0} 283`
+                    strokeDasharray: `${xpProgress} 283`
                   }}
                 />
               </svg>
-              <div className="achievements-ring-center">
-                <span className="achievements-progress-value">{unlockedCount}</span>
-                <span className="achievements-progress-label">/{totalCount}</span>
+              <div className="level-ring-center">
+                <span className="summary-stat-value" style={{ fontSize: '1.35rem' }}>{currentLevelXP}</span>
+                <span className="summary-stat-meta">/ 100 XP</span>
               </div>
             </div>
-            <div className="progress-label-row">
-              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                <span className="progress-label-icon">🎯</span>
-                <div className="progress-label">
-                  Achievements Unlocked
-                </div>
-              </div>
-              <div className="progress-subtitle">
-                {totalCount > 0 ? `${Math.round((unlockedCount / totalCount) * 100)}% Complete` : 'No achievements yet'}
-              </div>
+
+            <div className="level-details">
+              <span className="level-chip">Level 3</span>
+              <h2 className="level-title">Memory Architect</h2>
+              <p className="level-subtitle">
+                {totalCount > 0 ? `${100 - currentLevelXP} XP until your next mastery badge.` : 'Start unlocking achievements to climb the ranks.'}
+              </p>
             </div>
           </div>
+        </div>
 
-          <div className="header-stats">
-              <div className="dashboard-xp-ring">
-                <svg viewBox="0 0 100 100">
-                  <circle className="dashboard-xp-ring-bg" cx="50" cy="50" r="45" />
-                  <circle 
-                    className="dashboard-xp-ring-progress" 
-                    cx="50" 
-                    cy="50" 
-                    r="45"
-                    style={{
-                      strokeDasharray: `${xpProgress} 283`
-                    }}
-                  />
-                </svg>
-                <div className="dashboard-xp-ring-center">
-                  <span className="dashboard-xp-level">Level 3</span>
-                  <span className="dashboard-xp-points">{totalXP} XP</span>
-                </div>
-              </div>
+        {/* Filter & Sort Bar */}
+        <div className="filters-bar">
+          <div className="filter-pill-group">
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`filter-pill ${selectedCategory === category ? 'active' : ''}`}
+              >
+                {getCategoryIcon(category)}
+                {category}
+              </button>
+            ))}
           </div>
-        </div>
-      </div>
 
-      {/* Filter & Sort Bar */}
-      <div className="filter-sort-bar">
-        <div className="category-filters">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
-            >
-              {getCategoryIcon(category)}
-              {category}
-            </button>
-          ))}
-        </div>
-        <div className="sort-menu">
-          <button className="sort-btn">
+          <button className="sort-pill">
             <Filter size={16} />
             Sort by: {selectedSort}
             <ChevronDown size={16} />
           </button>
         </div>
-      </div>
 
       {/* Achievement Grid */}
       <div className="achievement-grid">
@@ -291,29 +299,36 @@ const Achievements = () => {
           const { icon, badgeClass } = getAchievementIcon(achievement);
           const tierClass = getTierClass(achievement.tier);
           const isLevelUp = levelUpAchievement === achievement.name;
-          
+          const categoryClass = badgeClass || 'general';
+
+          const styles = getAchievementAccent(categoryClass);
+          const cardStyle = {
+            '--achievement-accent': styles.accent,
+            '--achievement-accent-soft': styles.soft
+          };
+
           return (
             <div
               key={achievement.name}
               className={`achievement-card unlocked ${isLevelUp ? 'level-up' : ''}`}
+              style={cardStyle}
               onClick={() => triggerLevelUpAnimation(achievement)}
             >
-              <div className="card-bg-glow" />
+              <div className="achievement-card-header">
+                <div className={`achievement-badge ${categoryClass} ${tierClass}`}>
+                  {icon}
+                </div>
+                <div className="achievement-card-body">
+                  <h3 className="achievement-card-title">{achievement.name}</h3>
+                  <p className="achievement-card-description">{achievement.description}</p>
+                </div>
+              </div>
 
-              <div className="card-content">
-                  <div className={`achievement-icon-badge ${badgeClass} ${tierClass}`}>
-                    {icon}
-                  </div>
-                  
-                  <div className="card-text-content">
-                    <h3 className="card-title">{achievement.name}</h3>
-                    <p className="card-description">{achievement.description}</p>
-                  </div>
-
-                  <div className="achievement-xp-pill">
-                    <Sparkles className="achievement-xp-icon" size={12} />
-                    10 XP
-                  </div>
+              <div className="achievement-card-footer">
+                <span className="achievement-xp-chip">+{achievement.xp_value || 10} XP</span>
+                <span className={`achievement-category-chip ${categoryClass}`}>
+                  {achievement.family || 'General'}
+                </span>
               </div>
             </div>
           );

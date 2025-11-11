@@ -100,6 +100,12 @@
   border: 1px solid transparent;
 }
 
+.tab > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .tab:hover {
   background: rgba(55, 55, 55, 0.8);
   transform: translateY(-1px);
@@ -114,7 +120,10 @@
 }
 
 .tab-icon {
-  font-size: 1rem;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 /* Category-specific tab colors */
@@ -787,6 +796,21 @@
   color: white;
   margin: 0 0 0.5rem 0;
   letter-spacing: 0.01em;
+  display: flex;
+  justify-content: center;
+}
+
+.review-session-title-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brain-icon {
+  font-size: 2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
 }
 
 .review-session-subtitle {
