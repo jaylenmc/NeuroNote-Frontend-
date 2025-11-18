@@ -152,71 +152,25 @@ function Home() {
         </div>
       </section>
 
-      {/* Workflow Highlights */}
-      <section className="section workflow-section">
-        <div className="workflow-header">
-          <h2 className="workflow-title">Build mastery faster while NeuroNote handles the busywork</h2>
-          <p className="workflow-subtitle">
-            Every study sprint starts with your pace, blends the right review moments, and ends with clear next steps.
-          </p>
-        </div>
-        <div className="workflow-steps">
-          <article className="workflow-card workflow-card-one">
-            <div className="workflow-card-media">
-              <img src="public/dfbl.png" alt="Plan your focus blocks" />
-            </div>
-            <h3>We map your focus blocks</h3>
-            <p>
-              Set your targets once and let NeuroNote craft adaptive focus sprints that keep you moving forward without
-              losing context.
-            </p>
-          </article>
-          <article className="workflow-card workflow-card-two">
-            <div className="workflow-card-media">
-              <img src="public/flashcards.png" alt="Generate flashcards automatically" />
-            </div>
-            <h3>We surface the right recall</h3>
-            <p>
-              Automatic flashcards and spaced prompts bubble up what matters next so you always know the smartest review
-              move to make.
-            </p>
-          </article>
-          <article className="workflow-card workflow-card-three">
-            <div className="workflow-card-media">
-              <img src="public/ups.png" alt="Share progress updates" />
-            </div>
-            <h3>We keep momentum visible</h3>
-            <p>
-              Momentum reports, streak nudges, and gentle check-ins make it effortless to stay accountable through every
-              exam season.
-            </p>
-          </article>
-        </div>
-        <Link to="/signup" className="workflow-cta">
-          Plan my study sprint
-          <span className="material-symbols-outlined workflow-cta-icon">arrow_outward</span>
-        </Link>
-      </section>
-
       {/* Hero Supporting Story */}
       <section className="section brand-story" style={{ background: '#FFFFFF' }}>
         <div className="brand-story-media">
           <div className="brand-story-media-shell">
-            <img src="public/studyroom.jpg" alt="Students using NeuroNote" className="brand-story-image" />
+            <img src="/study_dashboard.png" alt="NeuroNote Study Dashboard" className="brand-story-image" />
           </div>
         </div>
         <div className="brand-story-copy">
           <div className="stacked-copy-block">
-            <h2 className="stacked-heading">Capture Ideas Instantly</h2>
-            <p className="stacked-subheading">Open a clean canvas that keeps context, citations, and AI insights aligned.</p>
+            <h2 className="stacked-heading">Your Personal Study Command Center</h2>
+            <p className="stacked-subheading">Where every tool, note, and resource comes together to keep your learning organized and effortless.</p>
           </div>
           <div className="stacked-copy-block">
-            <h2 className="stacked-heading">Turn Notes Into Memory</h2>
-            <p className="stacked-subheading">Generate spaced-repetition flashcards and smart quizzes without leaving your flow.</p>
+            <h2 className="stacked-heading">Learn Smarter, Not Harder</h2>
+            <p className="stacked-subheading">Switch between quizzes, decks, review, and AI help — all from one streamlined workspace built for focus.</p>
           </div>
           <div className="stacked-copy-block">
-            <h2 className="stacked-heading">Stay Ahead With Signals</h2>
-            <p className="stacked-subheading">Daily recall nudges keep you sharp so nothing slips through before exams.</p>
+            <h2 className="stacked-heading">Stay Ready With What Matters Most</h2>
+            <p className="stacked-subheading">Pinned notes and resources keep your most important study materials just one click away.</p>
           </div>
         </div>
       </section>

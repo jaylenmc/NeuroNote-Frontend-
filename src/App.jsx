@@ -83,7 +83,6 @@ function Navbar() {
         <Link to="/">Home</Link>
         <Link to="/about">About us</Link>
         <Link to="/pricing">Pricing</Link>
-        <Link to="/features">Features</Link>
       </div>
       <div className="nn-nav-cta">
         {user ? (
