@@ -159,23 +159,33 @@
   gap: 4px;
 }
 
-  .folder-stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--nightowl-text-main);
-    line-height: 1;
-    font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
-  }
+.folder-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--nightowl-text-main);
+  line-height: 1;
+  font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
-  .folder-stat-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--nightowl-text-steel);
-    text-transform: none;
-    letter-spacing: 0;
-    opacity: 0.8;
-    font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
-  }
+.folder-stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nightowl-text-steel);
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.8;
+  font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+}
+
+.folder-stat-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
 
 /* Stat item accent underlines */
 .folder-stat-item:nth-child(1)::after {

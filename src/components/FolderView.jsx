@@ -367,21 +367,6 @@ const FolderView = ({
                                 )}
                             </div>
                         </div>
-                        <button 
-                            className="reminders-btn"
-                            onClick={() => {
-                                document.body.classList.add('reminders-modal-open');
-                                setShowReminders(true);
-                            }}
-                            title="View reminders"
-                        >
-                            <FiBell size={16} />
-                            {folderReminders.filter(r => !r.completed).length > 0 && (
-                                <span className="reminder-badge">
-                                    {folderReminders.filter(r => !r.completed).length}
-                                </span>
-                            )}
-                        </button>
                     <div className="new-item-container">
                         <button 
                             className="new-item-btn"
@@ -434,15 +419,22 @@ const FolderView = ({
                         <div className="folder-stat-item">
                             <div className="folder-stat-icon">📝</div>
                             <div className="folder-stat-content">
-                                <div className="folder-stat-value">1,247</div>
-                                <div className="folder-stat-label">Words Written</div>
+                                <div className="folder-stat-value">482</div>
+                                <div className="folder-stat-label">Avg. Words Per Note</div>
                             </div>
                         </div>
                         <div className="folder-stat-item">
-                            <div className="folder-stat-icon">👥</div>
+                            <div className="folder-stat-icon">📌</div>
                             <div className="folder-stat-content">
-                                <div className="folder-stat-value">3</div>
-                                <div className="folder-stat-label">Collaborators</div>
+                                <div className="folder-stat-value">
+                                    <a
+                                        href={`/notes/${selectedFolder.id ?? 'demo-folder'}/note/chemistry-midterm-review`}
+                                        className="folder-stat-link"
+                                    >
+                                        Chemistry Midterm Review
+                                    </a>
+                                </div>
+                                <div className="folder-stat-label">Most Active Note</div>
                             </div>
                         </div>
                     </div>

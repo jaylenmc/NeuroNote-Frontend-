@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext'; // or wherever you defined its
 import generateState from './utils/auth';
@@ -6,6 +6,29 @@ import generateState from './utils/auth';
 function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const studyMethods = [
+    {
+      title: 'Recall + Retention',
+      description:
+        'Short recall bursts and spaced review prompts keep memory curves high without rereading entire chapters.'
+    },
+    {
+      title: 'Doing + Feedback Loop',
+      description:
+        'Practice cards, quizzes, and tutor responses close knowledge gaps immediately so every attempt improves mastery.'
+    },
+    {
+      title: 'Understanding + Problem Solving',
+      description:
+        'Guided concept breakdowns and worked examples help you connect patterns so tricky problems feel intuitive.'
+    },
+    {
+      title: 'Pattern Recognition + Applied Learning',
+      description:
+        'Identify recurring structures across subjects and apply proven strategies to new contexts, building transferable expertise.'
+    }
+  ];
+  const [activeMethod, setActiveMethod] = useState(studyMethods[0].title);
 
   // Redirect to dashboard if user is already logged in
   useEffect(() => {
@@ -27,31 +50,104 @@ function Home() {
   }, []);
 
   return (
-    <div className="home-page" style={{ background: '#11121a' }}>
+    <div className="home-page" style={{ background: '#F7F8FA' }}>
       {/* Hero Section */}
-      <section className="section hero-section" style={{ minHeight: '80vh', background: '#18191C' }}>
+      <section className="section hero-section">
         <div className="hero-wrapper">
+          <div className="hero-image">
+            <img src="/polished_mockup.png" alt="NeuroNote App Interface" />
+          </div>
           <div className="hero-content hero-content-left">
+            {/* Icon Row */}
+            <div className="hero-icon-row">
+              <div className="hero-icon-item" title="Teaching">
+                <img width="48" height="48" src="https://img.icons8.com/doodle/48/teaching.png" alt="teaching"/>
+              </div>
+              <div className="hero-icon-item" title="Read">
+                <img width="48" height="48" src="https://img.icons8.com/doodle/48/read.png" alt="read"/>
+              </div>
+              <div className="hero-icon-item" title="Square Root">
+                <img width="50" height="50" src="https://img.icons8.com/scribby/50/square-root.png" alt="square-root"/>
+              </div>
+              <div className="hero-icon-item" title="Children">
+                <img width="50" height="50" src="https://img.icons8.com/scribby/50/children.png" alt="children"/>
+              </div>
+              <div className="hero-icon-item" title="Marker Pen">
+                <img width="50" height="50" src="https://img.icons8.com/scribby/50/marker-pen.png" alt="marker-pen"/>
+              </div>
+              <div className="hero-icon-item" title="Classroom">
+                <img width="48" height="48" src="https://img.icons8.com/doodle/48/classroom.png" alt="classroom"/>
+              </div>
+              <div className="hero-icon-item" title="Stapler">
+                <img width="50" height="50" src="https://img.icons8.com/scribby/50/stapler.png" alt="stapler"/>
+              </div>
+            </div>
             <h1 className="hero-title">
-            Study smarter with AI
-            <br />
-            that  <span className="gradient-text">learns you.</span>
+            Study with clarity. Learn
+            with  <span className="gradient-text">confidence.</span>
             </h1>
             <p className="hero-subtitle">
-            Neuro Note helps you organize notes, generate summaries, and retain information faster — all powered by your personal study companion.
-
+            Designed to save you time, cut through confusion, and strengthen your long-term retention every time you study.
             </p>
-            <Link to='/signin' className="cta-btn">
-              Get Started
-              <span className="material-symbols-outlined cta-btn-icon">arrow_outward</span>
+            <div className="hero-cta-group">
+              <Link to='/signin' className="cta-btn">
+                Get Started
+                <span className="material-symbols-outlined cta-btn-icon">arrow_outward</span>
+              </Link>
+              <Link to='/signin' className="cta-btn-secondary">
+                Log In
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Study Method Video */}
+      <section className="hero-video-section" aria-label="See NeuroNote in action">
+        <h2 className="hero-video-section-title">Optimize Your Learning</h2>
+        <div className="hero-video-composite">
+          <div className="hero-video-shell">
+            <video
+              className="hero-video"
+              src="/study_method.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              controlsList="nodownload noplaybackrate"
+            >
+              Sorry, your browser doesn't support embedded videos. You can{" "}
+              <a href="/study_method.mp4">download the clip</a> instead.
+            </video>
+          </div>
+          <div className="hero-video-features">
+          <span className="video-eyebrow">Neuro Study Methods</span>
+          <div className="hero-video-heading">
+            <h3>Study smarter. Not harder.</h3>
+            <Link to="/login" className="hero-video-link" aria-label="Log in">
+              →
             </Link>
           </div>
-          <div className="hero-media">
-            <div className="hero-screenshot-stack">
-              <img src="public/review.jpg" alt="Review interface" className="hero-screenshot screenshot-top" />
-              <img src="public/studyroom.jpg" alt="Study room interface" className="hero-screenshot screenshot-middle" />
-              <img src="public/nightowl.jpg" alt="Night owl flashcards" className="hero-screenshot screenshot-bottom" />
-            </div>
+            <ul className="hero-video-methods">
+              {studyMethods.map(method => {
+                const isOpen = activeMethod === method.title;
+                return (
+                  <li key={method.title}>
+                    <button
+                      type="button"
+                      className="hero-video-method-trigger"
+                      aria-expanded={isOpen}
+                      onClick={() => setActiveMethod(isOpen ? null : method.title)}
+                    >
+                      {method.title}
+                    </button>
+                    <div className={`hero-video-method-content ${isOpen ? 'open' : ''}`}>
+                      <p>{method.description}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
       </section>
@@ -103,7 +199,7 @@ function Home() {
       </section>
 
       {/* Hero Supporting Story */}
-      <section className="section brand-story" style={{ background: '#18191C' }}>
+      <section className="section brand-story" style={{ background: '#FFFFFF' }}>
         <div className="brand-story-media">
           <div className="brand-story-media-shell">
             <img src="public/studyroom.jpg" alt="Students using NeuroNote" className="brand-story-image" />

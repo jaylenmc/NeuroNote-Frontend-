@@ -84,13 +84,18 @@ function Navbar() {
         <Link to="/about">About us</Link>
         <Link to="/pricing">Pricing</Link>
         <Link to="/features">Features</Link>
+      </div>
+      <div className="nn-nav-cta">
         {user ? (
           <>
-            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/dashboard" className="nn-login-btn">Dashboard</Link>
             <button onClick={logout} className="nn-signup-btn-minimal">Logout</button>
           </>
         ) : (
-          <Link to="/signin" className="nn-signup-btn-minimal">Get Started</Link>
+          <>
+            <Link to="/login" className="nn-login-btn">Log in</Link>
+            <Link to="/signin" className="nn-signup-btn-minimal">Get Started</Link>
+          </>
         )}
       </div>
     </nav>

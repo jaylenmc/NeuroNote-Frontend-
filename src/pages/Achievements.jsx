@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, Star, BookOpen, Users, Calendar, Filter, ChevronDown, Target, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Trophy, Star, BookOpen, Users, Calendar, Filter, ChevronDown, Target, ArrowLeft, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './Achievements.css';
 import { makeAuthenticatedRequest } from '../utils/api';
@@ -12,9 +12,9 @@ const Achievements = () => {
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [levelUpAchievement, setLevelUpAchievement] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const sortMenuRef = useRef(null);
 
   useEffect(() => {
     // Add Night Owl theme class to body
@@ -44,6 +44,22 @@ const Achievements = () => {
       document.body.classList.remove('achievements-root-bg');
     };
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
+        setIsSortMenuOpen(false);
+      }
+    };
+
+    if (isSortMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSortMenuOpen]);
 
   // Generate categories from achievement families
   const getCategories = () => {
@@ -128,83 +144,95 @@ const Achievements = () => {
   };
 
   // Level-up animation function
-  const triggerLevelUpAnimation = (achievement) => {
-    setLevelUpAchievement(achievement.name);
-    setShowConfetti(true);
-    
-    // Remove animation class after animation completes
-    setTimeout(() => {
-      setLevelUpAchievement(null);
-    }, 2000);
-    
-    // Hide confetti after animation
-    setTimeout(() => {
-      setShowConfetti(false);
-    }, 3000);
-  };
-
-  // Create confetti pieces
-  const createConfetti = () => {
-    if (!showConfetti) return null;
-    
-    const confettiPieces = [];
-    for (let i = 0; i < 50; i++) {
-      confettiPieces.push(
-        <div
-          key={i}
-          className="confetti-piece"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 2}s`,
-            animationDuration: `${2 + Math.random() * 2}s`
-          }}
-        />
-      );
-    }
-    
-    return (
-      <div className="confetti-container">
-        {confettiPieces}
-      </div>
-    );
-  };
-
   // Calculate XP progress for dashboard ring
   const totalXP = 23; // This would come from user data
   const currentLevelXP = totalXP % 100; // Assuming 100 XP per level
+  const currentLevelPercent = Math.round((currentLevelXP / 100) * 100);
   const xpProgress = (currentLevelXP / 100) * 283; // 283 is circumference for radius 45
 
   const getAchievementAccent = (badgeClass) => {
-    switch (badgeClass) {
-      case 'streak':
-        return { accent: '#f87171', soft: 'rgba(248, 113, 113, 0.16)' };
-      case 'flashcards':
-        return { accent: '#a78bfa', soft: 'rgba(167, 139, 250, 0.18)' };
-      case 'quiz':
-        return { accent: '#fbbf24', soft: 'rgba(251, 191, 36, 0.16)' };
-      case 'study-groups':
-        return { accent: '#60a5fa', soft: 'rgba(96, 165, 250, 0.18)' };
-      case 'general':
-        return { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.14)' };
-      default:
-        return { accent: '#a855f7', soft: 'rgba(168, 85, 247, 0.18)' };
-    }
+    const accent = '#9aa4ff';
+    const soft = 'rgba(154, 164, 255, 0.18)';
+    return { accent, soft };
   };
 
   const unlockedPercent = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
 
+  const getAchievementProgress = (achievement) => {
+    if (!achievement || typeof achievement !== 'object') return null;
+
+    const percentFields = [
+      'progress_percentage',
+      'progress_percent',
+      'percent_complete',
+      'completion_percentage'
+    ];
+
+    for (const key of percentFields) {
+      const rawPercent = achievement[key];
+      if (typeof rawPercent === 'number' && !Number.isNaN(rawPercent)) {
+        const clamped = Math.max(0, Math.min(100, rawPercent));
+        return {
+          percent: clamped,
+          label: achievement.progress_label || 'Progress',
+          value: `${Math.round(clamped)}%`
+        };
+      }
+    }
+
+    const progressObj = achievement.progress ?? {};
+    const current =
+      achievement.progress_current ??
+      achievement.current_progress ??
+      progressObj.current ??
+      null;
+    const total =
+      achievement.progress_target ??
+      achievement.progress_total ??
+      achievement.target_progress ??
+      achievement.goal_total ??
+      progressObj.total ??
+      progressObj.target ??
+      null;
+
+    if (
+      typeof current === 'number' &&
+      typeof total === 'number' &&
+      total > 0
+    ) {
+      const percent = Math.max(0, Math.min(100, (current / total) * 100));
+      return {
+        percent,
+        label: achievement.progress_label || 'Progress',
+        value: `${current}/${total}`
+      };
+    }
+
+    return null;
+  };
+
+  const handleSortSelect = (option) => {
+    setSelectedSort(option);
+    setIsSortMenuOpen(false);
+  };
+
+  const rarityLegend = [
+    { key: 'rarity-bronze', label: 'Bronze Tier', color: '#B77431', description: 'Entry-level achievements or common milestones.' },
+    { key: 'rarity-silver', label: 'Silver Tier', color: '#A6B1C8', description: 'Intermediate achievements that require consistency.' },
+    { key: 'rarity-gold', label: 'Gold Tier', color: '#D4A12C', description: 'High-value milestones earned through dedication.' },
+    { key: 'rarity-legend', label: 'Legend Tier', color: '#FF5F93', description: 'Rare achievements reserved for exceptional streaks.' }
+  ];
+
   return (
     <div className="achievements-page">
+      <button
+        onClick={() => navigate('/dashboard')}
+        className="back-to-dashboard-btn"
+      >
+        <ArrowLeft size={20} />
+        Back to Dashboard
+      </button>
       <div className="achievements-content">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="back-to-dashboard-btn"
-        >
-          <ArrowLeft size={20} />
-          Back to Dashboard
-        </button>
-
         {/* Summary Section */}
         <div className="achievements-summary-grid">
           <div className="summary-panel">
@@ -219,7 +247,9 @@ const Achievements = () => {
             <div className="summary-stat-grid">
               <div className="summary-stat">
                 <span className="summary-stat-label">Achievements Unlocked</span>
-                <span className="summary-stat-value">{unlockedCount}</span>
+                <span className="summary-stat-value">
+                  {unlockedCount}
+                </span>
                 <span className="summary-stat-meta">
                   {totalCount > 0 ? `${unlockedPercent}% complete (${unlockedCount}/${totalCount})` : 'Unlock your first badge to begin.'}
                 </span>
@@ -227,35 +257,41 @@ const Achievements = () => {
 
               <div className="summary-stat">
                 <span className="summary-stat-label">Current Level</span>
-                <span className="summary-stat-value">Level 3</span>
-                <span className="summary-stat-meta">Memory Architect 🧠</span>
+                <span className="summary-stat-value">
+                  Level 3
+                  <span className="summary-stat-meta">Memory Architect 🧠</span>
+                </span>
               </div>
 
               <div className="summary-stat">
                 <span className="summary-stat-label">Latest Unlock</span>
-                <span className="summary-stat-value">{filteredAchievements[0]?.name || '––'}</span>
-                <span className="summary-stat-meta">{filteredAchievements[0]?.family || 'Keep streaking to unlock more.'}</span>
+                <span className="summary-stat-value">
+                  {filteredAchievements[0]?.name || '––'}
+                  <span className="summary-stat-meta">{filteredAchievements[0]?.family || 'Keep streaking to unlock more.'}</span>
+                </span>
               </div>
             </div>
           </div>
 
           <div className="level-panel">
             <div className="level-ring">
-              <svg viewBox="0 0 100 100">
-                <circle className="level-ring-bg" cx="50" cy="50" r="45" />
-                <circle
-                  className="level-ring-progress"
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  style={{
-                    strokeDasharray: `${xpProgress} 283`
-                  }}
-                />
-              </svg>
+              <div className="level-ring-chart">
+                <svg viewBox="0 0 100 100">
+                  <circle className="level-ring-bg" cx="50" cy="50" r="45" />
+                  <circle
+                    className="level-ring-progress"
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    style={{
+                      strokeDasharray: `${xpProgress} 283`
+                    }}
+                  />
+                </svg>
+                <div className="level-ring-percentage">{currentLevelPercent}%</div>
+              </div>
               <div className="level-ring-center">
-                <span className="summary-stat-value" style={{ fontSize: '1.35rem' }}>{currentLevelXP}</span>
-                <span className="summary-stat-meta">/ 100 XP</span>
+                <span className="summary-stat-meta">{currentLevelXP} / 100 XP</span>
               </div>
             </div>
 
@@ -284,22 +320,76 @@ const Achievements = () => {
             ))}
           </div>
 
-          <button className="sort-pill">
-            <Filter size={16} />
-            Sort by: {selectedSort}
-            <ChevronDown size={16} />
-          </button>
+          <div
+            className="sort-menu-container"
+            ref={sortMenuRef}
+          >
+            <button
+              className="sort-pill"
+              onClick={() => setIsSortMenuOpen(prev => !prev)}
+              aria-haspopup="listbox"
+              aria-expanded={isSortMenuOpen}
+            >
+              <Filter size={16} />
+              Sort by: {selectedSort}
+              <ChevronDown size={16} />
+            </button>
+            <div className={`sort-menu ${isSortMenuOpen ? 'open' : ''}`} role="listbox">
+              {sortOptions.map(option => (
+                <button
+                  key={option}
+                  role="option"
+                  className={`filter-pill sort-option ${selectedSort === option ? 'active' : ''}`}
+                  aria-selected={selectedSort === option}
+                  onClick={() => handleSortSelect(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
       {/* Achievement Grid */}
+      <div className="achievements-section-heading">
+        <span>Unlocked Achievements</span>
+        <span className="achievements-section-count">
+          {filteredAchievements.length} {filteredAchievements.length === 1 ? 'achievement' : 'achievements'}
+        </span>
+      </div>
       <div className="achievement-grid">
+        <div className="achievement-ribbon-legend" aria-label="Achievement rarity legend">
+          <h4>Rarity Guide</h4>
+          <div className="achievement-ribbon-legend-items">
+            {rarityLegend.map(item => (
+              <div className="achievement-ribbon-legend-item" key={item.key}>
+                <span
+                  className={`achievement-ribbon-legend-swatch ${item.key}`}
+                  style={{ backgroundColor: item.color }}
+                  aria-hidden="true"
+                />
+                <div className="achievement-ribbon-legend-copy">
+                  <span className="legend-title">{item.label}</span>
+                  <span className="legend-description">{item.description}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {loading && <div>Loading achievements...</div>}
         {error && <div style={{color: 'red'}}>Error: {error}</div>}
         {!loading && !error && filteredAchievements.map(achievement => {
           const { icon, badgeClass } = getAchievementIcon(achievement);
           const tierClass = getTierClass(achievement.tier);
-          const isLevelUp = levelUpAchievement === achievement.name;
           const categoryClass = badgeClass || 'general';
+          const progressInfo = getAchievementProgress(achievement);
+          const displayProgress = progressInfo ?? {
+            percent: 100,
+            label: 'Progress',
+            value: 'Completed'
+          };
+          const rarityClass = tierClass ? `rarity-${tierClass}` : '';
 
           const styles = getAchievementAccent(categoryClass);
           const cardStyle = {
@@ -310,25 +400,53 @@ const Achievements = () => {
           return (
             <div
               key={achievement.name}
-              className={`achievement-card unlocked ${isLevelUp ? 'level-up' : ''}`}
+              className="achievement-card unlocked"
               style={cardStyle}
-              onClick={() => triggerLevelUpAnimation(achievement)}
             >
+              {tierClass && (
+                <span
+                  className={`achievement-ribbon ${rarityClass}`}
+                  aria-hidden="true"
+                />
+              )}
               <div className="achievement-card-header">
-                <div className={`achievement-badge ${categoryClass} ${tierClass}`}>
-                  {icon}
+                <div className="achievement-card-primary">
+                  <div className={`achievement-badge ${categoryClass} ${rarityClass}`}>
+                    {icon}
+                  </div>
+                  <div className="achievement-card-text">
+                    <h3 className="achievement-card-title">{achievement.name}</h3>
+                    <p className="achievement-card-description">{achievement.description}</p>
+                  </div>
                 </div>
-                <div className="achievement-card-body">
-                  <h3 className="achievement-card-title">{achievement.name}</h3>
-                  <p className="achievement-card-description">{achievement.description}</p>
+                <div className="achievement-card-meta">
+                  <span className="achievement-xp-chip">+{achievement.xp_value || 10} XP</span>
+                  <span className={`achievement-category-chip ${categoryClass}`}>
+                    {achievement.family || 'General'}
+                  </span>
                 </div>
               </div>
 
-              <div className="achievement-card-footer">
-                <span className="achievement-xp-chip">+{achievement.xp_value || 10} XP</span>
-                <span className={`achievement-category-chip ${categoryClass}`}>
-                  {achievement.family || 'General'}
-                </span>
+              <div className="achievement-progress">
+                <div className="achievement-progress-meta">
+                  <span className="achievement-progress-label">{displayProgress.label}</span>
+                  <span className={`achievement-progress-status ${displayProgress.percent >= 99 ? 'status-complete' : ''}`}>
+                    {displayProgress.percent >= 99 ? (
+                      <>
+                        <Check size={14} strokeWidth={3} />
+                        <span>Completed</span>
+                      </>
+                    ) : (
+                      displayProgress.value
+                    )}
+                  </span>
+                </div>
+                <div className="achievement-progress-bar">
+                  <div
+                    className="achievement-progress-fill"
+                    style={{ width: `${Math.min(displayProgress.percent, 100)}%` }}
+                  />
+                </div>
               </div>
             </div>
           );
@@ -336,8 +454,6 @@ const Achievements = () => {
         </div>
       </div>
       
-      {/* Confetti Animation */}
-      {createConfetti()}
     </div>
   );
 };
