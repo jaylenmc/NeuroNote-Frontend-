@@ -104,30 +104,30 @@ function Navbar() {
   
   return (
     <>
-      <nav className={`nn-navbar-global ${isScrolled ? 'scrolled' : ''}`}>
-        <div className="nn-logo">
-          <img
+    <nav className={`nn-navbar-global ${isScrolled ? 'scrolled' : ''}`}>
+      <Link to="/" className="nn-logo">
+        <img
             className="nn-logo-image nn-logo-desktop"
             src="/NeuroNote-2.png"
             alt="NeuroNote Logo"
           />
           <img
             className="nn-logo-image nn-logo-mobile"
-            src="/NeuroNote Logo Transparent.png"
-            alt="NeuroNote Logo"
-          />
-        </div>
-        <div className="nn-nav-links">
-          <Link to="/">Home</Link>
-          <Link to="/about">About us</Link>
+          src="/NeuroNote Logo Transparent.png"
+          alt="NeuroNote Logo"
+        />
+      </Link>
+      <div className="nn-nav-links">
+        <Link to="/">Home</Link>
+        <Link to="/about">About us</Link>
         </div>
         <div className="nn-nav-cta">
-          {user ? (
-            <>
+        {user ? (
+          <>
               <Link to="/dashboard" className="nn-dashboard-btn">Dashboard</Link>
-              <button onClick={logout} className="nn-signup-btn-minimal">Logout</button>
-            </>
-          ) : (
+            <button onClick={logout} className="nn-signup-btn-minimal">Logout</button>
+          </>
+        ) : (
             <>
               <Link to="/signin" className="nn-login-btn">Log in</Link>
               <Link to="/signin" className="nn-signup-btn-minimal">Join waitlist</Link>

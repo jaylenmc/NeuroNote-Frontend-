@@ -2208,6 +2208,9 @@ body {
 
 .nn-navbar-global .nn-logo {
   margin-right: 2rem;
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .nn-navbar-global .nn-nav-links {

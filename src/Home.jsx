@@ -218,7 +218,6 @@ function Home() {
           <div className="footer-meta-links">
             <Link to="/terms">Terms</Link>
             <Link to="/privacy">Privacy</Link>
-            <a href="mailto:support@neuronote.ai">support@neuronote.ai</a>
           </div>
         </div>
       </footer>
