@@ -259,7 +259,7 @@ const Achievements = () => {
                 <span className="summary-stat-label">Current Level</span>
                 <span className="summary-stat-value">
                   Level 3
-                  <span className="summary-stat-meta">Memory Architect 🧠</span>
+                <span className="summary-stat-meta">Memory Architect 🧠</span>
                 </span>
               </div>
 
@@ -267,7 +267,7 @@ const Achievements = () => {
                 <span className="summary-stat-label">Latest Unlock</span>
                 <span className="summary-stat-value">
                   {filteredAchievements[0]?.name || '––'}
-                  <span className="summary-stat-meta">{filteredAchievements[0]?.family || 'Keep streaking to unlock more.'}</span>
+                <span className="summary-stat-meta">{filteredAchievements[0]?.family || 'Keep streaking to unlock more.'}</span>
                 </span>
               </div>
             </div>
@@ -276,18 +276,18 @@ const Achievements = () => {
           <div className="level-panel">
             <div className="level-ring">
               <div className="level-ring-chart">
-                <svg viewBox="0 0 100 100">
-                  <circle className="level-ring-bg" cx="50" cy="50" r="45" />
-                  <circle
-                    className="level-ring-progress"
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    style={{
-                      strokeDasharray: `${xpProgress} 283`
-                    }}
-                  />
-                </svg>
+              <svg viewBox="0 0 100 100">
+                <circle className="level-ring-bg" cx="50" cy="50" r="45" />
+                <circle
+                  className="level-ring-progress"
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  style={{
+                    strokeDasharray: `${xpProgress} 283`
+                  }}
+                />
+              </svg>
                 <div className="level-ring-percentage">{currentLevelPercent}%</div>
               </div>
               <div className="level-ring-center">
@@ -330,10 +330,10 @@ const Achievements = () => {
               aria-haspopup="listbox"
               aria-expanded={isSortMenuOpen}
             >
-              <Filter size={16} />
-              Sort by: {selectedSort}
-              <ChevronDown size={16} />
-            </button>
+            <Filter size={16} />
+            Sort by: {selectedSort}
+            <ChevronDown size={16} />
+          </button>
             <div className={`sort-menu ${isSortMenuOpen ? 'open' : ''}`} role="listbox">
               {sortOptions.map(option => (
                 <button
@@ -412,18 +412,18 @@ const Achievements = () => {
               <div className="achievement-card-header">
                 <div className="achievement-card-primary">
                   <div className={`achievement-badge ${categoryClass} ${rarityClass}`}>
-                    {icon}
-                  </div>
-                  <div className="achievement-card-text">
-                    <h3 className="achievement-card-title">{achievement.name}</h3>
-                    <p className="achievement-card-description">{achievement.description}</p>
-                  </div>
+                  {icon}
                 </div>
+                  <div className="achievement-card-text">
+                  <h3 className="achievement-card-title">{achievement.name}</h3>
+                  <p className="achievement-card-description">{achievement.description}</p>
+                </div>
+              </div>
                 <div className="achievement-card-meta">
-                  <span className="achievement-xp-chip">+{achievement.xp_value || 10} XP</span>
-                  <span className={`achievement-category-chip ${categoryClass}`}>
-                    {achievement.family || 'General'}
-                  </span>
+                <span className="achievement-xp-chip">+{achievement.xp_value || 10} XP</span>
+                <span className={`achievement-category-chip ${categoryClass}`}>
+                  {achievement.family || 'General'}
+                </span>
                 </div>
               </div>
 

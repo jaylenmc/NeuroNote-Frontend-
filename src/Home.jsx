@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext'; // or wherever you defined its
 import generateState from './utils/auth';
+import { BookOpen, GraduationCap, Calculator, Users, PenTool, School, FileText, LayoutDashboard, Brain, Bookmark } from 'lucide-react';
 
 function Home() {
   const { user } = useAuth();
@@ -61,25 +62,25 @@ function Home() {
             {/* Icon Row */}
             <div className="hero-icon-row">
               <div className="hero-icon-item" title="Teaching">
-                <img width="48" height="48" src="https://img.icons8.com/doodle/48/teaching.png" alt="teaching"/>
+                <GraduationCap size={44} strokeWidth={1.5} />
               </div>
               <div className="hero-icon-item" title="Read">
-                <img width="48" height="48" src="https://img.icons8.com/doodle/48/read.png" alt="read"/>
+                <BookOpen size={44} strokeWidth={1.5} />
               </div>
-              <div className="hero-icon-item" title="Square Root">
-                <img width="50" height="50" src="https://img.icons8.com/scribby/50/square-root.png" alt="square-root"/>
+              <div className="hero-icon-item" title="Math">
+                <Calculator size={44} strokeWidth={1.5} />
               </div>
-              <div className="hero-icon-item" title="Children">
-                <img width="50" height="50" src="https://img.icons8.com/scribby/50/children.png" alt="children"/>
+              <div className="hero-icon-item" title="Learning">
+                <Users size={44} strokeWidth={1.5} />
               </div>
-              <div className="hero-icon-item" title="Marker Pen">
-                <img width="50" height="50" src="https://img.icons8.com/scribby/50/marker-pen.png" alt="marker-pen"/>
+              <div className="hero-icon-item" title="Writing">
+                <PenTool size={44} strokeWidth={1.5} />
               </div>
-              <div className="hero-icon-item" title="Classroom">
-                <img width="48" height="48" src="https://img.icons8.com/doodle/48/classroom.png" alt="classroom"/>
+              <div className="hero-icon-item" title="Education">
+                <School size={44} strokeWidth={1.5} />
               </div>
-              <div className="hero-icon-item" title="Stapler">
-                <img width="50" height="50" src="https://img.icons8.com/scribby/50/stapler.png" alt="stapler"/>
+              <div className="hero-icon-item" title="Notes">
+                <FileText size={44} strokeWidth={1.5} />
               </div>
             </div>
             <h1 className="hero-title">
@@ -91,7 +92,7 @@ function Home() {
             </p>
             <div className="hero-cta-group">
               <Link to='/signin' className="cta-btn">
-                Get Started
+                Join waitlist
                 <span className="material-symbols-outlined cta-btn-icon">arrow_outward</span>
               </Link>
               <Link to='/signin' className="cta-btn-secondary">
@@ -124,7 +125,7 @@ function Home() {
           <span className="video-eyebrow">Neuro Study Methods</span>
           <div className="hero-video-heading">
             <h3>Study smarter. Not harder.</h3>
-            <Link to="/login" className="hero-video-link" aria-label="Log in">
+            <Link to="/signin" className="hero-video-link" aria-label="Log in">
               →
             </Link>
           </div>
@@ -161,19 +162,29 @@ function Home() {
         </div>
         <div className="brand-story-copy">
           <div className="stacked-copy-block">
-            <h2 className="stacked-heading">Your Personal Study Command Center</h2>
+            <h2 className="stacked-heading">
+              <LayoutDashboard size={20} strokeWidth={1.5} className="stacked-heading-icon" />
+              Your Personal Study Command Center
+            </h2>
             <p className="stacked-subheading">Where every tool, note, and resource comes together to keep your learning organized and effortless.</p>
           </div>
           <div className="stacked-copy-block">
-            <h2 className="stacked-heading">Learn Smarter, Not Harder</h2>
-            <p className="stacked-subheading">Switch between quizzes, decks, review, and AI help — all from one streamlined workspace built for focus.</p>
-          </div>
-          <div className="stacked-copy-block">
-            <h2 className="stacked-heading">Stay Ready With What Matters Most</h2>
+            <h2 className="stacked-heading">
+              <Bookmark size={20} strokeWidth={1.5} className="stacked-heading-icon" />
+              Stay Ready With What Matters Most
+            </h2>
             <p className="stacked-subheading">Pinned notes and resources keep your most important study materials just one click away.</p>
           </div>
         </div>
       </section>
+      
+      {/* CTA Section */}
+      <div className="home-page-cta">
+        <Link to="/signin" className="brand-story-cta-btn">
+          Join waitlist
+        </Link>
+      </div>
+      
       {/* Footer */}
       <footer className="section site-footer">
         <div className="footer-inner">
@@ -183,27 +194,17 @@ function Home() {
               Minimal, brain-backed study flow that turns every note into mastery.
             </p>
             <div className="footer-cta">
-              <Link to="/signup" className="footer-cta-btn">Start Free Trial</Link>
+              <Link to="/signin" className="footer-cta-btn">Join waitlist</Link>
               <Link to="/signin" className="footer-ghost-link">Log In</Link>
             </div>
           </div>
           <div className="footer-links">
             <div className="footer-column">
               <h4>Product</h4>
-              <Link to="/features">Features</Link>
-              <Link to="/pricing">Pricing</Link>
               <Link to="/dashboard">Dashboard</Link>
             </div>
             <div className="footer-column">
-              <h4>Resources</h4>
-              <Link to="/blog">Learning Hub</Link>
-              <Link to="/case-studies">Case Studies</Link>
-              <Link to="/guides">Study Guides</Link>
-            </div>
-            <div className="footer-column">
               <h4>Support</h4>
-              <Link to="/help">Help Center</Link>
-              <Link to="/contact">Contact</Link>
               <Link to="/privacy">Privacy</Link>
             </div>
           </div>

@@ -5,8 +5,10 @@ import Home from './Home';  // Import the Home page component
 import About from './About'; // Import the About page component
 import Pricing from './pages/Pricing';
 import FeaturesPage from './pages/Features';
+import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
 import './App.css'; // Import the CSS file
-import Signin from './auth/signin';
+import Signin from './auth/Signin';
 import Authentication from './api/OAuthSuccess';
 import Dashboard from './components/Dashboard';
 import StudyRoom from './components/StudyRoom';
@@ -33,16 +35,23 @@ import QuizTakePage from './pages/QuizTakePage';
 import QuizResultsPage from './pages/QuizResultsPage';
 import NightOwlFlashcardsPage from './pages/NightOwlFlashcardsPage';
 import NotesEditorPage from './pages/NotesEditorPage';
+import NotificationSignup from './pages/NotificationSignup';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const ownerEmail = 'jayzilla195@gmail.com';
   
   if (loading) {
     return <div>Loading...</div>;
   }
   
   if (!user) {
+    return <Navigate to="/" />;
+  }
+  
+  // Additional safety check: verify user is the owner
+  if (user.email && user.email.toLowerCase() !== ownerEmail.toLowerCase()) {
     return <Navigate to="/" />;
   }
   
@@ -82,18 +91,17 @@ function Navbar() {
       <div className="nn-nav-links">
         <Link to="/">Home</Link>
         <Link to="/about">About us</Link>
-        <Link to="/pricing">Pricing</Link>
       </div>
       <div className="nn-nav-cta">
         {user ? (
           <>
-            <Link to="/dashboard" className="nn-login-btn">Dashboard</Link>
+            <Link to="/dashboard" className="nn-dashboard-btn">Dashboard</Link>
             <button onClick={logout} className="nn-signup-btn-minimal">Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login" className="nn-login-btn">Log in</Link>
-            <Link to="/signin" className="nn-signup-btn-minimal">Get Started</Link>
+            <Link to="/signin" className="nn-login-btn">Log in</Link>
+            <Link to="/signin" className="nn-signup-btn-minimal">Join waitlist</Link>
           </>
         )}
       </div>
@@ -118,7 +126,10 @@ function AppContent() {
           <Route path="/about" element={<About />} /> {/* About page route */}
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/signup" element={<div>Sign Up Page</div>} />
+          <Route path="/notification-signup" element={<NotificationSignup />} />
           <Route 
             path="/dashboard/*" 
             element={

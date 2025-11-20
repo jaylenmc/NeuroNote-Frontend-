@@ -1,24 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import './signin.css';
 import generateState from '../utils/auth';
 
 function Signin() {
-    const [error, setError] = useState('');
-
-    useEffect(() => {
-        const authError = sessionStorage.getItem('auth_error');
-        if (authError) {
-            setError(authError);
-            sessionStorage.removeItem('auth_error');
-            // Clear error message after 5 seconds
-            const timer = setTimeout(() => {
-                setError('');
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, []);
-
     const handleGoogleSignIn = () => {
         const state = generateState();
         sessionStorage.setItem('oauth_state', state);
@@ -41,11 +26,6 @@ function Signin() {
     return (
         <div className="signin-container">
             <div className="signin-box">
-                {error && (
-                    <div className="error-message-popup">
-                        {error}
-                    </div>
-                )}
                 <div className="app-branding">
                     <h1 className="neuronote-title">NEURONOTE</h1>
                 </div>

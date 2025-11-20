@@ -31,6 +31,18 @@ function Authentication() {
 
           const { user, jwt_refresh } = res.data;
 
+          // Check if user is the owner
+          const ownerEmail = 'jayzilla195@gmail.com';
+          const isOwner = user.email === ownerEmail;
+
+          if (!isOwner) {
+            // Non-owner: redirect to notification signup page
+            // Do NOT store tokens or user data
+            navigate('/notification-signup');
+            return;
+          }
+
+          // Owner: proceed with normal login flow
           // Store the refresh token first
           sessionStorage.setItem('refresh_token', jwt_refresh);
           sessionStorage.setItem('user', JSON.stringify(user));
@@ -58,6 +70,14 @@ function Authentication() {
           }
         })
         .catch(err => {
+          // Handle 401 Unauthorized from backend (non-owner users)
+          if (err.response?.status === 401) {
+            console.log('Unauthorized: User is not the owner');
+            // Redirect to waitlist/notification signup page
+            navigate('/notification-signup');
+            return;
+          }
+          
           if (err.response) {
             console.log('OAuth error: ', err.response.data)
           } else {

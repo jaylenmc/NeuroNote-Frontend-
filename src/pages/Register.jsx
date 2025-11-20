@@ -23,6 +23,14 @@ const Register = () => {
             return;
         }
 
+        // Check if user is the owner
+        const ownerEmail = 'jayzilla195@gmail.com';
+        if (email.toLowerCase() !== ownerEmail.toLowerCase()) {
+            // Non-owner: redirect to notification signup page
+            navigate('/notification-signup');
+            return;
+        }
+
         setIsLoading(true);
 
         try {

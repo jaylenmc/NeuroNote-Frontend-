@@ -1,0 +1,77 @@
+.notification-signup-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F7F8FA;
+  padding: 2rem;
+}
+
+.notification-signup-card {
+  padding: 3rem 2.5rem;
+  max-width: 700px;
+  width: 100%;
+  text-align: center;
+}
+
+.notification-signup-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7C83FD, #9AA4FF);
+  color: #FFFFFF;
+  font-size: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-weight: 300;
+}
+
+.notification-signup-title {
+  font-family: var(--home-font-heading, 'Inter', sans-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1A1C1F;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.notification-signup-message {
+  font-family: var(--home-font-body, 'Inter', sans-serif);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #4D5561;
+  margin: 0 0 2rem;
+}
+
+.notification-signup-button {
+  display: inline-block;
+  background: #7C83FD;
+  color: #FFFFFF;
+  padding: 0.5rem 2rem;
+  border-radius: 16px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.notification-signup-button:hover {
+  background: #686fdc;
+}
+
+@media (max-width: 768px) {
+  .notification-signup-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .notification-signup-title {
+    font-size: 1.75rem;
+  }
+
+  .notification-signup-message {
+    font-size: 1rem;
+  }
+}
+
