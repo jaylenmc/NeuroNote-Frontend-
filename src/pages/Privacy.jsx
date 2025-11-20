@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 function Privacy() {
+  useEffect(() => {
+    document.title = 'Privacy Policy - NeuroNote';
+  }, []);
+
   return (
     <div className="privacy-page">
       <section className="privacy-hero">

@@ -7,6 +7,10 @@ import { BookOpen, GraduationCap, Calculator, Users, PenTool, School, FileText, 
 function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'NeuroNote - Study Smarter, Not Harder';
+  }, []);
   const studyMethods = [
     {
       title: 'Recall + Retention',
@@ -91,10 +95,10 @@ function Home() {
             Designed to save you time, cut through confusion, and strengthen your long-term retention every time you study.
             </p>
             <div className="hero-cta-group">
-              <Link to='/signin' className="cta-btn">
+            <Link to='/signin' className="cta-btn">
                 Join waitlist
-                <span className="material-symbols-outlined cta-btn-icon">arrow_outward</span>
-              </Link>
+              <span className="material-symbols-outlined cta-btn-icon">arrow_outward</span>
+            </Link>
               <Link to='/signin' className="cta-btn-secondary">
                 Log In
               </Link>
@@ -120,7 +124,7 @@ function Home() {
               Sorry, your browser doesn't support embedded videos. You can{" "}
               <a href="/study_method.mp4">download the clip</a> instead.
             </video>
-          </div>
+        </div>
           <div className="hero-video-features">
           <span className="video-eyebrow">Neuro Study Methods</span>
           <div className="hero-video-heading">
@@ -128,7 +132,7 @@ function Home() {
             <Link to="/signin" className="hero-video-link" aria-label="Log in">
               →
             </Link>
-          </div>
+            </div>
             <ul className="hero-video-methods">
               {studyMethods.map(method => {
                 const isOpen = activeMethod === method.title;
@@ -144,12 +148,12 @@ function Home() {
                     </button>
                     <div className={`hero-video-method-content ${isOpen ? 'open' : ''}`}>
                       <p>{method.description}</p>
-                    </div>
+            </div>
                   </li>
                 );
               })}
             </ul>
-          </div>
+            </div>
         </div>
       </section>
 

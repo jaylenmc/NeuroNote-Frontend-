@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const captureFeatures = [
@@ -50,6 +50,10 @@ const collaboration = [
 ];
 
 function Features() {
+  useEffect(() => {
+    document.title = 'Features - NeuroNote';
+  }, []);
+
   return (
     <div className="features-page">
       <section className="features-hero">

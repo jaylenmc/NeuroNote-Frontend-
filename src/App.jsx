@@ -7,6 +7,7 @@ import Pricing from './pages/Pricing';
 import FeaturesPage from './pages/Features';
 import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import './App.css'; // Import the CSS file
 import Signin from './auth/Signin';
 import Authentication from './api/OAuthSuccess';
@@ -62,6 +63,7 @@ function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,40 +74,96 @@ function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    // Close mobile menu when route changes
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    // Prevent body scroll when mobile menu is open
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
   
   // Hide navbar on these routes
   const hideNavbarRoutes = ['/dashboard', '/signin', '/auth/callback/', '/study-room', '/review', '/chat', '/login', '/register', '/quiz', '/focus', '/progress', '/study-groups', '/achievements', '/notes-editor'];
   if (hideNavbarRoutes.some(route => location.pathname.startsWith(route))) {
     return null;
   }
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
   
   return (
-    <nav className={`nn-navbar-global ${isScrolled ? 'scrolled' : ''}`}>
-      <div className="nn-logo">
-        <img
-          className="nn-logo-image"
-          src="/NeuroNote Logo Transparent.png"
-          alt="NeuroNote Logo"
-        />
+    <>
+      <nav className={`nn-navbar-global ${isScrolled ? 'scrolled' : ''}`}>
+        <div className="nn-logo">
+          <img
+            className="nn-logo-image nn-logo-desktop"
+            src="/NeuroNote-2.png"
+            alt="NeuroNote Logo"
+          />
+          <img
+            className="nn-logo-image nn-logo-mobile"
+            src="/NeuroNote Logo Transparent.png"
+            alt="NeuroNote Logo"
+          />
+        </div>
+        <div className="nn-nav-links">
+          <Link to="/">Home</Link>
+          <Link to="/about">About us</Link>
+        </div>
+        <div className="nn-nav-cta">
+          {user ? (
+            <>
+              <Link to="/dashboard" className="nn-dashboard-btn">Dashboard</Link>
+              <button onClick={logout} className="nn-signup-btn-minimal">Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="nn-login-btn">Log in</Link>
+              <Link to="/signin" className="nn-signup-btn-minimal">Join waitlist</Link>
+            </>
+          )}
+        </div>
+        <button 
+          className="nn-hamburger-btn"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          <span className={`nn-hamburger-line ${isMobileMenuOpen ? 'open' : ''}`}></span>
+          <span className={`nn-hamburger-line ${isMobileMenuOpen ? 'open' : ''}`}></span>
+          <span className={`nn-hamburger-line ${isMobileMenuOpen ? 'open' : ''}`}></span>
+        </button>
+      </nav>
+      <div className={`nn-mobile-menu-overlay ${isMobileMenuOpen ? 'open' : ''}`} onClick={toggleMobileMenu}></div>
+      <div className={`nn-mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="nn-mobile-menu-content">
+          <Link to="/" className="nn-mobile-menu-link" onClick={toggleMobileMenu}>Home</Link>
+          <Link to="/about" className="nn-mobile-menu-link" onClick={toggleMobileMenu}>About us</Link>
+          <div className="nn-mobile-menu-divider"></div>
+          {user ? (
+            <>
+              <Link to="/dashboard" className="nn-mobile-menu-link" onClick={toggleMobileMenu}>Dashboard</Link>
+              <button onClick={() => { logout(); toggleMobileMenu(); }} className="nn-mobile-menu-button">Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="nn-mobile-menu-link" onClick={toggleMobileMenu}>Log in</Link>
+              <Link to="/signin" className="nn-mobile-menu-cta" onClick={toggleMobileMenu}>Join waitlist</Link>
+            </>
+          )}
+        </div>
       </div>
-      <div className="nn-nav-links">
-        <Link to="/">Home</Link>
-        <Link to="/about">About us</Link>
-      </div>
-      <div className="nn-nav-cta">
-        {user ? (
-          <>
-            <Link to="/dashboard" className="nn-dashboard-btn">Dashboard</Link>
-            <button onClick={logout} className="nn-signup-btn-minimal">Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/signin" className="nn-login-btn">Log in</Link>
-            <Link to="/signin" className="nn-signup-btn-minimal">Join waitlist</Link>
-          </>
-        )}
-      </div>
-    </nav>
+    </>
   );
 }
 
@@ -115,6 +173,13 @@ function AppContent() {
   const showNavbar = !['/dashboard', '/signin', '/auth/callback/', '/chat', '/login', '/register', '/quiz', '/progress', '/study-groups', '/achievements', '/notes-editor'].some(route => 
     location.pathname.startsWith(route)
   );
+
+  // Set default title if no page-specific title is set
+  useEffect(() => {
+    if (document.title === 'Vitse + React' || document.title === 'React App' || !document.title) {
+      document.title = 'NeuroNote - Study Smarter, Not Harder';
+    }
+  }, [location.pathname]);
 
   return (
     <>
@@ -128,6 +193,7 @@ function AppContent() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/signup" element={<div>Sign Up Page</div>} />
           <Route path="/notification-signup" element={<NotificationSignup />} />
           <Route 

@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 function About() {
+  useEffect(() => {
+    document.title = 'About Us - NeuroNote';
+  }, []);
   const values = [
     { heading: 'Learning-first design', body: 'Every feature we build should strengthen deliberate practice — never replace it. Shortcuts and automation exist to deepen learning, not dilute it.' },
     { heading: 'Evidence over hype', body: 'We turn peer-reviewed learning science into practical, repeatable study loops you can actually feel working session after session.' },

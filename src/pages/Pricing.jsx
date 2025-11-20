@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const pricingTiers = [
@@ -67,6 +67,10 @@ const pricingTiers = [
 ];
 
 function Pricing() {
+  useEffect(() => {
+    document.title = 'Pricing - NeuroNote';
+  }, []);
+
   return (
     <div className="pricing-page">
       <section className="pricing-hero">
