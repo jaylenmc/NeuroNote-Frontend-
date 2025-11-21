@@ -88,8 +88,7 @@ function Home() {
               </div>
             </div>
             <h1 className="hero-title">
-            Study with clarity. Learn
-            with  <span className="gradient-text">confidence.</span>
+            Study with clarity. <span className="hero-title-line">Learn with  <span className="gradient-text">confidence.</span></span>
             </h1>
             <p className="hero-subtitle">
             Designed to save you time, cut through confusion, and strengthen your long-term retention every time you study.

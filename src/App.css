@@ -1897,6 +1897,10 @@
   text-align: center;
 }
 
+.hero-title-line {
+  white-space: nowrap;
+}
+
 .gradient-text {
   background: linear-gradient(90deg, #7C83FD, #9AA4FF);
   background-clip: text;
@@ -2208,9 +2212,10 @@ body {
 
 .nn-navbar-global .nn-logo {
   margin-right: 2rem;
-  display: inline-block;
-  text-decoration: none;
-  cursor: pointer;
+}
+
+.nn-logo-link-mobile {
+  display: none;
 }
 
 .nn-navbar-global .nn-nav-links {
@@ -2840,6 +2845,14 @@ body {
   }
 
   .nn-logo-mobile {
+    display: none;
+  }
+
+  .nn-logo-link-mobile {
+    display: block;
+  }
+
+  .nn-logo-link-mobile .nn-logo-mobile {
     display: block;
   }
 
@@ -2894,6 +2907,10 @@ body {
     font-size: clamp(1.75rem, 9vw, 2.4rem);
   }
 
+  .hero-title-line {
+    white-space: normal;
+  }
+
   .hero-subtitle {
     font-size: clamp(0.95rem, 4.5vw, 1.1rem);
   }
@@ -2937,6 +2954,7 @@ body {
 
   .about-page section {
     padding: 0 1rem;
+    margin-top: 2rem;
   }
 
   .about-title {
