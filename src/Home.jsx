@@ -192,9 +192,16 @@ function Home() {
       <footer className="section site-footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="footer-logo">NeuroNote</div>
+            <div className="footer-logo">
+              <span className="footer-logo-text">NeuroNote</span>
+              <img
+                className="footer-logo-image footer-logo-mobile"
+                src="/NeuroNote Logo Transparent.png"
+                alt="NeuroNote Logo"
+              />
+            </div>
             <p className="footer-tagline">
-              Minimal, brain-backed study flow that turns every note into mastery.
+              Tools that help you remember what matters.
             </p>
             <div className="footer-cta">
               <Link to="/signin" className="footer-cta-btn">Join waitlist</Link>
