@@ -104,7 +104,7 @@ function Navbar() {
   
   return (
     <>
-      <nav className={`nn-navbar-global ${isScrolled ? 'scrolled' : ''}`}>
+    <nav className={`nn-navbar-global ${isScrolled ? 'scrolled' : ''}`}>
       <div className="nn-logo">
         <img
             className="nn-logo-image nn-logo-desktop"
@@ -114,9 +114,9 @@ function Navbar() {
           <Link to="/" className="nn-logo-link-mobile">
             <img
               className="nn-logo-image nn-logo-mobile"
-              src="/NeuroNote Logo Transparent.png"
-              alt="NeuroNote Logo"
-            />
+          src="/NeuroNote Logo Transparent.png"
+          alt="NeuroNote Logo"
+        />
           </Link>
       </div>
       <div className="nn-nav-links">

@@ -741,6 +741,11 @@
   padding-bottom: 2.4rem;
 }
 
+.home-page {
+  background-color: white!important;
+  padding-bottom: 2rem!important;
+}
+
 .home-page-cta {
   display: flex;
   justify-content: center;
@@ -3738,7 +3743,7 @@ p {
 
 @media (max-width: 700px) {
   .section {
-    padding: 0 0.5rem;
+    padding: 2rem 0.5rem;
   }
   .hero-title {
     font-size: 2rem;
