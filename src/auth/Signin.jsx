@@ -7,19 +7,21 @@ function Signin() {
     const handleGoogleSignIn = () => {
         const state = generateState();
         sessionStorage.setItem('oauth_state', state);
-        const api = import.meta.env.VITE_API_URL;
+        
+        // Get the frontend URL from environment variable or use current origin
+        const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin;
+        const redirectUri = `${frontendUrl}/auth/callback/`;
 
         const OAUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth?' +
         new URLSearchParams({
             client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-            redirect_uri: 'https://myneuronote.com/auth/callback/',
+            redirect_uri: redirectUri,
             response_type: "code",
             scope: 'openid email profile',
             access_type: 'offline',
             prompt: 'consent',
             state: state
         }).toString();
-        console.log('Full OAuth URL:', OAUTH_URL); // Check the full URL
 
         window.location.href = OAUTH_URL;
     };

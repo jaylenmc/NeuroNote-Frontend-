@@ -4,8 +4,25 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext'
 import './OAuthSuccess.css';
 
+// Helper function to get properly formatted API URL
+const getApiUrl = () => {
+  let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+  // Remove trailing slash
+  apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+  // Ensure protocol is included
+  if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+    apiUrl = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1') 
+      ? `http://${apiUrl}` 
+      : `https://${apiUrl}`;
+  }
+  // Ensure /api path is included
+  if (!apiUrl.includes('/api')) {
+    apiUrl = `${apiUrl}/api`;
+  }
+  return apiUrl;
+};
+
 function Authentication() {
-  const api = import.meta.env.VITE_API_URL;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth()
@@ -24,8 +41,18 @@ function Authentication() {
 
     sessionStorage.removeItem('oauth_state');
 
+    // Check for OAuth error
+    const error = searchParams.get('error');
+    if (error) {
+      console.error('OAuth error:', error);
+      sessionStorage.setItem('auth_error', 'Authentication was cancelled or failed. Please try again.');
+      navigate('/signin');
+      return;
+    }
+
     if (code) {
-      axios.post(`${ api }auth/google/`, { code })
+      const apiBase = getApiUrl();
+      axios.post(`${apiBase}/auth/google/`, { code })
         .then(async res => {
           console.log('Login successful', res.data)
 
@@ -49,7 +76,7 @@ function Authentication() {
 
           // Make an initial token refresh to get an access token
           try {
-            const refreshResponse = await axios.post(`${api}auth/token/refresh/`, {
+            const refreshResponse = await axios.post(`${apiBase}/auth/token/refresh/`, {
               refresh_token: jwt_refresh
             }, {
               headers: {
@@ -86,6 +113,11 @@ function Authentication() {
           sessionStorage.setItem('auth_error', 'Authentication failed. Please try again.');
           navigate('/signin');
         })
+    } else {
+      // No code parameter - user may have cancelled or there was an error
+      console.error('No authorization code received');
+      sessionStorage.setItem('auth_error', 'Authentication was cancelled or failed. Please try again.');
+      navigate('/signin');
     }
   }, [searchParams, navigate, login]);
 
