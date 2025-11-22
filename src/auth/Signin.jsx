@@ -19,6 +19,7 @@ function Signin() {
             prompt: 'consent',
             state: state
         }).toString();
+        console.log('Full OAuth URL:', OAUTH_URL); // Check the full URL
 
         window.location.href = OAUTH_URL;
     };
