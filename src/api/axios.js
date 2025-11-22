@@ -1,7 +1,31 @@
 import axios from 'axios';
 
-// Remove trailing slash from base URL if it exists
-const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
+// Get API URL from environment variable and ensure proper format
+const getBaseURL = () => {
+  let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  
+  // Remove trailing slash
+  apiUrl = apiUrl.replace(/\/$/, '');
+  
+  // If no protocol is specified, assume https for production, http for localhost
+  if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+    // If it's a localhost-like URL, use http, otherwise use https
+    if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
+      apiUrl = `http://${apiUrl}`;
+    } else {
+      apiUrl = `https://${apiUrl}`;
+    }
+  }
+  
+  // Ensure /api path is included if not already present
+  if (!apiUrl.includes('/api')) {
+    apiUrl = `${apiUrl}/api`;
+  }
+  
+  return apiUrl;
+};
+
+const baseURL = getBaseURL();
 
 // API Base URL configured
 

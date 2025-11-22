@@ -14,7 +14,19 @@ const isTokenExpired = (token) => {
 
 const refreshAccessToken = async () => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}auth/token/refresh/`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+        let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+        // Ensure protocol is included
+        if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+            baseUrl = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1') 
+                ? `http://${baseUrl}` 
+                : `https://${baseUrl}`;
+        }
+        // Ensure /api path is included
+        if (!baseUrl.includes('/api')) {
+            baseUrl = `${baseUrl}/api`;
+        }
+        const response = await fetch(`${baseUrl}/auth/token/refresh/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

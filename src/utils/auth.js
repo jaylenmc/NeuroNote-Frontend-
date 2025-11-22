@@ -1,10 +1,26 @@
 import axios from 'axios';
 
-const api = import.meta.env.VITE_API_URL;
+const getApiUrl = () => {
+    let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+    // Remove trailing slash
+    apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    // Ensure protocol is included
+    if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+        apiUrl = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1') 
+            ? `http://${apiUrl}` 
+            : `https://${apiUrl}`;
+    }
+    // Ensure /api path is included
+    if (!apiUrl.includes('/api')) {
+        apiUrl = `${apiUrl}/api`;
+    }
+    return apiUrl;
+};
 
 export const refreshToken = async () => {
     try {
-        const response = await axios.post(`${api}auth/token/refresh/`);
+        const apiBase = getApiUrl();
+        const response = await axios.post(`${apiBase}/auth/token/refresh/`);
         const newToken = response.data.access;
         sessionStorage.setItem('jwt_token', newToken);
         return newToken;

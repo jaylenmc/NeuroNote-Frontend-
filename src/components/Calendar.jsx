@@ -9,7 +9,6 @@ function Calendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [scheduledCards, setScheduledCards] = useState({});
     const [upcomingCards, setUpcomingCards] = useState([]);
-    const api = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         const fetchCards = async () => {
@@ -23,7 +22,7 @@ function Calendar() {
                     }
                 };
 
-                const response = await api.get(`${api}flashcards/cards/`, config);
+                const response = await api.get('/flashcards/cards/', config);
                 
                 // Group cards by scheduled date
                 const cardsByDate = {};
@@ -63,7 +62,7 @@ function Calendar() {
         };
 
         fetchCards();
-    }, [api]);
+    }, []);
 
     const months = [
         "January", "February", "March", "April", "May", "June",

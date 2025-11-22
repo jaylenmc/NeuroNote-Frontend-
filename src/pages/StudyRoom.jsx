@@ -238,7 +238,18 @@ const StudyRoom = () => {
   }, [notesContent]);
 
   useEffect(() => {
-    const wsUrl = `ws://127.0.0.1:8000/ws/chat/${roomName}/`;
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+    // Convert HTTP/HTTPS URL to WebSocket URL (ws/wss)
+    let wsUrl;
+    if (apiUrl.startsWith('https://')) {
+      // Production: use wss://
+      const url = new URL(apiUrl);
+      wsUrl = `wss://${url.host}/ws/chat/${roomName}/`;
+    } else {
+      // Development: use ws://
+      const url = apiUrl.startsWith('http://') ? new URL(apiUrl) : new URL(`http://${apiUrl}`);
+      wsUrl = `ws://${url.host}/ws/chat/${roomName}/`;
+    }
     ws.current = new window.WebSocket(wsUrl);
 
     ws.current.onopen = () => {

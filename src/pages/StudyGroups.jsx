@@ -66,7 +66,19 @@ const StudyGroups = () => {
     if (!newRoomName.trim() || !newRoomSubject.trim()) return;
     const token = sessionStorage.getItem('jwt_token');
     try {
-      const response = await fetch('http://localhost:8000/api/studyroom/rooms/', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+      let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+      // Ensure protocol is included
+      if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1') 
+          ? `http://${baseUrl}` 
+          : `https://${baseUrl}`;
+      }
+      // Ensure /api path is included
+      if (!baseUrl.includes('/api')) {
+        baseUrl = `${baseUrl}/api`;
+      }
+      const response = await fetch(`${baseUrl}/studyroom/rooms/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +121,19 @@ const StudyGroups = () => {
     if (!roomId.trim()) return;
     const token = sessionStorage.getItem('jwt_token');
     try {
-      const response = await fetch(`http://localhost:8000/api/studyroom/rooms/${roomId}/join/`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+      let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+      // Ensure protocol is included
+      if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1') 
+          ? `http://${baseUrl}` 
+          : `https://${baseUrl}`;
+      }
+      // Ensure /api path is included
+      if (!baseUrl.includes('/api')) {
+        baseUrl = `${baseUrl}/api`;
+      }
+      const response = await fetch(`${baseUrl}/studyroom/rooms/${roomId}/join/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
