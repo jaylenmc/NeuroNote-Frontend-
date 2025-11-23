@@ -8,8 +8,13 @@ function Signin() {
         const state = generateState();
         sessionStorage.setItem('oauth_state', state);
         
-        // Get the frontend URL from environment variable or use current origin
-        const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin;
+        // Get the frontend URL from environment variable
+        const frontendUrl = import.meta.env.VITE_FRONTEND_URL;
+        if (!frontendUrl) {
+            console.error('VITE_FRONTEND_URL is not set in environment variables');
+            alert('Configuration error: Frontend URL not set. Please contact support.');
+            return;
+        }
         const redirectUri = `${frontendUrl}/auth/callback/`;
 
         const OAUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth?' +
