@@ -15,7 +15,7 @@ function Signin() {
             alert('Configuration error: Frontend URL not set. Please contact support.');
             return;
         }
-        const redirectUri = `${frontendUrl}/auth/callback/`;
+        const redirectUri = `https://myneuronote.com/auth/callback/`;
 
         const OAUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth?' +
         new URLSearchParams({
