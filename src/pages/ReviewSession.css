@@ -18,12 +18,6 @@ html, body, #root {
   flex-direction: column;
 }
 
-/* Review Timer Section */
-.review-timer-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
 
 /* Attempts Pill */
 .attempts-pill {
@@ -212,33 +206,96 @@ html, body, #root {
 
 /* Header */
 .review-header-flashcards {
-  max-width: 1200px;
-  margin: 0 0 0 6rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
   border-radius: 1rem;
   min-height: 7rem;
-  padding: 1rem 2rem 4rem 2rem;
+  padding: 2rem 6rem 4rem 6rem;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  width: 100%;
+}
+
+/* Header Center - Layer Indicator and Progress Counter */
+.header-center-layer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.layer-indicator-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 8px 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+
+.layer-icon {
+  color: #7c83fd;
+  font-size: 16px;
+}
+
+.layer-label {
+  color: var(--nightowl-text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.layer-description-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--nightowl-text-main);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  transform: translateX(-50%) translateY(-5px);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.layer-indicator-pill:hover .layer-description-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* Progress Bar in Header */
 .header-progress-bar {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0 2rem;
   max-width: 400px;
   min-width: 200px;
+  width: 100%;
   height: 2.7rem;
+  margin: 0 auto;
+  justify-self: center;
 }
 
 .progress-bar-container {
@@ -336,33 +393,116 @@ html, body, #root {
 }
 
 
-.review-timer-section {
+/* Header Right Controls */
+.header-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* Progress Counter Pill */
+.progress-counter-pill {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.timer-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
+  border-radius: 20px;
   padding: 8px 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.progress-counter-text {
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--nightowl-text-main);
+  white-space: nowrap;
+}
+
+.control-toggle-group {
+  position: relative;
+}
+
+.control-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  color: var(--nightowl-text-main);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.control-toggle-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.control-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.control-toggle-btn.active {
+  background: rgba(124, 131, 253, 0.15);
+  border-color: rgba(124, 131, 253, 0.3);
+  color: #7c83fd;
+}
+
+.control-toggle-btn svg {
+  font-size: 16px;
+}
+
+.timer-display-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px 5px 4px 16px;
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
 
-.timer-pill:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .timer-icon {
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 16px;
 }
 
 .timer-text {
@@ -373,25 +513,109 @@ html, body, #root {
   cursor: default;
 }
 
+.timer-text-large {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--nightowl-text-main);
+}
+
+.tutor-style-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  animation: slideDown 0.2s ease;
+}
+
+.tutor-style-menu {
+  background: rgba(30, 30, 30, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  min-width: 320px;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.tutor-style-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+  background: transparent;
+}
+
+.tutor-style-option:last-child {
+  margin-bottom: 0;
+}
+
+.tutor-style-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tutor-style-option.selected {
+  background: rgba(124, 131, 253, 0.15);
+  border: 1px solid rgba(124, 131, 253, 0.3);
+}
+
+.tutor-style-option.selected:hover {
+  background: rgba(124, 131, 253, 0.2);
+}
+
+.tutor-style-option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tutor-style-option-label {
+  color: var(--nightowl-text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tutor-style-option-description {
+  color: var(--nightowl-text-steel);
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.tutor-style-check-icon {
+  color: #7c83fd;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
 .pause-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  border: none;
   color: var(--nightowl-text-main);
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 50%;
+  border-radius: 0;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: auto;
+  height: auto;
 }
 
 .pause-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  border: none;
   color: var(--nightowl-text-main);
+  opacity: 0.8;
 }
 
 /* Flashcard Container */
@@ -857,13 +1081,16 @@ html, body, #root {
   }
 
   .header-left {
-    flex: 0 0 auto;
     min-width: 200px;
   }
   
-  .review-timer-section {
-    flex: 0 0 auto;
+  .header-right-controls {
     min-width: 200px;
+  }
+  
+  .tutor-style-dropdown {
+    right: 0;
+    min-width: 250px;
   }
   
   .review-progress-section {
@@ -1095,9 +1322,17 @@ html, body, #root {
     align-self: flex-start;
   }
   
-  .review-timer-section {
+  .header-right-controls {
     order: 4;
     align-self: flex-end;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .tutor-style-dropdown {
+    right: auto;
+    left: 0;
+    min-width: 200px;
   }
   
   .card-counter {
@@ -1124,8 +1359,6 @@ html, body, #root {
   }
   
   .pause-btn {
-    width: 28px;
-    height: 28px;
     padding: 0.4rem;
   }
 }

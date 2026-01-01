@@ -82,7 +82,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 2rem;
 }
 
 .header-meta {
@@ -161,6 +161,16 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   margin-bottom: 20px;
+}
+
+/* Question Display inside Answer Area */
+.question-display {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .input-mode-label {
@@ -303,9 +313,9 @@
 }
 
 .hint-btn {
-  background: rgba(255, 193, 7, 0.1);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.2);
+  background: rgba(124, 131, 253, 0.1);
+  color: #7c83fd;
+  border: 1px solid rgba(124, 131, 253, 0.2);
 }
 
 .hint-btn:hover {
@@ -2946,227 +2956,6 @@ textarea.template-input {
   letter-spacing: 0.05em;
 }
 
-/* AI Coach Styles */
-.ai-coach {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-
-.coach-toggle {
-  background: #2E3239;
-  border: 1px solid var(--nightowl-panel-border);
-  border-radius: 50%;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  position: relative;
-  backdrop-filter: blur(10px);
-}
-
-.coach-toggle:hover {
-  background: var(--nightowl-bg-hover);
-  border-color: rgba(124, 131, 253, 0.4);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.coach-icon {
-  color: #7c83fd;
-  font-size: 22px;
-}
-
-.coach-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #ff6b6b;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.coach-panel {
-  position: absolute;
-  top: 70px;
-  right: 0;
-  width: 360px;
-  background: #2C3038;
-  border-radius: 12px;
-  border: 1px solid var(--nightowl-panel-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  animation: slideInDown 0.3s ease;
-}
-
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.coach-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px;
-  background: var(--nightowl-bg-card);
-  border-bottom: 1px solid var(--nightowl-panel-border);
-}
-
-.coach-header h3 {
-  color: var(--nightowl-text-main);
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.close-coach {
-  background: transparent;
-  border: none;
-  color: var(--nightowl-text-steel);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.close-coach:hover {
-  background: var(--nightowl-bg-hover);
-  color: var(--nightowl-text-main);
-}
-
-.recommendations-list {
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 12px;
-}
-
-.recommendation-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
-  margin-bottom: 10px;
-  background: var(--nightowl-bg-card);
-  border-radius: 10px;
-  border: 1px solid var(--nightowl-panel-border);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.recommendation-item:last-child {
-  margin-bottom: 0;
-}
-
-.recommendation-item:hover {
-  background: var(--nightowl-bg-hover);
-  border-color: rgba(124, 131, 253, 0.3);
-  cursor: default;
-}
-
-.recommendation-item.priority-high {
-  border-left: 4px solid #ff6b6b;
-}
-
-.recommendation-item.priority-medium {
-  border-left: 4px solid #ffc107;
-}
-
-.recommendation-item.priority-low {
-  border-left: 4px solid #28a745;
-}
-
-.recommendation-icon {
-  color: #7c83fd;
-  font-size: 18px;
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-.recommendation-content {
-  flex: 1;
-}
-
-.recommendation-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.recommendation-header h4 {
-  color: var(--nightowl-text-main);
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.priority-badge {
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.recommendation-message {
-  color: var(--nightowl-text-steel);
-  font-size: 0.85rem;
-  line-height: 1.4;
-  margin: 0 0 6px 0;
-}
-
-.recommendation-action {
-  color: var(--nightowl-text-main);
-  font-size: 0.8rem;
-  font-weight: 500;
-  font-style: italic;
-}
-
-.recommendation-emoji {
-  font-size: 20px;
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-.coach-footer {
-  padding: 14px 20px;
-  background: var(--nightowl-bg-card);
-  border-top: 1px solid var(--nightowl-panel-border);
-}
-
-.coach-footer p {
-  color: var(--nightowl-text-muted);
-  font-size: 0.8rem;
-  margin: 0;
-  text-align: center;
-  line-height: 1.4;
-}
-
 /* Content Type Selector */
 .content-type-selector {
   display: flex;
@@ -3739,15 +3528,5 @@ textarea.template-input {
   
   .reasoning-steps {
     max-height: 200px;
-  }
-
-  .ai-coach {
-    top: 10px;
-    right: 10px;
-  }
-
-  .coach-panel {
-    width: 300px;
-    right: -10px;
   }
 }

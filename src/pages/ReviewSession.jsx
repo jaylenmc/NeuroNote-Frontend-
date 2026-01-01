@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiClock, FiShuffle, FiPause, FiPlay, FiArrowLeft, FiSkipForward, FiCheck, FiX, FiRotateCcw, FiZap, FiSend, FiCpu, FiEye, FiEyeOff } from 'react-icons/fi';
-import { FaBrain } from 'react-icons/fa';
+import { FiClock, FiShuffle, FiArrowLeft, FiSkipForward, FiCheck, FiX, FiRotateCcw, FiZap, FiSend, FiCpu, FiEye, FiEyeOff, FiSettings, FiChevronDown, FiCheck as FiCheckIcon, FiLayers } from 'react-icons/fi';
+import { FaBrain, FaGraduationCap, FaPause, FaPlay } from 'react-icons/fa';
 import CardsToQuiz from '../components/CardsToQuiz';
 import FeedbackLoopSession from '../components/FeedbackLoopSession';
 import ProblemSolvingSession from '../components/ProblemSolvingSession';
 import PatternRecognitionSession from '../components/PatternRecognitionSession';
-import AICoach from '../components/AICoach';
 import { useNotification } from '../contexts/NotificationContext';
 import api from '../api/axios';
 import { jwtDecode } from 'jwt-decode';
@@ -76,6 +75,28 @@ const ReviewSession = () => {
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiConversation, setAiConversation] = useState([]);
 
+  // State for tutor style toggle
+  const [showTutorStyle, setShowTutorStyle] = useState(false);
+  const [tutorStyle, setTutorStyle] = useState('socratic'); // strict, friendly, professional, speed_run, socratic, supportive
+  const [currentLayer, setCurrentLayer] = useState(1); // 1, 2, or 3 for doing-feedback method
+
+  // Tutor style descriptions
+  const tutorStyles = {
+    strict: { label: 'Strict', description: 'No-nonsense tutor who challenges you' },
+    friendly: { label: 'Friendly', description: 'Warm, casual tutor who explains gently' },
+    professional: { label: 'Professional', description: 'Polished, classroom-style instructor' },
+    speed_run: { label: 'Speed Run', description: 'Fast-paced, optimized explanations' },
+    socratic: { label: 'Socratic', description: 'Question-driven tutor that guides you' },
+    supportive: { label: 'Supportive', description: 'Motivational guide who reassures you' }
+  };
+
+  // Layer descriptions for doing-feedback method
+  const layerDescriptions = {
+    1: { label: 'Layer 1', description: 'Quick Definition - Short, simple explanation' },
+    2: { label: 'Layer 2', description: 'Deeper Concept - How and why it works' },
+    3: { label: 'Layer 3', description: 'Applied Example - Real-world scenarios' }
+  };
+
   // Color map for underlines
   const ratingColors = [
     '#9E9E9E', // 0 - Blackout
@@ -117,6 +138,30 @@ const ReviewSession = () => {
       return false;
     }
   };
+
+  // Close tutor style dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showTutorStyle && !event.target.closest('.control-toggle-group')) {
+        setShowTutorStyle(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTutorStyle]);
+
+  // Reset layer when card changes (only for doing-feedback method)
+  useEffect(() => {
+    if (selectedStudyMethod?.id === 'doing-feedback' && currentReviewCardIndex >= 0 && reviewCards.length > 0) {
+      const currentCard = reviewCards[currentReviewCardIndex];
+      if (currentCard) {
+        setCurrentLayer(1);
+      }
+    }
+  }, [currentReviewCardIndex, selectedStudyMethod?.id]);
 
   // Helper function to calculate motivational stats
   const calculateMotivationalStats = () => {
@@ -794,7 +839,11 @@ const ReviewSession = () => {
       onAttemptChange: setCurrentAttempts,
       nextCard,
       showNotification,
-      onShuffle: handleShuffle
+      onShuffle: handleShuffle,
+      tutorStyle,
+      setTutorStyle,
+      currentLayer,
+      setCurrentLayer
     };
 
     console.log('Session props:', sessionProps);
@@ -851,20 +900,6 @@ const ReviewSession = () => {
 
   return (
     <div className="review-session">
-      {/* AI Coach */}
-      {!showQuiz && !sessionComplete && (
-        <AICoach
-          sessionStats={motivationalStats}
-          selectedStudyMethod={selectedStudyMethod}
-          currentCardIndex={currentReviewCardIndex}
-          totalCards={reviewCards.length}
-          onRecommendationClick={(rec) => {
-            console.log('AI Coach recommendation clicked:', rec);
-            // Here you could implement actions based on recommendations
-          }}
-        />
-      )}
-
 
 
       {showQuiz ? (
@@ -916,30 +951,71 @@ const ReviewSession = () => {
               </button>
             </div>
             
-            {/* Progress Bar */}
-            <div className="header-progress-bar">
-              <div className="progress-bar-container">
-                <div 
-                  className="progress-bar-fill" 
-                  style={{ 
-                    width: `${Math.max((currentReviewCardIndex / reviewCards.length) * 100, 1)}%` 
-                  }}
-                ></div>
-              </div>
-              <div className="progress-text">
-                {currentReviewCardIndex + 1} of {reviewCards.length} cards
+            {/* Center - Layer Indicator and Progress Counter */}
+            <div className="header-center-layer">
+              {/* Layer Indicator (only for doing-feedback method) */}
+              {selectedStudyMethod?.id === 'doing-feedback' && (
+                <div className="layer-indicator-pill" data-layer-description={layerDescriptions[currentLayer]?.description}>
+                  <FiLayers className="layer-icon" />
+                  <span className="layer-label">{layerDescriptions[currentLayer]?.label}</span>
+                  <span className="layer-description-tooltip">{layerDescriptions[currentLayer]?.description}</span>
+                </div>
+              )}
+              {/* Progress Counter Pill */}
+              <div className="progress-counter-pill">
+                <span className="progress-counter-text">
+                  {currentReviewCardIndex + 1}/{reviewCards.length}
+                </span>
               </div>
             </div>
             
-            {/* Timer */}
-            <div className="review-timer-section">
-              <div className="timer-pill">
-                <FiClock className="timer-icon" />
+            {/* Header Right - Timer and Tutor Style Toggles */}
+            <div className="header-right-controls">
+              {/* Timer Display */}
+              <div className="timer-display-pill">
                 <span className="timer-text">{formatTime(timer)}</span>
                 <button className="pause-btn" onClick={handlePause} title={isPaused ? 'Resume' : 'Pause'}>
-                  {isPaused ? <FiPlay /> : <FiPause />}
+                  {isPaused ? <FaPlay /> : <FaPause />}
                 </button>
               </div>
+
+              {/* Tutor Style Toggle - Only show for doing-feedback method */}
+              {selectedStudyMethod?.id === 'doing-feedback' && (
+                <div className="control-toggle-group">
+                  <button 
+                    className={`control-toggle-btn ${showTutorStyle ? 'active' : ''}`}
+                    onClick={() => setShowTutorStyle(!showTutorStyle)}
+                    title={showTutorStyle ? 'Hide Tutor Style' : 'Show Tutor Style'}
+                  >
+                    <FaGraduationCap />
+                    <span>{tutorStyles[tutorStyle]?.label || 'Tutor'}</span>
+                  </button>
+                  {showTutorStyle && (
+                    <div className="tutor-style-dropdown">
+                      <div className="tutor-style-menu">
+                        {Object.entries(tutorStyles).map(([key, { label, description }]) => (
+                          <div
+                            key={key}
+                            className={`tutor-style-option ${tutorStyle === key ? 'selected' : ''}`}
+                            onClick={() => {
+                              setTutorStyle(key);
+                              setShowTutorStyle(false);
+                            }}
+                          >
+                            <div className="tutor-style-option-content">
+                              <div className="tutor-style-option-label">{label}</div>
+                              <div className="tutor-style-option-description">{description}</div>
+                            </div>
+                            {tutorStyle === key && (
+                              <FiCheckIcon className="tutor-style-check-icon" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

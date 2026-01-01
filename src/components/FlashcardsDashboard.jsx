@@ -218,7 +218,7 @@ const FlashcardsDashboard = ({
                         className="nightowl-studyroom-btn"
                         onClick={handleStudyRoomClick}
                     >
-                        🎓 Study Room
+                       Study Room
                     </button>
                 </div>
 
@@ -233,7 +233,6 @@ const FlashcardsDashboard = ({
                         )}
                         <div className="nightowl-sticky-note nightowl-sticky-due">
                             <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-icon">📚</span>
                                 <span className="nightowl-sticky-title">Cards Studied Today</span>
                             </div>
                             <div className="nightowl-sticky-value">
@@ -243,7 +242,6 @@ const FlashcardsDashboard = ({
                         
                         <div className="nightowl-sticky-note nightowl-sticky-upcoming">
                             <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-icon">⏰</span>
                                 <span className="nightowl-sticky-title">Average Session Time</span>
                             </div>
                             <div className="nightowl-sticky-value">
@@ -253,7 +251,6 @@ const FlashcardsDashboard = ({
                         
                         <div className="nightowl-sticky-note nightowl-sticky-correct">
                             <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-icon">📝</span>
                                 <span className="nightowl-sticky-title">Time Studied Today</span>
                             </div>
                             <div className="nightowl-sticky-value">
@@ -263,7 +260,6 @@ const FlashcardsDashboard = ({
                         
                         <div className="nightowl-sticky-note nightowl-sticky-mastered">
                             <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-icon">🏆</span>
                                 <span className="nightowl-sticky-title">Mastered Decks</span>
                             </div>
                             <div className="nightowl-sticky-value">

@@ -483,7 +483,7 @@ const StudyRoom = () => {
             </div>
 
         <div className="header-center">
-          <h1><span className="leaf-emoji">🌱</span>Study Room</h1>
+          <h1>Study Room</h1>
         </div>
       </div>
       <div className="study-room-subtitle">

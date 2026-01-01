@@ -547,7 +547,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
               onMouseEnter={() => setHoveredTab('overdue')}
               onMouseLeave={() => setHoveredTab(null)}
             >
-              <span className="tab-icon">⚠️</span>
               <span>Overdue: <span className="tab-count animated-count">{cards.overdue?.length || 0}</span></span>
             </button>
             <button 
@@ -557,7 +556,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
               onMouseEnter={() => setHoveredTab('dueNow')}
               onMouseLeave={() => setHoveredTab(null)}
             >
-              <span className="tab-icon">⏰</span>
               <span>Due Now: <span className="tab-count animated-count">{cards.dueNow?.length || 0}</span></span>
             </button>
             <button 
@@ -567,7 +565,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
               onMouseEnter={() => setHoveredTab('dueSoon')}
               onMouseLeave={() => setHoveredTab(null)}
             >
-              <span className="tab-icon">👁️</span>
               <span>Due Soon: <span className="tab-count animated-count">{cards.dueSoon?.length || 0}</span></span>
             </button>
             <button 
@@ -577,7 +574,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
               onMouseEnter={() => setHoveredTab('upcoming')}
               onMouseLeave={() => setHoveredTab(null)}
             >
-              <span className="tab-icon">📅</span>
               <span>Upcoming: <span className="tab-count animated-count">{cards.upcoming?.length || 0}</span></span>
             </button>
           </div>
@@ -643,9 +639,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
               return (
                 <div key={card.id} className="card-item" style={{ animationDelay: `${index * 0.1}s` }}>
                   <div className="card-deck-top">
-                    <span className="card-deck-icon" role="img" aria-label="deck">
-                      {getDeckIcon(card.deckTitle)}
-                    </span>
                     {card.deckTitle}
                   </div>
                   <div className="card-question-center">
@@ -703,7 +696,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
             className="start-review-button"
             onClick={handleStartReview}
           >
-            <FiBook className="button-icon" />
             <span>Start Review Session ({totalCards} Cards)</span>
           </button>
         </div>

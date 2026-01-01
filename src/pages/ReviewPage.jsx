@@ -178,7 +178,7 @@ const ReviewPage = () => {
               onClick={() => setShowDeckDropdown((prev) => !prev)}
               title={selectedDeckId ? (decks.find(d => d.id === selectedDeckId)?.title || 'Unknown Deck') : 'All Decks'}
             >
-              <span role="img" aria-label="deck">📁</span>
+              <span role="img" aria-label="deck"></span>
               {selectedDeckId
                 ? (() => {
                     const deckTitle = decks.find(d => d.id === selectedDeckId)?.title || 'Unknown Deck';
@@ -193,7 +193,7 @@ const ReviewPage = () => {
                   className={`deck-dropdown-item${selectedDeckId === null ? ' selected' : ''}`}
                   onClick={() => { setSelectedDeckId(null); setShowDeckDropdown(false); }}
                 >
-                  📁 All Decks
+                All Decks
                 </div>
                 {decks.map(deck => (
                   <div
@@ -201,7 +201,7 @@ const ReviewPage = () => {
                     className={`deck-dropdown-item${selectedDeckId === deck.id ? ' selected' : ''}`}
                     onClick={() => { setSelectedDeckId(deck.id); setShowDeckDropdown(false); }}
                   >
-                    📦 {deck.title}
+                    {deck.title}
                   </div>
                 ))}
               </div>
@@ -219,7 +219,6 @@ const ReviewPage = () => {
         </div>
       </div>
       <div className="review-session-title-block enhanced-title-block">
-        <div className="review-greeting">{userName} <span className="wave">👋</span></div>
         <h2 className="review-session-title gradient-title">
           <span className="review-session-title-inner">
             <FaBrain className="brain-icon" />
