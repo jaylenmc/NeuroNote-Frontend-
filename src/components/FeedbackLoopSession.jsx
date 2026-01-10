@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { FiCheck, FiX, FiRotateCcw, FiTarget, FiZap, FiEdit, FiArrowRight, FiLock, FiUnlock, FiShuffle, FiLayers } from 'react-icons/fi';
 import api from '../api/axios';
 
@@ -26,21 +27,112 @@ const FeedbackLoopSession = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+  const [canAdvanceLayer, setCanAdvanceLayer] = useState(false);
+  const [passFailStatus, setPassFailStatus] = useState(null); // 'pass', 'fail', or null
+  const [showLayerTransition, setShowLayerTransition] = useState(false);
+  const [transitioningToLayer, setTransitioningToLayer] = useState(null);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const [shouldFadeIn, setShouldFadeIn] = useState(false);
+  const [showShuffleConfirm, setShowShuffleConfirm] = useState(false);
 
-  // Reset state when card changes
+  // Function to fetch previous attempts
+  const fetchPreviousAttempts = async () => {
+    if (!currentCard?.id) return;
+    
+    try {
+      // Call GET endpoint to get previous attempts for this card
+      // Pass card ID in URL path: /tutor/doingfeedback/<card_id>/
+      const response = await api.get(`/tutor/doingfeedback/${currentCard.id}/`);
+      
+      // Backend returns the attempts number directly
+      if (response.data !== null && response.data !== undefined) {
+        const attempts = typeof response.data === 'number' ? response.data : (response.data.attempts || 1);
+        setAttemptCount(attempts);
+        if (onAttemptChange) {
+          onAttemptChange(attempts);
+        }
+      } else {
+        // No previous attempts found, start at 1
+        setAttemptCount(1);
+        if (onAttemptChange) {
+          onAttemptChange(1);
+        }
+      }
+    } catch (error) {
+      // If no interaction found (404), start with 1 attempt
+      if (error.response?.status === 404) {
+        setAttemptCount(1);
+        if (onAttemptChange) {
+          onAttemptChange(1);
+        }
+      } else {
+        console.error('Error fetching previous attempts:', error);
+        // Default to 1 on error
+        setAttemptCount(1);
+        if (onAttemptChange) {
+          onAttemptChange(1);
+        }
+      }
+    }
+  };
+
+  // Fetch previous attempts when card changes
   useEffect(() => {
+    // Reset state when card changes
     setCurrentStep('practice');
     setUserAnswer('');
     setFeedback('');
-    setAttemptCount(0);
     setShowHint(false);
     setReflectionAnswer('');
     setDifficulty('medium');
     setAiResponse('');
     setIsSubmitting(false);
     setShowCorrectAnswer(false);
+    setCanAdvanceLayer(false);
+    setPassFailStatus(null);
+    setShowLayerTransition(false);
+    setTransitioningToLayer(null);
+    setIsFadingOut(false);
+    setShouldFadeIn(false);
     setCurrentLayer(1); // Reset to layer 1 when card changes
-  }, [currentCard?.id]);
+    
+    // Fetch previous attempts before loading anything
+    fetchPreviousAttempts();
+  }, [currentCard?.id, onAttemptChange]);
+
+  // Handle shuffle - call parent's shuffle and then fetch attempts for new card
+  const handleShuffle = async () => {
+    // If user is on layer > 1, show confirmation modal
+    if (currentLayer > 1) {
+      setShowShuffleConfirm(true);
+      return;
+    }
+    
+    // Proceed with shuffle if on layer 1
+    await proceedWithShuffle();
+  };
+
+  // Actually perform the shuffle
+  const proceedWithShuffle = async () => {
+    // Close confirmation modal first
+    setShowShuffleConfirm(false);
+    
+    // Call parent's shuffle handler if it exists
+    if (onShuffle) {
+      onShuffle();
+    }
+    
+    // Wait a moment for the card to change after shuffle
+    // Then fetch attempts for the new current card
+    setTimeout(async () => {
+      await fetchPreviousAttempts();
+    }, 100);
+  };
+
+  // Cancel shuffle
+  const cancelShuffle = () => {
+    setShowShuffleConfirm(false);
+  };
 
   // Tutor style descriptions
   const tutorStyles = {
@@ -54,9 +146,34 @@ const FeedbackLoopSession = ({
 
   // Layer descriptions
   const layerDescriptions = {
-    1: { label: 'Layer 1', description: 'Quick Definition - Short, simple explanation' },
-    2: { label: 'Layer 2', description: 'Deeper Concept - How and why it works' },
-    3: { label: 'Layer 3', description: 'Applied Example - Real-world scenarios' }
+    1: { label: 'Layer 1', description: 'Recognition: You must identify what the question refers to when prompted, without needing detail, structure, or justification.' },
+    2: { label: 'Layer 2', description: 'Structure: You must explain the essential parts or rules that make the concept what it is.' },
+    3: { label: 'Layer 3', description: 'Implication: You must reason about what follows from the concept being true — consequences, effects, or constraints.' }
+  };
+
+  // Remove any decision text from feedback HTML
+  const cleanFeedbackHtml = (html) => {
+    if (!html) return html;
+    
+    // Remove various patterns of decision text that might appear in HTML
+    let cleaned = html;
+    
+    // Remove "Decision: #Pass#" or "Decision: #Fail#" patterns (case insensitive)
+    cleaned = cleaned.replace(/Decision:\s*#(Pass|Fail)#/gi, '');
+    
+    // Remove any standalone "Pass" or "Fail" that might be wrapped in tags or appear alone
+    // Be careful not to remove these words if they're part of normal text
+    // Only remove if they appear in specific decision-related contexts
+    
+    // Remove decision in various HTML tag patterns
+    cleaned = cleaned.replace(/<[^>]*>\s*Decision:\s*#?(Pass|Fail)#?\s*<\/[^>]*>/gi, '');
+    cleaned = cleaned.replace(/Decision:\s*#?(Pass|Fail)#?/gi, '');
+    
+    // Clean up any extra whitespace or empty tags left behind
+    cleaned = cleaned.replace(/\s+/g, ' ');
+    cleaned = cleaned.trim();
+    
+    return cleaned;
   };
 
   const generateFeedback = async () => {
@@ -78,8 +195,44 @@ const FeedbackLoopSession = ({
       const response = await api.post('/tutor/doingfeedback/', requestData);
       
       if (response.data) {
-        // Backend now returns plain text response
-        setAiResponse(response.data);
+        // Backend now returns structured JSON with 'feedback' and 'decision' fields
+        let responseData;
+        
+        // Handle both JSON object and JSON string responses
+        if (typeof response.data === 'string') {
+          try {
+            // Clean up the response if it's wrapped in quotes
+            let cleanedData = response.data.trim();
+            if (cleanedData.startsWith("'") && cleanedData.endsWith("'")) {
+              cleanedData = cleanedData.slice(1, -1);
+            }
+            cleanedData = cleanedData.replace(/\\'/g, "'");
+            responseData = JSON.parse(cleanedData);
+          } catch (error) {
+            console.error('Error parsing JSON response:', error);
+            setAiResponse('Sorry, there was an error parsing the feedback response.');
+            return;
+          }
+        } else {
+          responseData = response.data;
+        }
+        
+        // Extract feedback and decision from structured response
+        let feedbackHtml = responseData.feedback || '';
+        const decision = responseData.decision || '';
+        
+        // Clean feedback HTML to remove any decision text
+        feedbackHtml = cleanFeedbackHtml(feedbackHtml);
+        
+        // Set pass/fail status based on decision
+        const status = decision.toLowerCase() === 'pass' ? 'pass' : (decision.toLowerCase() === 'fail' ? 'fail' : null);
+        
+        setPassFailStatus(status);
+        setAiResponse(feedbackHtml);
+        setFeedback(feedbackHtml);
+        
+        // Allow layer advancement only if status is 'pass'
+        setCanAdvanceLayer(status === 'pass');
         
         // Set difficulty based on next card's learning status
         if (nextCard) {
@@ -135,19 +288,57 @@ const FeedbackLoopSession = ({
     }
   };
 
-  const handleAdvanceLayer = () => {
+  const handleAdvanceLayer = async () => {
     if (currentLayer < 3) {
-      setCurrentLayer(currentLayer + 1);
-      setCurrentStep('practice');
-      setUserAnswer('');
-      setAiResponse('');
+      const nextLayer = currentLayer + 1;
+      setTransitioningToLayer(nextLayer);
+      setShowLayerTransition(true);
+      
+      // Play success chime sound (played here to ensure it works after user interaction)
+      try {
+        const audio = new Audio('/sounds/pass.wav');
+        audio.volume = 0.7;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error('Error playing success sound:', error);
+          });
+        }
+      } catch (error) {
+        console.error('Error creating audio:', error);
+      }
+      
+      // Hide overlay after 3 seconds with fade out
+      setTimeout(async () => {
+        setIsFadingOut(true);
+        // Wait for fade out animation to complete (300ms)
+        setTimeout(async () => {
+          setShowLayerTransition(false);
+          setIsFadingOut(false);
+          setCurrentLayer(nextLayer);
+          setCurrentStep('practice');
+          setUserAnswer('');
+          setAiResponse('');
+          setTransitioningToLayer(null);
+          // Trigger fade in for content
+          setShouldFadeIn(true);
+          // Fetch updated attempts after advancing layer
+          await fetchPreviousAttempts();
+          // Reset fade in after animation completes
+          setTimeout(() => {
+            setShouldFadeIn(false);
+          }, 500);
+        }, 300);
+      }, 3000);
     }
   };
 
-  const handleRetryLayer = () => {
+  const handleRetryLayer = async () => {
     setCurrentStep('practice');
     setUserAnswer('');
     setAiResponse('');
+    // Fetch updated attempts after retry
+    await fetchPreviousAttempts();
   };
 
   const handleTryAgain = () => {
@@ -172,9 +363,70 @@ const FeedbackLoopSession = ({
     return "Consider the context and key terms in the question.";
   };
 
+  // Render overlay via Portal so it appears above everything, regardless of step
+  const renderOverlayPortal = () => {
+    if (!showLayerTransition || !transitioningToLayer) return null;
+    
+    return ReactDOM.createPortal(
+      <div className={`layer-transition-overlay ${isFadingOut ? 'fade-out' : ''}`}>
+        <div className="layer-transition-content">
+          <div className="layer-transition-title">
+            You made it to {layerDescriptions[transitioningToLayer]?.label}!
+          </div>
+          <div className="layer-transition-description">
+            {layerDescriptions[transitioningToLayer]?.description}
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  // Render shuffle confirmation modal
+  const renderShuffleConfirmModal = () => {
+    if (!showShuffleConfirm) return null;
+    
+    return ReactDOM.createPortal(
+      <div className="shuffle-confirm-overlay" onClick={cancelShuffle}>
+        <div className="shuffle-confirm-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="shuffle-confirm-header">
+            <FiLayers className="shuffle-confirm-icon" />
+            <h3 className="shuffle-confirm-title">Shuffle Cards?</h3>
+          </div>
+          <div className="shuffle-confirm-body">
+            <p className="shuffle-confirm-message">
+              You're currently on <strong>Layer {currentLayer}</strong> of this card. If you shuffle, you'll lose your progress on this card and start over with a new card.
+            </p>
+            <p className="shuffle-confirm-submessage">
+              Are you sure you want to continue?
+            </p>
+          </div>
+          <div className="shuffle-confirm-actions">
+            <button 
+              className="shuffle-confirm-btn shuffle-confirm-cancel"
+              onClick={cancelShuffle}
+            >
+              Cancel
+            </button>
+            <button 
+              className="shuffle-confirm-btn shuffle-confirm-proceed"
+              onClick={proceedWithShuffle}
+            >
+              Yes, Shuffle
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   if (currentStep === 'practice') {
     return (
-      <div className="feedback-loop-session">
+      <>
+        {renderOverlayPortal()}
+        {renderShuffleConfirmModal()}
+        <div className={`feedback-loop-session ${shouldFadeIn ? 'fade-in' : ''}`}>
         <div className="feedback-loop-practice">
         <div className="session-title-center">
           <h2 className="session-main-title">Doing + Feedback Loop</h2>
@@ -184,10 +436,11 @@ const FeedbackLoopSession = ({
         <div className="practice-content">
           <div className="answer-area">
             <div className="answer-area-header">
+              <span className="question-label">Question:</span>
               <div className="header-meta" style={{ marginLeft: 'auto' }}>
                 <div className="attempts-display">
                   <FiTarget className="attempts-icon" />
-                  <span>Attempt {attemptCount + 1}</span>
+                  <span>Attempt {attemptCount}</span>
                 </div>
               </div>
             </div>
@@ -226,7 +479,7 @@ const FeedbackLoopSession = ({
             {onShuffle && (
               <button 
                 className="hint-btn action-btn"
-                onClick={onShuffle}
+                onClick={handleShuffle}
                 title="Shuffle cards"
               >
                 <FiShuffle />
@@ -249,121 +502,67 @@ const FeedbackLoopSession = ({
         </div>
         </div>
       </div>
+      </>
     );
   }
 
   if (currentStep === 'feedback') {
     return (
-      <div className="feedback-loop-feedback">
+      <>
+        {renderOverlayPortal()}
+        {renderShuffleConfirmModal()}
+        <div className="feedback-loop-feedback">
         <div className="session-title-center">
           <h2 className="session-main-title">Instant Feedback</h2>
           <div className="session-subtitle">Review your performance and learn from mistakes</div>
         </div>
         
         <div className="feedback-content">
+          <div className="user-answer-section">
+            <div className="answer-label">
+              <FiEdit className="answer-label-icon" />
+              <h4>Your Answer</h4>
+            </div>
+            <div className="user-answer-content">
+              {userAnswer || "No answer provided"}
+            </div>
+          </div>
+
           <div className="feedback-card">
             <div className="feedback-header">
-              <span className="feedback-emoji">🗣️</span>
-              <h3>Neuro Feedback - {layerDescriptions[currentLayer].label}</h3>
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ 
-                  fontSize: '0.85rem', 
-                  color: 'var(--nightowl-text-steel)',
-                  padding: '4px 12px',
-                  background: 'rgba(124, 131, 253, 0.1)',
-                  borderRadius: '12px'
-                }}>
+              <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: 'var(--nightowl-text-main)' }}>Neuro Feedback</h3>
+              <div className="feedback-header-badges">
+                {passFailStatus && (
+                  <span className={`feedback-status-badge ${passFailStatus}`}>
+                    {passFailStatus === 'pass' ? '✓ Pass' : '✗ Fail'}
+                  </span>
+                )}
+                <span className="tutor-style-badge">
                   {tutorStyles[tutorStyle].label} Style
                 </span>
               </div>
             </div>
             <div className="feedback-message">
               <div 
-                style={{ 
-                  lineHeight: '1.6',
-                  fontSize: '1rem',
-                  color: 'var(--nightowl-text-main)'
-                }}
+                className="feedback-html-content"
                 dangerouslySetInnerHTML={{
-                  __html: (aiResponse || feedback || 'Loading feedback...')
-                    .replace(/^### (.*$)/gim, '<h3 class="feedback-h3">$1</h3>') // Convert ### to h3
-                    .replace(/^## (.*$)/gim, '<h2 class="feedback-h2">$1</h2>') // Convert ## to h2
-                    .replace(/^# (.*$)/gim, '<h1 class="feedback-h1">$1</h1>') // Convert # to h1
-                    .replace(/^\d+\.\s+(.*$)/gim, '<div style="margin: 8px 0; padding-left: 20px; position: relative;"><span style="color: #7c83fd; font-weight: 600; position: absolute; left: 0;">•</span>$1</div>') // Convert numbered lists
-                    .replace(/^- (.*$)/gim, '<div style="margin: 8px 0; padding-left: 20px; position: relative;"><span style="color: #7c83fd; font-weight: 600; position: absolute; left: 0;">•</span>$1</div>') // Convert bullet lists
-                    .replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--nightowl-text-main); font-weight: 700;">$1</strong>') // Bold text
-                    .replace(/\*(.*?)\*/g, '<em style="color: var(--nightowl-text-steel); font-style: italic;">$1</em>') // Italic text
-                    .replace(/\n/g, '<br>') // Convert line breaks
-                    .trim()
+                  __html: aiResponse || feedback || 'Loading feedback...'
                 }}
               />
             </div>
           </div>
 
-          <div className="answer-comparison">
-            <div className="user-answer-section">
-              <div className="answer-label">
-                <FiEdit className="answer-label-icon" />
-                <h4>Your Answer</h4>
-              </div>
-              <div className="user-answer-content">
-                {userAnswer || "No answer provided"}
-              </div>
+          {currentLayer === 1 && canAdvanceLayer && (
+            <div className="difficulty-card">
+              <span className="difficulty-label">Next Challenge Level:</span>
+              <span className={`difficulty-badge ${difficulty}`}>
+                {difficulty === 'easy' && 'Easy'}
+                {difficulty === 'intermediate' && 'Intermediate'}
+                {difficulty === 'new' && 'New Content'}
+                {difficulty === 'hard' && 'Hard'}
+              </span>
             </div>
-
-            <div className="answer-divider">
-              <FiArrowRight className="divider-icon" />
-            </div>
-
-            <div className="correct-answer-section">
-              <div className="answer-label">
-                <FiCheck className="answer-label-icon" />
-                <h4>Correct Answer</h4>
-                <button 
-                  onClick={() => setShowCorrectAnswer(!showCorrectAnswer)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#28a745',
-                    cursor: 'pointer',
-                    padding: '4px',
-                    borderRadius: '4px',
-                    marginLeft: '8px',
-                    transition: 'all 0.3s ease'
-                  }}
-                  title={showCorrectAnswer ? 'Hide correct answer' : 'Show correct answer'}
-                >
-                  {showCorrectAnswer ? <FiUnlock size={16} /> : <FiLock size={16} />}
-                </button>
-              </div>
-              <div className="correct-answer-content">
-                {showCorrectAnswer ? (
-                  currentCard.answer
-                ) : (
-                  <div style={{ 
-                    color: 'var(--nightowl-text-muted)', 
-                    fontStyle: 'italic',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    <FiLock size={16} />
-                    Click the lock to reveal the correct answer
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="difficulty-card">
-            <span className="difficulty-label">Next Challenge Level:</span>
-            <span className={`difficulty-badge ${difficulty}`}>
-              {difficulty === 'easy' && 'Easy'}
-              {difficulty === 'intermediate' && 'Intermediate'}
-              {difficulty === 'new' && 'New Content'}
-              {difficulty === 'hard' && 'Hard'}
-            </span>
-          </div>
+          )}
 
           <div className="feedback-actions">
             <button className="try-again-btn action-btn" onClick={handleRetryLayer}>
@@ -372,21 +571,24 @@ const FeedbackLoopSession = ({
             </button>
             {currentLayer < 3 && (
               <button 
-                className="continue-btn action-btn"
+                className={`continue-btn action-btn ${!canAdvanceLayer ? 'disabled' : ''}`}
                 onClick={handleAdvanceLayer}
-                title={`Advance to ${layerDescriptions[currentLayer + 1].label}`}
+                disabled={!canAdvanceLayer}
+                title={canAdvanceLayer ? `Advance to ${layerDescriptions[currentLayer + 1].label}` : 'Complete current layer to advance'}
               >
                 <FiLayers />
                 Advance to {layerDescriptions[currentLayer + 1].label}
               </button>
             )}
-            <button 
-              className="continue-btn action-btn"
-              onClick={handleNextStep}
-              title="Continue to Reflection"
-            >
-              Continue to Reflection
-            </button>
+            {currentLayer === 3 && canAdvanceLayer && (
+              <button 
+                className="continue-btn action-btn"
+                onClick={handleNextStep}
+                title="Continue to Reflection"
+              >
+                Continue to Reflection
+              </button>
+            )}
           </div>
           
           {currentLayer < 3 && (
@@ -396,12 +598,17 @@ const FeedbackLoopSession = ({
           )}
         </div>
       </div>
+      {renderShuffleConfirmModal()}
+      </>
     );
   }
 
   if (currentStep === 'reflection') {
     return (
-      <div className="feedback-loop-reflection">
+      <>
+        {renderOverlayPortal()}
+        {renderShuffleConfirmModal()}
+        <div className="feedback-loop-reflection">
         <div className="session-title-center">
           <h2 className="session-main-title">Reflection</h2>
           <div className="session-subtitle">Reflect on what you learned and how to apply it</div>
@@ -442,6 +649,7 @@ const FeedbackLoopSession = ({
           )}
         </div>
       </div>
+      </>
     );
   }
 

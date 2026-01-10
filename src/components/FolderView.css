@@ -43,7 +43,7 @@
   background: var(--nightowl-bg-panel);
   border-radius: 16px;
   backdrop-filter: blur(12px);
-  box-shadow: var(--nightowl-card-shadow), var(--nightowl-card-inner);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.02);
   flex-shrink: 0;
   position: relative;
   z-index: 20;
@@ -105,33 +105,34 @@
 .folder-stats {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   gap: 16px;
   width: 100%;
 }
 
 .folder-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
   gap: 16px;
   width: 100%;
-  justify-content: center;
 }
 
 .folder-stat-item {
   background: var(--nightowl-bg-card);
-  border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 12px 26px rgba(6, 8, 12, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow: 0 12px 26px rgba(6, 8, 12, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.001);
   border: 1px solid var(--nightowl-card-border-soft);
   position: relative;
   transform: none;
   transition: all 0.3s ease;
   min-height: 72px;
   display: flex;
+  cursor: default;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 40%;
   text-align: center;
 }
 
@@ -140,9 +141,8 @@
 }
 
 .folder-stat-item:hover {
-  background: var(--nightowl-bg-hover);
   transform: scale(1.02);
-  box-shadow: 0 24px 40px rgba(8, 10, 16, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow: 0 24px 40px rgba(8, 10, 16, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   z-index: 10;
 }
 
@@ -744,7 +744,7 @@
 }
 
   .new-item-btn {
-    background: #7c83fd;
+    background: #4d55c4;
     color: #fff;
     border: none;
     padding: 10px 16px;
@@ -757,11 +757,11 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 2px 8px rgba(124, 131, 253, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
 .new-item-btn:hover {
-  background-color: #959afb;
+  background-color: #5a62d9;
 }
 
 .new-item-dropdown {
@@ -846,7 +846,6 @@
 .folderview-items .folder-item {
   background: var(--nightowl-bg-card) !important;
   border: 1px solid var(--nightowl-card-border-soft) !important;
-  border-radius: 10px !important;
   padding: 16px 20px !important;
   cursor: pointer;
   transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease !important;
@@ -858,16 +857,8 @@
   min-height: 68px;
   justify-content: space-between;
   backdrop-filter: blur(8px);
-  box-shadow: 0 12px 26px rgba(6, 8, 12, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-
-
-.folderview-items .folder-item:hover {
-  background: var(--nightowl-bg-hover) !important;
-  border: 1px solid rgba(124, 255, 216, 0.18) !important;
-  box-shadow: 0 24px 40px rgba(8, 10, 16, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
 /* Folder Item Icon */
 .folder-item__icon {
   width: 40px;
@@ -1369,48 +1360,43 @@
 }
 
 /* Empty State */
-.empty-state {
+.folder-view-empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 400px;
   text-align: center;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
 
-.empty-state-content {
+.folder-view-empty-state-content {
   max-width: 400px;
 }
 
 
-.empty-state-icon {
+.folder-view-empty-state-icon {
   font-size: 4rem;
   margin-bottom: 24px;
   opacity: 0.5;
 }
 
-.empty-state h3 {
+.folder-view-empty-state h3 {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--nightowl-text-main);
   margin: 0 0 12px 0;
 }
 
-.empty-state p {
+.folder-view-empty-state p {
   color: var(--nightowl-text-steel);
   font-size: 1rem;
   margin: 0 0 32px 0;
   line-height: 1.5;
 }
 
-.empty-state-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 24px;
-}
-
-  .empty-state-btn {
+  .folder-view-empty-state-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
@@ -1426,17 +1412,17 @@
     font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
   }
 
-.empty-state-btn:hover {
+.folder-view-empty-state-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
-.empty-state-btn.primary {
+.folder-view-empty-state-btn.primary {
   background: #7c83fd;
   border-color: #7c83fd;
 }
 
-.empty-state-btn img {
+.folder-view-empty-state-btn img {
   width: 16px;
   height: 16px;
   filter: brightness(0) invert(1);
@@ -1629,11 +1615,7 @@
     font-size: 0.75rem;
   }
 
-  .empty-state-actions {
-    flex-direction: column;
-  }
-
-  .empty-state-btn {
+  .folder-view-empty-state-btn {
     width: 100%;
     justify-content: center;
   }

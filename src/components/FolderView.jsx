@@ -170,40 +170,11 @@ const FolderView = ({
 
         if (!hasItems && !hasSubfolders) {
             return (
-                <div className="empty-state">
-                    <div className="empty-state-content">
-                        <div className="empty-state-icon">📁</div>
+                <div className="folder-view-empty-state">
+                    <div className="folder-view-empty-state-content">
+                        <div className="folder-view-empty-state-icon">📁</div>
                         <h3>This folder is empty</h3>
                         <p>Create your first document, deck, or quiz to get started</p>
-                        <div className="empty-state-actions">
-                            <button 
-                                className="empty-state-btn primary"
-                                onClick={handleCreateDocument}
-                            >
-                                <FiFileText /> Create Document
-                            </button>
-                            <button 
-                                className="empty-state-btn"
-                                onClick={() => {
-                                    setSubfolderParentId(folder.id);
-                                    setShowNewSubfolderModal(true);
-                                }}
-                            >
-                                <FiFolder size={14} /> Create Subfolder
-                            </button>
-                            <button 
-                                className="empty-state-btn"
-                                onClick={() => handleAddItem(folder.id, 'deck')}
-                            >
-                                <FiBookOpen size={14} /> Import Deck
-                            </button>
-                            <button 
-                                className="empty-state-btn"
-                                onClick={() => handleAddItem(folder.id, 'quiz')}
-                            >
-                                <FiFile size={14} /> Import Quiz
-                            </button>
-                        </div>
                     </div>
                 </div>
             );
@@ -212,13 +183,13 @@ const FolderView = ({
         // Show search results or no results message (for documents/quizzes/decks)
         if (filteredItems.length === 0 && searchQuery.trim() && hasItems) {
             return (
-                <div className="empty-state">
-                    <div className="empty-state-content">
-                        <div className="empty-state-icon">🔍</div>
+                <div className="folder-view-empty-state">
+                    <div className="folder-view-empty-state-content">
+                        <div className="folder-view-empty-state-icon">🔍</div>
                         <h3>No items found</h3>
                         <p>No items match "{searchQuery}"</p>
                         <button 
-                            className="empty-state-btn"
+                            className="folder-view-empty-state-btn"
                             onClick={() => setSearchQuery('')}
                         >
                             Clear search
@@ -334,7 +305,6 @@ const FolderView = ({
                     <div className="folder-info">
                         <div className="folder-title-section">
                             <div className="folder-title-with-icon">
-                                <span className="folder-icon">📂</span>
                                 <h2 className="folder-title">
                                     {Array.isArray(selectedFolder.ancestor_names) && selectedFolder.ancestor_names.length > 0
                                         ? `${selectedFolder.ancestor_names.join(' / ')} / ${selectedFolder.name}`
@@ -403,38 +373,21 @@ const FolderView = ({
                 <div className="folder-stats">
                     <div className="folder-stats-grid">
                         <div className="folder-stat-item">
-                            <div className="folder-stat-icon">📄</div>
                             <div className="folder-stat-content">
                                 <div className="folder-stat-value">{getFolderItemCount(selectedFolder)}</div>
                                 <div className="folder-stat-label">Documents</div>
                             </div>
                         </div>
                         <div className="folder-stat-item">
-                            <div className="folder-stat-icon">⏰</div>
                             <div className="folder-stat-content">
                                 <div className="folder-stat-value">2 days</div>
                                 <div className="folder-stat-label">Recently Edited</div>
                             </div>
                         </div>
                         <div className="folder-stat-item">
-                            <div className="folder-stat-icon">📝</div>
                             <div className="folder-stat-content">
                                 <div className="folder-stat-value">482</div>
                                 <div className="folder-stat-label">Avg. Words Per Note</div>
-                            </div>
-                        </div>
-                        <div className="folder-stat-item">
-                            <div className="folder-stat-icon">📌</div>
-                            <div className="folder-stat-content">
-                                <div className="folder-stat-value">
-                                    <a
-                                        href={`/notes/${selectedFolder.id ?? 'demo-folder'}/note/chemistry-midterm-review`}
-                                        className="folder-stat-link"
-                                    >
-                                        Chemistry Midterm Review
-                                    </a>
-                                </div>
-                                <div className="folder-stat-label">Most Active Note</div>
                             </div>
                         </div>
                     </div>

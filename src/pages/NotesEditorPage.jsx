@@ -458,10 +458,10 @@ const NotesEditorPage = () => {
           }
         }} title="Test Table">T</button>
         <div className="formatting-toolbar-right">
-          <button className="toolbar-action-btn" onClick={() => {/* TODO: Export handler */}} title="Export">📤 Export</button>
-          <button className="toolbar-action-btn" onClick={() => {/* TODO: PDF handler */}} title="Export as PDF">📄 PDF</button>
-          <button className="toolbar-action-btn" onClick={() => {/* TODO: Markdown handler */}} title="Export as Markdown">📝 Markdown</button>
-          <button className="toolbar-action-btn" onClick={() => {/* TODO: Cards handler */}} title="Create Cards">🃏 Cards</button>
+          <button className="toolbar-action-btn" onClick={() => {/* TODO: Export handler */}} title="Export">Export</button>
+          <button className="toolbar-action-btn" onClick={() => {/* TODO: PDF handler */}} title="Export as PDF">PDF</button>
+          <button className="toolbar-action-btn" onClick={() => {/* TODO: Markdown handler */}} title="Export as Markdown">Markdown</button>
+          <button className="toolbar-action-btn" onClick={() => {/* TODO: Cards handler */}} title="Create Cards">Cards</button>
           <button className="fullscreen-btn" onClick={() => setIsFullscreen(f => !f)} title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}>
             {isFullscreen ? <FiMinimize2 size={16} /> : <FiMaximize2 size={16} />}
             </button>

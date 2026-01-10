@@ -192,10 +192,6 @@
     transition: all 0.2s;
 }
 
-.action-btn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-}
 
 .action-btn.study:hover {
     color: #4CAF50;
@@ -1545,12 +1541,6 @@
 
 .submit-btn:hover:not(:disabled) {
     background: #45a049;
-}
-
-.submit-btn:disabled {
-    background: #2d2d2d;
-    color: #666;
-    cursor: not-allowed;
 }
 
 .answer-feedback {

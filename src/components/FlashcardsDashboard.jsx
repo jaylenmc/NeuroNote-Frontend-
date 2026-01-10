@@ -225,12 +225,6 @@ const FlashcardsDashboard = ({
                 <div className="nightowl-motivation-section">
                     
                     <div className="nightowl-sticky-notes">
-                        {statsError && (
-                            <div className="nightowl-stats-error">
-                                <span className="nightowl-error-icon">⚠️</span>
-                                <span className="nightowl-error-message">Unable to load stats</span>
-                            </div>
-                        )}
                         <div className="nightowl-sticky-note nightowl-sticky-due">
                             <div className="nightowl-sticky-header">
                                 <span className="nightowl-sticky-title">Cards Studied Today</span>

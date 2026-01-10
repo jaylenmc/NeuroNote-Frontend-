@@ -79,6 +79,7 @@ const ReviewSession = () => {
   const [showTutorStyle, setShowTutorStyle] = useState(false);
   const [tutorStyle, setTutorStyle] = useState('socratic'); // strict, friendly, professional, speed_run, socratic, supportive
   const [currentLayer, setCurrentLayer] = useState(1); // 1, 2, or 3 for doing-feedback method
+  const [showLayerDropdown, setShowLayerDropdown] = useState(false);
 
   // Tutor style descriptions
   const tutorStyles = {
@@ -92,9 +93,9 @@ const ReviewSession = () => {
 
   // Layer descriptions for doing-feedback method
   const layerDescriptions = {
-    1: { label: 'Layer 1', description: 'Quick Definition - Short, simple explanation' },
-    2: { label: 'Layer 2', description: 'Deeper Concept - How and why it works' },
-    3: { label: 'Layer 3', description: 'Applied Example - Real-world scenarios' }
+    1: { label: 'Layer 1', description: 'Recognition: You must identify what the question refers to when prompted, without needing detail, structure, or justification.' },
+    2: { label: 'Layer 2', description: 'Structure: You must explain the essential parts or rules that make the concept what it is.' },
+    3: { label: 'Layer 3', description: 'Implication: You must reason about what follows from the concept being true — consequences, effects, or constraints.' }
   };
 
   // Color map for underlines
@@ -955,10 +956,40 @@ const ReviewSession = () => {
             <div className="header-center-layer">
               {/* Layer Indicator (only for doing-feedback method) */}
               {selectedStudyMethod?.id === 'doing-feedback' && (
-                <div className="layer-indicator-pill" data-layer-description={layerDescriptions[currentLayer]?.description}>
-                  <FiLayers className="layer-icon" />
-                  <span className="layer-label">{layerDescriptions[currentLayer]?.label}</span>
-                  <span className="layer-description-tooltip">{layerDescriptions[currentLayer]?.description}</span>
+                <div 
+                  className="layer-toggle-group"
+                  onMouseEnter={() => setShowLayerDropdown(true)}
+                  onMouseLeave={() => setShowLayerDropdown(false)}
+                >
+                  <div className="layer-indicator-pill">
+                    <FiLayers className="layer-icon" />
+                    <span className="layer-label">{layerDescriptions[currentLayer]?.label}</span>
+                  </div>
+                  {showLayerDropdown && (
+                    <div className="layer-dropdown">
+                      <div className="layer-menu">
+                        {Object.entries(layerDescriptions).map(([key, { label, description }]) => {
+                          const layerNum = parseInt(key);
+                          return (
+                            <div
+                              key={key}
+                              className={`layer-option ${currentLayer === layerNum ? 'selected' : ''}`}
+                            >
+                              <div className="layer-option-content">
+                                <div className="layer-option-label">
+                                  {label}
+                                  {currentLayer === layerNum && (
+                                    <FiCheck className="layer-check-icon" />
+                                  )}
+                                </div>
+                                <div className="layer-option-description">{description}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {/* Progress Counter Pill */}
@@ -993,24 +1024,32 @@ const ReviewSession = () => {
                   {showTutorStyle && (
                     <div className="tutor-style-dropdown">
                       <div className="tutor-style-menu">
-                        {Object.entries(tutorStyles).map(([key, { label, description }]) => (
-                          <div
-                            key={key}
-                            className={`tutor-style-option ${tutorStyle === key ? 'selected' : ''}`}
-                            onClick={() => {
-                              setTutorStyle(key);
-                              setShowTutorStyle(false);
-                            }}
-                          >
-                            <div className="tutor-style-option-content">
-                              <div className="tutor-style-option-label">{label}</div>
-                              <div className="tutor-style-option-description">{description}</div>
+                        {(() => {
+                          const defaultStyle = 'socratic';
+                          const entries = Object.entries(tutorStyles);
+                          const defaultEntry = entries.find(([key]) => key === defaultStyle);
+                          const otherEntries = entries.filter(([key]) => key !== defaultStyle);
+                          const reorderedEntries = defaultEntry ? [defaultEntry, ...otherEntries] : entries;
+                          
+                          return reorderedEntries.map(([key, { label, description }]) => (
+                            <div
+                              key={key}
+                              className={`tutor-style-option ${tutorStyle === key ? 'selected' : ''}`}
+                              onClick={() => {
+                                setTutorStyle(key);
+                                setShowTutorStyle(false);
+                              }}
+                            >
+                              <div className="tutor-style-option-content">
+                                <div className="tutor-style-option-label">{label}</div>
+                                <div className="tutor-style-option-description">{description}</div>
+                              </div>
+                              {tutorStyle === key && (
+                                <FiCheckIcon className="tutor-style-check-icon" />
+                              )}
                             </div>
-                            {tutorStyle === key && (
-                              <FiCheckIcon className="tutor-style-check-icon" />
-                            )}
-                          </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
                     </div>
                   )}
