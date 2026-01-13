@@ -6,7 +6,7 @@ import './OAuthSuccess.css';
 
 // Helper function to get properly formatted API URL
 const getApiUrl = () => {
-  let apiUrl = import.meta.env.VITE_API_URL || 'http://neuronote-backend-production.up.railway.app/api';
+  let apiUrl = import.meta.env.VITE_API_URL || 'https://neuronote-backend-production.up.railway.app/api';
   // Remove trailing slash
   apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
   // Ensure protocol is included
