@@ -645,7 +645,6 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
                     {card.question}
                   </div>
                   <div className="card-due-bottom">
-                    <span className="card-due-icon">📅</span>
                     <span className="card-due-date">
                       {formatTimeForCardDisplay(card.scheduled_date, activeTab)}
                     </span>

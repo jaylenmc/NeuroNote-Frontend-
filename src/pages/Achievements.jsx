@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, Star, BookOpen, Users, Calendar, Filter, ChevronDown, Target, ArrowLeft, Check } from 'lucide-react';
+import { Trophy, Star, BookOpen, Users, Calendar, Filter, ChevronDown, Target, ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './Achievements.css';
 import { makeAuthenticatedRequest } from '../utils/api';
@@ -32,7 +32,13 @@ const Achievements = () => {
         const achievementsData = Array.isArray(response.data) ? response.data : [];
         setAchievements(achievementsData);
       } catch (err) {
-        setError(err.message || 'Failed to fetch achievements');
+        // Check if it's a 404 error
+        const errorStatus = err.response?.status || err.status;
+        if (errorStatus === 404) {
+          setError({ type: '404', message: 'Achievements endpoint not found' });
+        } else {
+          setError({ type: 'error', message: err.message || 'Failed to fetch achievements' });
+        }
       } finally {
         setLoading(false);
       }
@@ -233,11 +239,18 @@ const Achievements = () => {
         Back to Dashboard
       </button>
       <div className="achievements-content">
+        {/* Page Header */}
+        <div className="achievements-page-header">
+          <h1 className="achievements-page-title">Achievements</h1>
+          <p className="achievements-page-subtitle">
+            Track your progress, unlock milestones, and celebrate your study journey. 
+          </p>
+        </div>
+
         {/* Summary Section */}
         <div className="achievements-summary-grid">
           <div className="summary-panel">
             <div className="summary-heading">
-              <span className="summary-icon">🏆</span>
               <div>
                 <h1 className="summary-title">Your Achievements</h1>
                 <p className="summary-subtitle">Track your mastery journey across study sessions.</p>
@@ -259,7 +272,7 @@ const Achievements = () => {
                 <span className="summary-stat-label">Current Level</span>
                 <span className="summary-stat-value">
                   Level 3
-                <span className="summary-stat-meta">Memory Architect 🧠</span>
+                <span className="summary-stat-meta">Memory Architect</span>
                 </span>
               </div>
 
@@ -305,59 +318,7 @@ const Achievements = () => {
           </div>
         </div>
 
-        {/* Filter & Sort Bar */}
-        <div className="filters-bar">
-          <div className="filter-pill-group">
-            {categories.map(category => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`filter-pill ${selectedCategory === category ? 'active' : ''}`}
-              >
-                {getCategoryIcon(category)}
-                {category}
-              </button>
-            ))}
-          </div>
-
-          <div
-            className="sort-menu-container"
-            ref={sortMenuRef}
-          >
-            <button
-              className="sort-pill"
-              onClick={() => setIsSortMenuOpen(prev => !prev)}
-              aria-haspopup="listbox"
-              aria-expanded={isSortMenuOpen}
-            >
-            <Filter size={16} />
-            Sort by: {selectedSort}
-            <ChevronDown size={16} />
-          </button>
-            <div className={`sort-menu ${isSortMenuOpen ? 'open' : ''}`} role="listbox">
-              {sortOptions.map(option => (
-                <button
-                  key={option}
-                  role="option"
-                  className={`filter-pill sort-option ${selectedSort === option ? 'active' : ''}`}
-                  aria-selected={selectedSort === option}
-                  onClick={() => handleSortSelect(option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-      {/* Achievement Grid */}
-      <div className="achievements-section-heading">
-        <span>Unlocked Achievements</span>
-        <span className="achievements-section-count">
-          {filteredAchievements.length} {filteredAchievements.length === 1 ? 'achievement' : 'achievements'}
-        </span>
-      </div>
-      <div className="achievement-grid">
+        {/* Achievement Ribbon Legend */}
         <div className="achievement-ribbon-legend" aria-label="Achievement rarity legend">
           <h4>Rarity Guide</h4>
           <div className="achievement-ribbon-legend-items">
@@ -377,8 +338,86 @@ const Achievements = () => {
           </div>
         </div>
 
-        {loading && <div>Loading achievements...</div>}
-        {error && <div style={{color: 'red'}}>Error: {error}</div>}
+      {/* Achievement Grid */}
+      <div className="achievements-section-heading">
+        <span>Unlocked Achievements</span>
+        <span className="achievements-section-count">
+          {filteredAchievements.length} {filteredAchievements.length === 1 ? 'achievement' : 'achievements'}
+        </span>
+      </div>
+
+      {/* Filter & Sort Bar */}
+      <div className="filters-bar">
+        <div className="filter-pill-group">
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`filter-pill ${selectedCategory === category ? 'active' : ''}`}
+            >
+              {getCategoryIcon(category)}
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div
+          className="sort-menu-container"
+          ref={sortMenuRef}
+        >
+          <button
+            className="sort-pill"
+            onClick={() => setIsSortMenuOpen(prev => !prev)}
+            aria-haspopup="listbox"
+            aria-expanded={isSortMenuOpen}
+          >
+          <Filter size={16} />
+          Sort by: {selectedSort}
+          <ChevronDown size={16} />
+        </button>
+          <div className={`sort-menu ${isSortMenuOpen ? 'open' : ''}`} role="listbox">
+            {sortOptions.map(option => (
+              <button
+                key={option}
+                role="option"
+                className={`filter-pill sort-option ${selectedSort === option ? 'active' : ''}`}
+                aria-selected={selectedSort === option}
+                onClick={() => handleSortSelect(option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="achievement-grid">
+        {loading && <div className="achievements-loading">Loading achievements...</div>}
+        {error && (
+          <div className="achievements-error-state">
+            <div className="error-state-icon">
+              <AlertCircle size={48} strokeWidth={1.5} />
+            </div>
+            <h3 className="error-state-title">
+              {typeof error === 'object' && error.type === '404' 
+                ? 'Achievements Not Found' 
+                : 'Error Loading Achievements'}
+            </h3>
+            <p className="error-state-message">
+              {typeof error === 'object' && error.type === '404' 
+                ? 'The achievements endpoint could not be found. Please check your connection or try again later.'
+                : typeof error === 'object' 
+                  ? (error.message || 'Something went wrong while loading your achievements.')
+                  : (error || 'Something went wrong while loading your achievements.')}
+            </p>
+            <button 
+              className="error-state-retry-btn"
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </button>
+          </div>
+        )}
         {!loading && !error && filteredAchievements.map(achievement => {
           const { icon, badgeClass } = getAchievementIcon(achievement);
           const tierClass = getTierClass(achievement.tier);

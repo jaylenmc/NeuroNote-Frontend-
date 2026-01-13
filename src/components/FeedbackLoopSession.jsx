@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { FiCheck, FiX, FiRotateCcw, FiTarget, FiZap, FiEdit, FiArrowRight, FiLock, FiUnlock, FiShuffle, FiLayers } from 'react-icons/fi';
 import api from '../api/axios';
@@ -175,6 +175,62 @@ const FeedbackLoopSession = ({
     
     return cleaned;
   };
+
+  // Convert HTML string to React elements (safe alternative to dangerouslySetInnerHTML)
+  const htmlToReactElements = (htmlString) => {
+    if (!htmlString || htmlString === 'Loading feedback...') {
+      return htmlString;
+    }
+
+    // Use DOMParser to parse the HTML string
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    
+    // Convert DOM nodes to React elements recursively
+    const convertNode = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent;
+      }
+      
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tagName = node.tagName.toLowerCase();
+        const props = {};
+        
+        // Copy attributes to props
+        if (node.attributes) {
+          Array.from(node.attributes).forEach(attr => {
+            // Convert class to className for React
+            if (attr.name === 'class') {
+              props.className = attr.value;
+            } else {
+              props[attr.name] = attr.value;
+            }
+          });
+        }
+        
+        // Convert children
+        const children = Array.from(node.childNodes).map(convertNode);
+        
+        // Create React element
+        return React.createElement(tagName, props, ...children);
+      }
+      
+      return null;
+    };
+    
+    // Get the body content (DOMParser wraps in html/body tags)
+    const body = doc.body || doc.documentElement;
+    const elements = Array.from(body.childNodes).map(convertNode).filter(Boolean);
+    
+    return elements.length === 1 ? elements[0] : elements;
+  };
+
+  // Parse feedback HTML to React elements
+  const parsedFeedbackContent = useMemo(() => {
+    const content = aiResponse || feedback || 'Loading feedback...';
+    const cleanedHtml = cleanFeedbackHtml(content);
+    return htmlToReactElements(cleanedHtml);
+  }, [aiResponse, feedback]);
 
   const generateFeedback = async () => {
     if (!currentCard || !userAnswer.trim()) {
@@ -543,12 +599,9 @@ const FeedbackLoopSession = ({
               </div>
             </div>
             <div className="feedback-message">
-              <div 
-                className="feedback-html-content"
-                dangerouslySetInnerHTML={{
-                  __html: aiResponse || feedback || 'Loading feedback...'
-                }}
-              />
+              <div className="feedback-html-content">
+                {parsedFeedbackContent}
+              </div>
             </div>
           </div>
 

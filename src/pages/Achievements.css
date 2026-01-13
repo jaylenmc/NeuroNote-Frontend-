@@ -95,6 +95,28 @@ html.achievements-root-bg, body.achievements-root-bg {
   padding-top: 112px;
 }
 
+/* Page Header */
+.achievements-page-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.achievements-page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--nightowl-text-main);
+  margin: 0 auto 12px auto;
+  letter-spacing: -0.02em;
+}
+
+.achievements-page-subtitle {
+  font-size: 1.1rem;
+  color: var(--nightowl-text-steel);
+  margin: 0 auto;
+  line-height: 1.6;
+  max-width: 700px;
+}
+
 /* Hide scrollbar for achievements content */
 .achievements-content::-webkit-scrollbar {
   display: none;
@@ -142,10 +164,9 @@ html.achievements-root-bg, body.achievements-root-bg {
 }
 
 .summary-panel {
-  background: rgba(20, 22, 28, 0.96);
-  border-radius: 14px;
+  background: rgba(20, 22, 28, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 18px 36px rgba(8, 10, 16, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: var(--nightowl-card-shadow), var(--nightowl-card-inner);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -185,9 +206,8 @@ html.achievements-root-bg, body.achievements-root-bg {
 }
 
 .summary-stat {
-  background: var(--nightowl-bg-panel);
+  background: #1e2127;
   border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 14px;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -220,10 +240,9 @@ html.achievements-root-bg, body.achievements-root-bg {
 }
 
 .level-panel {
-  background: rgba(20, 22, 28, 0.96);
-  border-radius: 14px;
+  background: rgba(20, 22, 28, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 18px 36px rgba(8, 10, 16, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: var(--nightowl-card-shadow), var(--nightowl-card-inner);
   padding: 24px;
   display: flex;
   gap: 20px;
@@ -298,7 +317,7 @@ html.achievements-root-bg, body.achievements-root-bg {
   gap: 6px;
   padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(154, 164, 255, 0.18);
+  background: rgba(154, 164, 255, 0.09);
   border: 1px solid rgba(154, 164, 255, 0.35);
   color: #c7cdff;
   font-weight: 600;
@@ -459,14 +478,73 @@ html.achievements-root-bg, body.achievements-root-bg {
   text-transform: uppercase;
 }
 
+/* Loading and Error States */
+.achievements-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--nightowl-text-steel);
+  font-size: 1rem;
+}
+
+.achievements-error-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+  background: rgba(255, 107, 107, 0.05);
+  border: 1px solid rgba(255, 107, 107, 0.15);
+  box-shadow: var(--nightowl-card-shadow), var(--nightowl-card-inner);
+  margin-bottom: 2rem;
+}
+
+.error-state-icon {
+  color: rgba(255, 107, 107, 0.8);
+  margin-bottom: 20px;
+}
+
+.error-state-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--nightowl-text-main);
+  margin: 0 0 12px 0;
+}
+
+.error-state-message {
+  font-size: 1rem;
+  color: var(--nightowl-text-steel);
+  margin: 0 0 24px 0;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+.error-state-retry-btn {
+  padding: 12px 24px;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 107, 107, 0.9);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.error-state-retry-btn:hover {
+  background: rgba(255, 107, 107, 0.15);
+  border-color: rgba(255, 107, 107, 0.3);
+  color: rgba(255, 107, 107, 1);
+}
+
 .achievement-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   position: relative;
   z-index: 1;
-  margin-top: 8px;
-  margin-bottom: 4rem;
 }
 
 .achievement-ribbon-legend {
@@ -475,10 +553,9 @@ html.achievements-root-bg, body.achievements-root-bg {
   flex-direction: column;
   gap: 16px;
   padding: 1rem 1.3rem;
-  border-radius: 14px;
-  background: rgba(14, 16, 22, 0.65);
+  background: rgba(14, 16, 22, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--nightowl-card-shadow), var(--nightowl-card-inner);
 }
 
 .achievement-ribbon-legend h4 {
@@ -499,9 +576,8 @@ html.achievements-root-bg, body.achievements-root-bg {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  background: rgba(21, 24, 31, 0.85);
+  background: #1e2127;
   border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
   padding: 10px 12px;
 }
 
@@ -509,7 +585,6 @@ html.achievements-root-bg, body.achievements-root-bg {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
 }
 

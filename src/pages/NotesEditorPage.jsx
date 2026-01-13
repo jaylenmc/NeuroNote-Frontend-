@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiSave, FiGlobe, FiTag, FiX, FiList, FiMaximize2, FiMinimize2, FiGrid } from 'react-icons/fi';
+import { FiSave, FiGlobe, FiTag, FiX, FiList, FiMaximize2, FiMinimize2, FiGrid, FiCheck, FiChevronRight, FiChevronLeft } from 'react-icons/fi';
 import { FaListOl } from 'react-icons/fa';
 import api from '../api/axios';
 import './NotesEditorPage.css';
@@ -14,6 +14,8 @@ const NotesEditorPage = () => {
   const [showTagInput, setShowTagInput] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState(null); // 'saving', 'saved', null
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [content, setContent] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -25,7 +27,9 @@ const NotesEditorPage = () => {
   const [showTableContextMenu, setShowTableContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [isDragOver, setIsDragOver] = useState(false);
+  const [currentFormat, setCurrentFormat] = useState(null); // 'h1', 'h2', 'h3', 'p', null
   const contentRef = useRef(null);
+  const autoSaveTimeoutRef = useRef(null);
 
   // Set content programmatically only when content changes from outside (e.g., loading a doc)
   useEffect(() => {
@@ -69,10 +73,294 @@ const NotesEditorPage = () => {
     }
   }, [location.state]);
 
+  // Detect current format based on selection
+  const detectCurrentFormat = () => {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0 && contentRef.current) {
+      const range = selection.getRangeAt(0);
+      let node = range.commonAncestorContainer;
+      
+      // Find the block element
+      while (node && node !== contentRef.current) {
+        if (node.nodeType === 1) {
+          const tagName = node.tagName?.toLowerCase();
+          if (tagName === 'h1' || tagName === 'h2' || tagName === 'h3' || tagName === 'p') {
+            setCurrentFormat(tagName);
+            return;
+          }
+        }
+        node = node.parentElement;
+      }
+      
+      // If we're in the content area but not in a specific block, default to 'p'
+      if (contentRef.current.contains(range.commonAncestorContainer)) {
+        setCurrentFormat('p');
+      } else {
+        setCurrentFormat(null);
+      }
+    }
+  };
+
+  // Handle input and check for text wrapping to create new paragraphs
+  const handleInput = (e) => {
+    setContent(e.currentTarget.innerHTML);
+    detectCurrentFormat();
+    
+    // Check if we need to split wrapped text into new paragraph
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (!selection.rangeCount || !contentRef.current) return;
+
+      const range = selection.getRangeAt(0);
+      if (!range.startContainer) return;
+
+      // Find current paragraph
+      let currentBlock = range.startContainer.nodeType === 1 
+        ? range.startContainer 
+        : range.startContainer.parentElement;
+      
+      while (currentBlock && currentBlock !== contentRef.current) {
+        if (currentBlock.tagName === 'P') {
+          break;
+        }
+        currentBlock = currentBlock.parentElement;
+      }
+
+      if (!currentBlock || currentBlock.tagName !== 'P') return;
+
+      // Check if cursor is at or near the end
+      const textNode = range.startContainer.nodeType === 3 ? range.startContainer : null;
+      if (!textNode) return;
+      
+      const isAtEnd = range.startOffset >= (textNode.nodeValue?.length || 0) - 1;
+
+      if (!isAtEnd) return;
+
+      // Measure if text has wrapped by checking if height exceeds single line
+      const computedStyle = window.getComputedStyle(currentBlock);
+      const fontSize = parseFloat(computedStyle.fontSize);
+      const lineHeight = parseFloat(computedStyle.lineHeight) || fontSize * 1.5;
+      const blockHeight = currentBlock.offsetHeight;
+      const textContent = currentBlock.textContent || '';
+      
+      // If block height indicates wrapping (more than 1.3x line height) and text is substantial
+      if (blockHeight > lineHeight * 1.3 && textContent.trim().length > 60) {
+        const words = textContent.split(' ');
+        
+        // Find a good split point - split at around 60-70% through, at a word boundary
+        const splitIndex = Math.floor(words.length * 0.65);
+        if (splitIndex > 10 && splitIndex < words.length - 5) {
+          const beforeText = words.slice(0, splitIndex).join(' ');
+          const afterText = words.slice(splitIndex).join(' ');
+          
+          // Create new paragraph with the wrapped content
+          const newP = document.createElement('p');
+          newP.textContent = afterText;
+          newP.style.marginLeft = '';
+          newP.style.paddingLeft = '';
+          
+          // Update current paragraph with first part
+          currentBlock.textContent = beforeText;
+          
+          // Find top-level container to insert at root level
+          let topLevelContainer = currentBlock;
+          while (topLevelContainer.parentElement && topLevelContainer.parentElement !== contentRef.current) {
+            topLevelContainer = topLevelContainer.parentElement;
+          }
+          
+          // Insert new paragraph after current one at root level
+          if (topLevelContainer.nextSibling) {
+            contentRef.current.insertBefore(newP, topLevelContainer.nextSibling);
+          } else {
+            contentRef.current.appendChild(newP);
+          }
+          
+          // Move cursor to start of new paragraph
+          const newRange = document.createRange();
+          newRange.setStart(newP, 0);
+          newRange.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+          
+          // Update content
+          setContent(contentRef.current.innerHTML);
+          detectCurrentFormat();
+        }
+      }
+    }, 50); // Small delay to ensure DOM has updated
+  };
+
   // Formatting functions
   const formatText = (cmd, value = null) => {
     document.execCommand(cmd, false, value);
     contentRef.current && setContent(contentRef.current.innerHTML);
+    // Update current format after formatting
+    setTimeout(() => {
+      detectCurrentFormat();
+    }, 0);
+  };
+
+  // Handle indentation functions
+  const handleIndent = () => {
+    document.execCommand('indent', false, null);
+    if (contentRef.current) {
+      setContent(contentRef.current.innerHTML);
+    }
+  };
+
+  const handleOutdent = () => {
+    document.execCommand('outdent', false, null);
+    if (contentRef.current) {
+      setContent(contentRef.current.innerHTML);
+    }
+  };
+
+  // Handle Enter key to create new p tags by default
+  const handleKeyDown = (e) => {
+    // Handle Tab for indentation
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        handleOutdent();
+      } else {
+        handleIndent();
+      }
+      return;
+    }
+    
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const currentNode = range.commonAncestorContainer;
+        
+        // Check if we're in a list - allow default behavior for lists
+        const listItem = currentNode.nodeType === 1 
+          ? currentNode.closest('li')
+          : currentNode.parentElement?.closest('li');
+        
+        if (listItem) {
+          // Allow default behavior for lists
+          return;
+        }
+
+        // Prevent default Enter behavior
+        e.preventDefault();
+        
+        // Check if current element is a block element
+        let currentBlock = currentNode.nodeType === 1 
+          ? currentNode 
+          : currentNode.parentElement;
+        
+        // Find the actual block container (p, h1, h2, h3, div)
+        while (currentBlock && currentBlock !== contentRef.current) {
+          if (currentBlock.tagName && ['P', 'H1', 'H2', 'H3', 'DIV'].includes(currentBlock.tagName)) {
+            break;
+          }
+          currentBlock = currentBlock.parentElement;
+        }
+        
+        // Always create a new <p> tag with no indentation, regardless of current block type
+        const newP = document.createElement('p');
+        newP.innerHTML = '<br>';
+        // Explicitly remove any indentation styles
+        newP.style.marginLeft = '';
+        newP.style.paddingLeft = '';
+        newP.style.marginRight = '';
+        newP.style.paddingRight = '';
+        
+        // Find the top-level container (contentRef.current) to insert at root level
+        let insertParent = contentRef.current;
+        let insertBefore = null;
+        
+        if (currentBlock && currentBlock !== contentRef.current) {
+          // Check if cursor is at end of current block
+          const isAtEnd = range.endOffset === (range.endContainer.nodeValue?.length || 0) && 
+                          (range.endContainer === currentBlock.lastChild || range.endContainer === currentBlock);
+          
+          if (isAtEnd) {
+            // Find the top-level container by traversing up
+            let topLevelContainer = currentBlock;
+            while (topLevelContainer.parentElement && topLevelContainer.parentElement !== contentRef.current) {
+              topLevelContainer = topLevelContainer.parentElement;
+            }
+            
+            // Insert new paragraph after the top-level block, not inside it
+            if (topLevelContainer.nextSibling) {
+              insertParent = contentRef.current;
+              insertBefore = topLevelContainer.nextSibling;
+              insertParent.insertBefore(newP, insertBefore);
+            } else {
+              insertParent = contentRef.current;
+              insertParent.appendChild(newP);
+            }
+            range.setStart(newP, 0);
+          } else {
+            // Split at cursor position - extract content after cursor to new p
+            const afterRange = range.cloneRange();
+            afterRange.setStart(range.endContainer, range.endOffset);
+            afterRange.setEndAfter(currentBlock.lastChild || currentBlock);
+            const afterContent = afterRange.extractContents();
+            
+            // Move remaining content to new paragraph (but clear any indentation from content)
+            if (afterContent.childNodes.length > 0) {
+              while (afterContent.firstChild) {
+                const node = afterContent.firstChild;
+                // Remove inline styles from child nodes
+                if (node.nodeType === 1) {
+                  node.style.marginLeft = '';
+                  node.style.paddingLeft = '';
+                }
+                newP.appendChild(node);
+              }
+            }
+            
+            // Find top-level container to insert after
+            let topLevelContainer = currentBlock;
+            while (topLevelContainer.parentElement && topLevelContainer.parentElement !== contentRef.current) {
+              topLevelContainer = topLevelContainer.parentElement;
+            }
+            
+            // Insert new paragraph after the top-level block
+            if (topLevelContainer.nextSibling) {
+              insertParent = contentRef.current;
+              insertBefore = topLevelContainer.nextSibling;
+              insertParent.insertBefore(newP, insertBefore);
+            } else {
+              insertParent = contentRef.current;
+              insertParent.appendChild(newP);
+            }
+            
+            // If newP is empty, add a br
+            if (!newP.firstChild || newP.textContent.trim() === '') {
+              newP.innerHTML = '<br>';
+            }
+            
+            range.setStart(newP, 0);
+            range.collapse(true);
+          }
+        } else {
+          // Not in a block element, create new one at root level
+          insertParent = contentRef.current;
+          insertParent.appendChild(newP);
+          range.setStart(newP, 0);
+          range.collapse(true);
+        }
+        
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Update content state
+        if (contentRef.current) {
+          setContent(contentRef.current.innerHTML);
+        }
+        
+        // Update format detection
+        setTimeout(() => {
+          detectCurrentFormat();
+        }, 0);
+      }
+    }
   };
 
   // Table functions
@@ -326,8 +614,86 @@ const NotesEditorPage = () => {
     }
   };
 
+  // Auto-save function (only updates, doesn't create new documents)
+  const autoSave = useCallback(async () => {
+    // Only auto-save if document already exists
+    if (!currentDocumentId || !currentFolderId) {
+      return;
+    }
+
+    setIsAutoSaving(true);
+    setAutoSaveStatus('saving');
+    
+    try {
+      const documentData = {
+        title: noteTitle || 'Untitled Note',
+        notes: content,
+        folder_id: currentFolderId,
+        is_published: isPublished,
+        tag: noteTags.length > 0 ? noteTags[0] : ''
+      };
+
+      const response = await api.put(`/documents/notes/update/${currentDocumentId}/`, documentData);
+      
+      if (response && response.status === 200) {
+        setAutoSaveStatus('saved');
+        // Clear the saved status after 2 seconds
+        setTimeout(() => {
+          setAutoSaveStatus(null);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error auto-saving note:', error);
+      setAutoSaveStatus(null);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [currentDocumentId, currentFolderId, noteTitle, content, isPublished, noteTags]);
+
+  // Debounced auto-save
+  const debouncedAutoSave = useCallback(() => {
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Only auto-save if document exists
+    if (!currentDocumentId) {
+      return;
+    }
+
+    // Set new timeout for auto-save (2 seconds after user stops typing)
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSave();
+    }, 2000);
+  }, [autoSave, currentDocumentId]);
+
+  // Auto-save when content, title, tags, or published status changes
+  useEffect(() => {
+    // Skip auto-save on initial mount or when document is being loaded
+    if (!currentDocumentId) {
+      return;
+    }
+
+    debouncedAutoSave();
+
+    // Cleanup timeout on unmount or when dependencies change
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [content, noteTitle, noteTags, isPublished, debouncedAutoSave, currentDocumentId]);
+
   // Save (create or update)
   const handleSave = async (publishedOverride = null) => {
+    // Clear any pending auto-save
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    setIsSaving(true);
+    setAutoSaveStatus(null); // Clear auto-save status during manual save
     setIsSaving(true);
     try {
       const documentData = {
@@ -423,6 +789,23 @@ const NotesEditorPage = () => {
               )}
             </div>
             <div className="notes-actions">
+              {/* Auto-save status indicator */}
+              {currentDocumentId && autoSaveStatus && (
+                <div className="auto-save-status">
+                  {autoSaveStatus === 'saving' && (
+                    <span className="auto-save-saving">
+                      <span className="auto-save-spinner"></span>
+                      Saving...
+                    </span>
+                  )}
+                  {autoSaveStatus === 'saved' && (
+                    <span className="auto-save-saved">
+                      <FiCheck size={14} />
+                      Saved
+                    </span>
+                  )}
+                </div>
+              )}
               <button className={`publish-btn ${isPublished ? 'published' : ''}`} onClick={handlePublish} style={isPublished ? { minWidth: 140, width: 140, maxWidth: 140 } : {}}>
                 <FiGlobe size={22} style={{marginRight: 6}} />{isPublished ? 'Published' : 'Publish'}
             </button>
@@ -435,15 +818,47 @@ const NotesEditorPage = () => {
             </div>
           </div>
       <div className="notes-formatting-toolbar">
-        <button className="format-btn" onClick={() => formatText('formatBlock', '<h1>')} title="Heading 1"><span>H1</span></button>
-        <button className="format-btn" onClick={() => formatText('formatBlock', '<h2>')} title="Heading 2"><span>H2</span></button>
-        <button className="format-btn" onClick={() => formatText('formatBlock', '<h3>')} title="Heading 3"><span>H3</span></button>
+        <button 
+          className={`format-btn ${currentFormat === 'h1' ? 'active' : ''}`} 
+          onClick={() => formatText('formatBlock', '<h1>')} 
+          title="Heading 1"
+        >
+          <span>H1</span>
+        </button>
+        <button 
+          className={`format-btn ${currentFormat === 'h2' ? 'active' : ''}`} 
+          onClick={() => formatText('formatBlock', '<h2>')} 
+          title="Heading 2"
+        >
+          <span>H2</span>
+        </button>
+        <button 
+          className={`format-btn ${currentFormat === 'h3' ? 'active' : ''}`} 
+          onClick={() => formatText('formatBlock', '<h3>')} 
+          title="Heading 3"
+        >
+          <span>H3</span>
+        </button>
+        <button 
+          className={`format-btn format-btn-p ${currentFormat === 'p' || currentFormat === null ? 'active' : ''}`} 
+          onClick={() => formatText('formatBlock', '<p>')} 
+          title="Normal Text"
+        >
+          <span>P</span>
+        </button>
         <div className="format-divider"></div>
         <button className="format-btn" onClick={() => formatText('bold')} title="Bold"><span style={{fontWeight:'bold'}}>B</span></button>
         <button className="format-btn" onClick={() => formatText('italic')} title="Italic"><span style={{fontStyle:'italic'}}>I</span></button>
         <div className="format-divider"></div>
         <button className="format-btn" onClick={() => formatText('insertUnorderedList')} title="Bullet List"><FiList size={16} /></button>
         <button className="format-btn" onClick={() => formatText('insertOrderedList')} title="Numbered List"><FaListOl size={16} /></button>
+        <div className="format-divider"></div>
+        <button className="format-btn" onClick={handleOutdent} title="Decrease Indent (Shift+Tab)">
+          <FiChevronLeft size={16} />
+        </button>
+        <button className="format-btn" onClick={handleIndent} title="Increase Indent (Tab)">
+          <FiChevronRight size={16} />
+        </button>
         <div className="format-divider"></div>
         <button className="format-btn" onClick={() => {
           console.log('Table button clicked');
@@ -477,8 +892,18 @@ const NotesEditorPage = () => {
           ref={contentRef}
           contentEditable={true}
           className={`notes-content-editable ${isDragOver ? 'drag-over' : ''}`}
-          onInput={e => setContent(e.currentTarget.innerHTML)}
-          onFocus={() => setIsFocused(true)}
+          onInput={handleInput}
+          onKeyDown={(e) => {
+            handleKeyDown(e);
+            // Detect format after keydown
+            setTimeout(() => detectCurrentFormat(), 0);
+          }}
+          onKeyUp={() => detectCurrentFormat()}
+          onMouseUp={() => detectCurrentFormat()}
+          onFocus={() => {
+            setIsFocused(true);
+            detectCurrentFormat();
+          }}
           onBlur={() => setIsFocused(false)}
           onContextMenu={handleTableContextMenu}
           onDragOver={handleDragOver}
