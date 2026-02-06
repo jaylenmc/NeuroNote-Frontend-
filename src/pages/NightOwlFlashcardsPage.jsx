@@ -4,7 +4,7 @@ import Dashboard from '../components/Dashboard';
 const NightOwlFlashcardsPage = () => {
   // Remove the global navbar if present
   useEffect(() => {
-    const navbar = document.querySelector('.nn-navbar-global');
+    const navbar = document.querySelector('.landing-navbar');
     if (navbar) navbar.style.display = 'none';
     return () => {
       if (navbar) navbar.style.display = '';

@@ -103,14 +103,14 @@
 .landing-navbar-inner {
   max-width: 80rem;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 1rem 1rem;
 }
 
 @media (min-width: 640px) {
-  .landing-navbar-inner { padding: 0 1.5rem; }
+  .landing-navbar-inner { padding: 1rem 1.5rem; }
 }
 @media (min-width: 1024px) {
-  .landing-navbar-inner { padding: 0 2rem; }
+  .landing-navbar-inner { padding: 1rem 2rem; }
 }
 
 .landing-navbar-flex {
@@ -132,7 +132,7 @@
 }
 
 .landing-navbar-logo-img {
-  height: 6rem;
+  height: 3rem;
   width: auto;
   display: block;
   object-fit: contain;
@@ -1207,7 +1207,7 @@
 }
 
 .landing-footer-brand-icon {
-  height: 6rem;
+  height: 4rem;
   width: auto;
   object-fit: contain;
   display: block;

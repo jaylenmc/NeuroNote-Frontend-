@@ -10,13 +10,13 @@ const testimonials = [
   {
     quote: 'I used to drown in scattered notes. Now everything is connected, and I actually remember what I read three months ago.',
     author: 'David Chen',
-    role: 'Software Engineer, Google',
+    role: 'CS Student, UND',
     image: 'https://picsum.photos/100/100?random=11',
   },
   {
     quote: 'The cleanest study tool on the market. It doesn\'t feel like a chore to open this app every morning.',
     author: 'Elena Rodriguez',
-    role: 'PhD Candidate, MIT',
+    role: 'Bio Student, UW-Madison',
     image: 'https://picsum.photos/100/100?random=12',
   },
 ];
