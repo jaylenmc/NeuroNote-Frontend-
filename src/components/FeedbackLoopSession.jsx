@@ -23,7 +23,9 @@ const FeedbackLoopSession = ({
   const [difficulty, setDifficulty] = useState('medium'); // easy, medium, hard
   const [attemptCount, setAttemptCount] = useState(0);
   const [showHint, setShowHint] = useState(false);
-  const [reflectionAnswer, setReflectionAnswer] = useState('');
+  const [layer1Reflection, setLayer1Reflection] = useState('');
+  const [layer2Reflection, setLayer2Reflection] = useState('');
+  const [layer3Reflection, setLayer3Reflection] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
@@ -34,6 +36,10 @@ const FeedbackLoopSession = ({
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [shouldFadeIn, setShouldFadeIn] = useState(false);
   const [showShuffleConfirm, setShowShuffleConfirm] = useState(false);
+  const [showCompletionOverlay, setShowCompletionOverlay] = useState(false);
+  const [completionOverlayTitle, setCompletionOverlayTitle] = useState('');
+  const [completionOverlayMessage, setCompletionOverlayMessage] = useState('');
+  const [isCompletionFadingOut, setIsCompletionFadingOut] = useState(false);
 
   // Function to fetch previous attempts
   const fetchPreviousAttempts = async () => {
@@ -83,7 +89,9 @@ const FeedbackLoopSession = ({
     setUserAnswer('');
     setFeedback('');
     setShowHint(false);
-    setReflectionAnswer('');
+    setLayer1Reflection('');
+    setLayer2Reflection('');
+    setLayer3Reflection('');
     setDifficulty('medium');
     setAiResponse('');
     setIsSubmitting(false);
@@ -94,6 +102,10 @@ const FeedbackLoopSession = ({
     setTransitioningToLayer(null);
     setIsFadingOut(false);
     setShouldFadeIn(false);
+    setShowCompletionOverlay(false);
+    setCompletionOverlayTitle('');
+    setCompletionOverlayMessage('');
+    setIsCompletionFadingOut(false);
     setCurrentLayer(1); // Reset to layer 1 when card changes
     
     // Fetch previous attempts before loading anything
@@ -338,10 +350,43 @@ const FeedbackLoopSession = ({
       // Based on AI feedback, user might need to stay at current layer or advance
       // For now, we'll let users manually choose to advance layers or go to reflection
       setCurrentStep('reflection');
-    } else if (currentStep === 'reflection') {
-      // Move to next card
-      onRatingSelect(4); // Default rating for feedback loop completion
     }
+  };
+
+  const handleCompleteExercise = async () => {
+    if (!currentCard?.id) return;
+
+    // Save reflections (do not gate completion on success)
+    try {
+      await api.post('/flashcards/doing-feedback-review/', {
+        card: currentCard.id,
+        layer_one_explanation: layer1Reflection || '',
+        layer_two_explanation: layer2Reflection || '',
+        layer_three_explanation: layer3Reflection || ''
+      });
+    } catch (error) {
+      console.error('Error saving doing-feedback reflections:', error);
+    }
+
+    const hasMoreCards = Boolean(nextCard);
+    setCompletionOverlayTitle('Congratulations!');
+    setCompletionOverlayMessage(
+      hasMoreCards
+        ? 'You have completed the exercise for this card.'
+        : 'You have completed the session.'
+    );
+
+    setShowCompletionOverlay(true);
+
+    // Close overlay and advance after a short moment
+    setTimeout(() => {
+      setIsCompletionFadingOut(true);
+      setTimeout(() => {
+        setShowCompletionOverlay(false);
+        setIsCompletionFadingOut(false);
+        onRatingSelect(4); // Default rating for feedback loop completion
+      }, 300);
+    }, 2000);
   };
 
   const handleAdvanceLayer = async () => {
@@ -438,6 +483,24 @@ const FeedbackLoopSession = ({
     );
   };
 
+  const renderCompletionOverlayPortal = () => {
+    if (!showCompletionOverlay) return null;
+
+    return ReactDOM.createPortal(
+      <div className={`layer-transition-overlay ${isCompletionFadingOut ? 'fade-out' : ''}`}>
+        <div className="layer-transition-content">
+          <div className="layer-transition-title">
+            {completionOverlayTitle}
+          </div>
+          <div className="layer-transition-description">
+            {completionOverlayMessage}
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   // Render shuffle confirmation modal
   const renderShuffleConfirmModal = () => {
     if (!showShuffleConfirm) return null;
@@ -481,6 +544,7 @@ const FeedbackLoopSession = ({
     return (
       <>
         {renderOverlayPortal()}
+        {renderCompletionOverlayPortal()}
         {renderShuffleConfirmModal()}
         <div className={`feedback-loop-session ${shouldFadeIn ? 'fade-in' : ''}`}>
         <div className="feedback-loop-practice">
@@ -566,6 +630,7 @@ const FeedbackLoopSession = ({
     return (
       <>
         {renderOverlayPortal()}
+        {renderCompletionOverlayPortal()}
         {renderShuffleConfirmModal()}
         <div className="feedback-loop-feedback">
         <div className="session-title-center">
@@ -660,28 +725,49 @@ const FeedbackLoopSession = ({
     return (
       <>
         {renderOverlayPortal()}
+        {renderCompletionOverlayPortal()}
         {renderShuffleConfirmModal()}
         <div className="feedback-loop-reflection">
         <div className="session-title-center">
           <h2 className="session-main-title">Reflection</h2>
-          <div className="session-subtitle">Reflect on what you learned and how to apply it</div>
+          <div className="session-subtitle">Reflect on each layer to solidify understanding</div>
         </div>
         
         <div className="reflection-content">
           <div className="reflection-card">
             <div className="reflection-icon">💭</div>
             <div className="reflection-prompt">
-              <h3>What did you learn from this practice?</h3>
-              <p>Reflect on your understanding and how you might apply this knowledge.</p>
+              <h3>Quick layer reflections</h3>
+              <p>Write a short reflection for each layer to reinforce what you learned.</p>
             </div>
           </div>
 
           <div className="reflection-input-area">
-            <label>Your Reflection:</label>
+            <label>Reflect on Layer 1 (Recognition):</label>
             <textarea
-              value={reflectionAnswer}
-              onChange={(e) => setReflectionAnswer(e.target.value)}
-              placeholder="Share your thoughts about what you learned..."
+              value={layer1Reflection}
+              onChange={(e) => setLayer1Reflection(e.target.value)}
+              placeholder="What did you understand / recognize in Layer 1?"
+              rows="5"
+            />
+          </div>
+
+          <div className="reflection-input-area">
+            <label>Reflect on Layer 2 (Structure):</label>
+            <textarea
+              value={layer2Reflection}
+              onChange={(e) => setLayer2Reflection(e.target.value)}
+              placeholder="What key parts/rules did you clarify in Layer 2?"
+              rows="5"
+            />
+          </div>
+
+          <div className="reflection-input-area">
+            <label>Reflect on Layer 3 (Implication):</label>
+            <textarea
+              value={layer3Reflection}
+              onChange={(e) => setLayer3Reflection(e.target.value)}
+              placeholder="What consequences/tradeoffs did you connect in Layer 3?"
               rows="6"
             />
           </div>
@@ -689,17 +775,12 @@ const FeedbackLoopSession = ({
           <div className="reflection-actions">
             <button 
               className="complete-btn action-btn"
-              onClick={handleNextStep}
-              disabled={!reflectionAnswer.trim()}
-              title={!reflectionAnswer.trim() ? 'Add your reflection to continue' : 'Complete this practice'}
+              onClick={handleCompleteExercise}
+              title="Complete this exercise"
             >
-              Complete Practice
+              Complete Exercise
             </button>
           </div>
-          
-          {!reflectionAnswer.trim() && (
-            <div className="action-hint">Share your reflection to complete</div>
-          )}
         </div>
       </div>
       </>

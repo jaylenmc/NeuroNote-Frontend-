@@ -172,7 +172,7 @@ function Navbar() {
 // AppContent wrapper to use location
 function AppContent() {
   const location = useLocation();
-  const showNavbar = !['/dashboard', '/signin', '/auth/callback/', '/chat', '/login', '/register', '/quiz', '/progress', '/study-groups', '/achievements', '/notes-editor'].some(route => 
+  const showNavbar = location.pathname !== '/' && !['/dashboard', '/signin', '/auth/callback/', '/chat', '/login', '/register', '/quiz', '/progress', '/study-groups', '/achievements', '/notes-editor'].some(route =>
     location.pathname.startsWith(route)
   );
 

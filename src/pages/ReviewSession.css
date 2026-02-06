@@ -268,7 +268,7 @@ html, body, #root {
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  min-width: 720px;
+  min-width: 1000px;
 }
 
 .layer-menu {
