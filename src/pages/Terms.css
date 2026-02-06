@@ -113,6 +113,9 @@
   .terms-page {
     padding: 1.5rem 1rem 3rem;
   }
+  .terms-inner {
+    padding-top: 4rem;
+  }
   .terms-title {
     font-size: 1.5rem;
   }

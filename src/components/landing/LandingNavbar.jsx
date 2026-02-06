@@ -22,7 +22,7 @@ function LandingNavbar() {
 
   return (
     <nav
-      className={`landing-navbar ${isScrolled ? 'scrolled' : ''}`}
+      className={`landing-navbar ${isScrolled ? 'scrolled' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}
     >
       <div className="landing-navbar-inner">
         <div className="landing-navbar-flex">

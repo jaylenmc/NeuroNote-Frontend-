@@ -94,6 +94,9 @@
   .privacy-page {
     padding: 1.5rem 1rem 3rem;
   }
+  .privacy-inner {
+    padding-top: 4rem;
+  }
   .privacy-title {
     font-size: 1.5rem;
   }
