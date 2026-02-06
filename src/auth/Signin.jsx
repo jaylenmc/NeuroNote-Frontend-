@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import './signin.css';
 import generateState from '../utils/auth';
@@ -32,20 +33,32 @@ function Signin() {
     };
 
     return (
-        <div className="signin-container">
-            <div className="signin-box">
-                <div className="app-branding">
-                    <h1 className="neuronote-title">NEURONOTE</h1>
-                </div>
-                
-                <div className="signin-content">
-                    <button 
-                        className="google-signin-button"
-                        onClick={handleGoogleSignIn}
-                    >
-                        <FcGoogle className="google-icon" />
-                        <span>Continue with Google</span>
-                    </button>
+        <div className="signin-page">
+            <Link to="/" className="signin-back">← Back to home</Link>
+            <div className="signin-container">
+                <div className="signin-box">
+                    <div className="signin-branding">
+                        <img
+                            src="/NeuroNote Logo Transparent.png"
+                            alt="NeuroNote"
+                            className="signin-logo"
+                        />
+                        <h1 className="signin-heading">Join The Waitlist</h1>
+                        <p className="signin-tagline">Study smarter with spaced repetition and active recall.</p>
+                    </div>
+                    <div className="signin-content">
+                        <button
+                            type="button"
+                            className="signin-google-btn"
+                            onClick={handleGoogleSignIn}
+                        >
+                            <FcGoogle className="signin-google-icon" />
+                            <span>Continue with Google</span>
+                        </button>
+                        <p className="signin-agree">
+                            By continuing, you agree to our <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

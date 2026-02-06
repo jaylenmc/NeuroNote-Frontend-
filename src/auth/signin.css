@@ -1,102 +1,149 @@
-@font-face {
-    font-family: 'Floatien';
-    src: url('../assets/fonts/Floatien.ttf') format('truetype');
+/* Signin page – matches landing page design */
+:root {
+  --signin-bg: #030712;
+  --signin-surface: #111827;
+  --signin-border: rgba(255, 255, 255, 0.08);
+  --signin-primary-500: #8b5cf6;
+  --signin-primary-600: #7c3aed;
+  --signin-gray-400: #9ca3af;
+  --signin-gray-500: #6b7280;
+}
+
+.signin-page {
+  min-height: 100vh;
+  background: var(--signin-bg);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding: 1.5rem 1rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.signin-back {
+  position: absolute;
+  top: 3rem;
+  left: 4rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--signin-gray-400);
+  text-decoration: none;
+  transition: color 0.2s;
+  z-index: 1;
+}
+.signin-back:hover {
+  color: white;
 }
 
 .signin-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #272727;
-    padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2.5rem 1.5rem;
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
 .signin-box {
-    background: transparent;
-    padding: 40px;
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 2.5rem 2rem;
+  text-align: center;
 }
 
-.app-branding {
-    margin-bottom: 40px;
+.signin-branding {
+  margin-bottom: 1.5rem;
 }
 
-.neuronote-title {
-    font-family: 'Floatien', sans-serif;
-    color: #ffffff;
-    font-size: 48px;
-    letter-spacing: 2px;
-    margin: 0;
+.signin-logo {
+  height: 5rem;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 2rem;
+}
+
+.signin-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.signin-tagline {
+  font-size: 0.9375rem;
+  color: var(--signin-gray-400);
+  margin: 0;
+  font-weight: 500;
 }
 
 .signin-content {
-    margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.google-signin-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 12px 24px;
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 8px;
-    font-size: 16px;
-    color: #ffffff;
-    cursor: pointer;
-    transition: all 0.2s;
+.signin-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: white;
+  color: var(--signin-bg);
+  border: none;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+.signin-google-btn:hover {
+  background: #f3f4f6;
+  transform: scale(1.02);
 }
 
-.google-signin-button:hover {
-    background-color: #242424;
-    border-color: #444;
-    transform: translateY(-1px);
+.signin-google-icon {
+  font-size: 1.5rem;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
 }
 
-.google-icon {
-    font-size: 24px;
-    margin-right: 12px;
+.signin-agree {
+  font-size: 0.8125rem;
+  color: var(--signin-gray-400);
+  margin: 0;
+  line-height: 1.5;
+}
+.signin-agree a {
+  color: var(--signin-primary-500);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.signin-agree a:hover {
+  color: #a78bfa;
+  text-decoration: underline;
 }
 
-.error-message-popup {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #ff4444;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    animation: slideDown 0.3s ease-out;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-@keyframes slideDown {
-    from {
-        transform: translate(-50%, -20px);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, 0);
-        opacity: 1;
-    }
+/* Override main-content background when signin is shown */
+.main-content:has(.signin-page) {
+  background: var(--signin-bg);
 }
 
 @media (max-width: 480px) {
-    .signin-box {
-        padding: 30px 20px;
-    }
-    
-    .app-branding h1 {
-        font-size: 28px;
-    }
-    
-    .app-branding p {
-        font-size: 14px;
-    }
-} 
+  .signin-box {
+    padding: 1.75rem 1.25rem;
+  }
+  .signin-logo {
+    height: 2.75rem;
+  }
+}

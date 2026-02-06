@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import './Privacy.css';
 
 function Privacy() {
   useEffect(() => {
@@ -7,14 +8,15 @@ function Privacy() {
 
   return (
     <div className="privacy-page">
-      <section className="privacy-hero">
-        <p className="privacy-eyebrow">Privacy Policy</p>
-        <h1 className="privacy-title">Your privacy matters to us</h1>
-      </section>
+      <div className="privacy-inner">
+        <header className="privacy-header">
+          <p className="privacy-eyebrow">Privacy Policy</p>
+          <h1 className="privacy-title">Your privacy matters to us</h1>
+        </header>
 
-      <section className="privacy-content">
-        <div className="privacy-section">
-          <h2>Information We Collect</h2>
+        <section className="privacy-content">
+          <div className="privacy-section">
+            <h2>Information We Collect</h2>
           <p>
             NeuroNote collects information that you provide directly to us, such as when you create an account, 
             use our services, or contact us for support. This may include your name, email address, and any content 
@@ -54,7 +56,8 @@ function Privacy() {
             Privacy Policy on this page and updating the "Last updated" date.
           </p>
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

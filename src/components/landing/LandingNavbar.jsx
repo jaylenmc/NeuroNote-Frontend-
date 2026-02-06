@@ -14,7 +14,11 @@ function LandingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = ['Features'];
+  const navItems = [
+    { label: 'Features', href: '/#features' },
+    { label: 'Terms', to: '/terms' },
+    { label: 'Privacy', to: '/privacy' },
+  ];
 
   return (
     <nav
@@ -32,12 +36,11 @@ function LandingNavbar() {
 
           <div className="landing-navbar-links">
             {navItems.map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-              >
-                {item}
-              </a>
+              item.to ? (
+                <Link key={item.label} to={item.to}>{item.label}</Link>
+              ) : (
+                <a key={item.label} href={item.href}>{item.label}</a>
+              )
             ))}
           </div>
 
@@ -68,13 +71,23 @@ function LandingNavbar() {
       {isMobileMenuOpen && (
         <div className="landing-navbar-mobile-menu">
           {navItems.map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {item}
-            </a>
+            item.to ? (
+              <Link
+                key={item.label}
+                to={item.to}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.label}
+              </a>
+            )
           ))}
           <div className="landing-navbar-mobile-divider" />
           <Link to="/signin" onClick={() => setIsMobileMenuOpen(false)}>

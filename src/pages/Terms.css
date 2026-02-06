@@ -1,0 +1,122 @@
+/* Terms page – complements landing page */
+:root {
+  --terms-bg: #030712;
+  --terms-surface: #111827;
+  --terms-border: rgba(255, 255, 255, 0.08);
+  --terms-primary-400: #a78bfa;
+  --terms-gray-300: #d1d5db;
+  --terms-gray-400: #9ca3af;
+  --terms-gray-500: #6b7280;
+}
+
+.terms-page {
+  min-height: 100vh;
+  background: var(--terms-bg);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding: 7rem 1rem 4rem;
+}
+
+.terms-inner {
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.terms-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.terms-eyebrow {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--terms-gray-500);
+  margin: 0 0 0.5rem;
+}
+
+.terms-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: white;
+  margin: 0;
+}
+
+.terms-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.terms-section {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--terms-border);
+}
+.terms-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.terms-section h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.75rem;
+}
+
+.terms-section p {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--terms-gray-300);
+  margin: 0 0 0.5rem;
+}
+.terms-section p:last-child {
+  margin-bottom: 0;
+}
+
+.terms-section ul {
+  margin: 0.5rem 0 0 1.25rem;
+  padding: 0;
+  color: var(--terms-gray-300);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+.terms-section li {
+  margin-bottom: 0.35rem;
+}
+
+.terms-section a {
+  color: var(--terms-primary-400);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.terms-section a:hover {
+  color: var(--terms-gray-300);
+}
+
+.terms-contact {
+  margin-top: 0.75rem;
+  color: var(--terms-gray-400);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.main-content:has(.terms-page) {
+  background: var(--terms-bg);
+}
+
+@media (max-width: 640px) {
+  .terms-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+  .terms-title {
+    font-size: 1.5rem;
+  }
+  .terms-section h2 {
+    font-size: 1rem;
+  }
+}
