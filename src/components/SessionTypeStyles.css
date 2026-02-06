@@ -47,6 +47,7 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  min-width: 1200px;
 }
 
 .feedback-loop-session.fade-in {

@@ -903,7 +903,7 @@ const ReviewSession = () => {
     <div className="review-session">
 
 
-      {showQuiz ? (
+      {showQuiz && selectedStudyMethod?.id !== 'doing-feedback' ? (
         <CardsToQuiz 
           reviewedCards={reviewedCardsForQuiz} 
           onBack={handleBackFromQuiz}
@@ -932,13 +932,15 @@ const ReviewSession = () => {
               <button className="end-session-btn" onClick={handleEndSession}>
                 <FiArrowLeft /> Back to Study Room
               </button>
-              <button 
-                className="take-quiz-btn" 
-                onClick={handleTakeQuiz}
-                disabled={Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length === 0}
-              >
-                Take Quiz ({Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length} cards)
-              </button>
+              {selectedStudyMethod?.id !== 'doing-feedback' && (
+                <button 
+                  className="take-quiz-btn" 
+                  onClick={handleTakeQuiz}
+                  disabled={Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length === 0}
+                >
+                  Take Quiz ({Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length} cards)
+                </button>
+              )}
             </div>
           </div>
         </div>
