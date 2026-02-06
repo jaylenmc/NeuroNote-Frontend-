@@ -231,6 +231,15 @@
 }
 
 /* Mobile menu */
+/* When mobile menu is open, navbar uses same background as menu */
+@media (max-width: 767px) {
+  .landing-navbar.mobile-open {
+    background: var(--landing-surface);
+    backdrop-filter: none;
+    border-bottom: none;
+  }
+}
+
 .landing-navbar-mobile-menu {
   display: block;
   position: absolute;
