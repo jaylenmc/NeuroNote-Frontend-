@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiEdit2, FiTrash2, FiPlus, FiSearch, FiStar, FiClock, FiTag, FiArrowLeft, FiX, FiFilter, FiCheck, FiZap, FiEdit3 } from 'react-icons/fi';
-import { Book } from 'lucide-react';
 import './DeckContent.css';
 import { formatDateForDisplay, formatDateTimeForDisplay, convertLocalDateToBackend } from '../utils/dateUtils';
 import api from '../api/axios';
@@ -550,43 +549,45 @@ export default function DeckContent() {
           {/* Stats Bar - In the middle of header */}
           <div className="deck-stats-bar">
             <div className="stat-inline">
-              <span className="stat-piece stat-review"><span className="stat-emoji">⏱</span> <span className="stat-key">Avg. Review:</span> <span className="stat-val">3.2s</span></span>
+              <span className="stat-piece stat-review"><span className="stat-key">Avg. Review:</span> <span className="stat-val">3.2s</span></span>
               <span className="stat-sep">|</span>
-              <span className="stat-piece stat-cards"><span className="stat-emoji">🃏</span> <span className="stat-key">Cards Due:</span> <span className="stat-val">5</span></span>
+              <span className="stat-piece stat-cards"><span className="stat-key">Cards Due:</span> <span className="stat-val">5</span></span>
               <span className="stat-sep">|</span>
               {cards.length > 0 && deck && (() => {
                 const total = cards.length;
                 const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
                 return (
-                  <span className="stat-piece stat-mastered"><span className="stat-emoji">🌱</span> <span className="stat-key">Mastered:</span> <span className="stat-val">{mastered}/{total}</span></span>
+                  <span className="stat-piece stat-mastered"><span className="stat-key">Mastered:</span> <span className="stat-val">{mastered}/{total}</span></span>
                 );
               })()}
               <span className="stat-sep">|</span>
-              <span className="stat-piece stat-next"><span className="stat-emoji">⏰</span> <span className="stat-key">Next Due:</span> <span className="stat-val">2h 15m</span></span>
+              <span className="stat-piece stat-next"><span className="stat-key">Next Due:</span> <span className="stat-val">2h 15m</span></span>
             </div>
           </div>
           
           <button className="add-card-btn" onClick={() => setShowAdd(true)} disabled={!deck}><FiPlus /> Add New Card</button>
         </div>
       <div className="deck-content-page">
-        <div className="deck-header">
-          <div className="deck-header-content">
+        <div className="deck-content-study-header">
+          <div className="deck-content-study-header-content">
             {/* Left Side (Content Info) */}
             <div className="deck-info-section">
-              <div className="deck-header-info">
+              <div className="deck-content-study-header-info">
                 <div className="deck-info-left">
                   <div className="deck-title-section">
                     <div className="deck-title-with-icon">
                       <div className="deck-title-left">
-                        <Book className="deck-emoji" />
-                        <h1 className="deck-title" data-full-title={deck?.title || 'Deck'}>{deck?.title || 'Deck'}</h1>
+                        <span className="material-symbols-outlined deck-emoji">stacks</span>
+                        <h1 className="deck-title" data-full-title={deck?.title || 'Deck'}>
+                          {deck?.title || 'Deck'}
+                          {' · '}
+                          <span className="deck-subject-badge">{deck?.subject || 'No subject'}</span>
+                        </h1>
                       </div>
                     </div>
-                    <span className="deck-subject-badge">{deck?.subject || 'No subject'}</span>
-                    <div className="deck-last-updated">Last updated 2 days ago</div>
                     <div className="deck-title-actions">
                       <button 
-                        className="deck-header-btn" 
+                        className="deck-content-study-header-btn" 
                         title="Edit Deck" 
                         disabled={!deck}
                         onClick={() => {
@@ -601,7 +602,7 @@ export default function DeckContent() {
                         Edit Deck
                       </button>
                       <button 
-                        className="deck-header-btn deck-delete-btn" 
+                        className="deck-content-study-header-btn deck-content-study-delete-btn" 
                         title="Delete Deck" 
                         disabled={!deck}
                         onClick={handleDeleteDeck}
@@ -635,30 +636,22 @@ export default function DeckContent() {
                     </div>
                     <div className="circular-progress-wrapper">
                       <div className="circular-progress">
-                        <svg className="circular-progress-svg" width="160" height="160">
+                        <svg className="circular-progress-svg" width="160" height="160" viewBox="0 0 160 160">
                           {/* Background circle */}
                           <circle
                             className="circular-progress-bg"
                             cx="80"
                             cy="80"
                             r="60"
-                            fill="none"
-                            stroke="rgba(255, 255, 255, 0.1)"
-                            strokeWidth="8"
                           />
-                          {/* Progress circle */}
+                          {/* Progress circle - rotation via .circular-progress-svg transform */}
                           <circle
                             className="circular-progress-fill"
                             cx="80"
                             cy="80"
                             r="60"
-                            fill="none"
-                            stroke="#7c3aed"
-                            strokeWidth="8"
-                            strokeLinecap="round"
                             strokeDasharray={strokeDasharray}
                             strokeDashoffset={strokeDashoffset}
-                            transform="rotate(-90 80 80)"
                           />
                         </svg>
                         <div className="circular-progress-text">
@@ -667,25 +660,6 @@ export default function DeckContent() {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Mastery Stats - Under Progress Bar */}
-                    {cards.length > 0 && deck && (() => {
-                      const total = cards.length;
-                      const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
-                      
-                      return (
-                        <div className="mastery-stats">
-                          <div className="mastery-stat">
-                            <span>Mastered:</span>
-                            <span className="mastery-stat-value">{mastered}</span>
-                          </div>
-                          <div className="mastery-stat">
-                            <span>Total:</span>
-                            <span className="mastery-stat-value">{total}</span>
-                          </div>
-                        </div>
-                      );
-                    })()}
                   </div>
                 </div>
               );

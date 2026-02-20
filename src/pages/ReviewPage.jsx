@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiChevronDown, FiX } from 'react-icons/fi';
-import { FaBrain } from 'react-icons/fa';
 import { Brain, ChevronDown } from 'lucide-react';
 import ReviewWidget from '../components/ReviewWidget';
 import api from '../api/axios';
@@ -150,7 +149,9 @@ const ReviewPage = () => {
                 <div className="study-method-dropdown-header">
                   <h4>Choose Your Study Method</h4>
                 </div>
-                {studyMethods.map((method) => (
+                {studyMethods
+                  .filter(method => method.id !== 'understanding-problem-solving' && method.id !== 'pattern-recognition')
+                  .map((method) => (
                   <div
                     key={method.id}
                     className={`study-method-option ${selectedStudyMethod?.id === method.id ? 'selected' : ''} ${method.locked ? 'locked' : ''}`}
@@ -221,7 +222,7 @@ const ReviewPage = () => {
       <div className="review-session-title-block enhanced-title-block">
         <h2 className="review-session-title gradient-title">
           <span className="review-session-title-inner">
-            <FaBrain className="brain-icon" />
+            <span className="material-symbols-outlined brain-icon">cognition_2</span>
             <span>Review Session</span>
           </span>
         </h2>

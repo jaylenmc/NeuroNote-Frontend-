@@ -104,7 +104,7 @@ const CreateDeckModal = memo(({ showCreateModal, handleCloseModal, handleCreateD
             <div className="deck-view-modal-content" onClick={e => e.stopPropagation()}>
                 <div className="deck-view-modal-header">
                     <div className="deck-view-modal-icon">
-                        <Plus size={32} />
+                        <span className="material-symbols-outlined">playing_cards</span>
                     </div>
                     <h3>Create New Deck</h3>
                     <button 
@@ -491,9 +491,7 @@ const StudyDecks = () => {
                         >
                             {/* Icon circle */}
                             <div className="studydeck-icon-circle">
-                                <span className="studydeck-icon">
-                                    {React.createElement(getSubjectIcon(deck.subject), { size: 32 })}
-                                </span>
+                                <span className="material-symbols-outlined studydeck-icon">stacks</span>
                             </div>
                             {/* Title */}
                             <div className="studydeck-title">{deck.title}</div>

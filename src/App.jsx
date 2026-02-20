@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import Home from './Home';  // Import the Home page component
 import About from './About'; // Import the About page component
-import LandingNavbar from './components/landing/LandingNavbar';
 import Pricing from './pages/Pricing';
 import FeaturesPage from './pages/Features';
 import Contact from './pages/Contact';
@@ -63,9 +62,6 @@ const ProtectedRoute = ({ children }) => {
 // AppContent wrapper to use location
 function AppContent() {
   const location = useLocation();
-  const showNavbar = location.pathname !== '/' && !['/dashboard', '/signin', '/auth/callback/', '/chat', '/login', '/register', '/quiz', '/progress', '/study-groups', '/achievements', '/notes-editor'].some(route =>
-    location.pathname.startsWith(route)
-  );
 
   // Set default title if no page-specific title is set
   useEffect(() => {
@@ -76,7 +72,6 @@ function AppContent() {
 
   return (
     <>
-      {showNavbar && <LandingNavbar />}
       <main className="main-content">
         <Routes>
           <Route path='/auth/callback/' element={<Authentication />} />
@@ -176,6 +171,14 @@ function AppContent() {
           <Route path="/achievements" element={<Achievements />} />
           <Route 
             path="/quiz/create" 
+            element={
+              <ProtectedRoute>
+                <QuizCreatePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/quiz/:quizId/edit" 
             element={
               <ProtectedRoute>
                 <QuizCreatePage />

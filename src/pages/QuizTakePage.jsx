@@ -29,12 +29,21 @@ const QuizTakePage = () => {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [currentNote, setCurrentNote] = useState('');
   const [showConfidenceMeter, setShowConfidenceMeter] = useState(false);
-  const [paceProgress, setPaceProgress] = useState(0);
   const [visitedQuestions, setVisitedQuestions] = useState(new Set()); // Track visited questions
   const [showTooltip, setShowTooltip] = useState(false);
+  const [cardDisplaySeconds, setCardDisplaySeconds] = useState(0); // total time on current card (resumes when revisiting)
+  const [overallElapsedSeconds, setOverallElapsedSeconds] = useState(0);
   
   const idleTimeoutRef = useRef(null);
   const ambientIntervalRef = useRef(null);
+  const cardStartTimeRef = useRef(Date.now());
+  const cardBaseSecondsRef = useRef(0); // accumulated seconds for current card from previous visits
+  const cardTimerIntervalRef = useRef(null);
+  const perCardSecondsRef = useRef({}); // questionId -> total seconds (this session)
+  const prevActiveQuestionRef = useRef(null);
+  const overallStartTimeRef = useRef(null);
+  const overallTimerIntervalRef = useRef(null);
+  const quizSessionKeyRef = useRef(null); // for localStorage key when saving after answer
   const [flipExplanation, setFlipExplanation] = useState(false);
   const correctOptionRef = useRef(null);
   const tooltipTimeout = useRef();
@@ -63,11 +72,6 @@ const QuizTakePage = () => {
       setAmbientPulse(prev => (prev + 1) % 100);
     }, 100);
 
-    // Pace progress simulation
-    const paceInterval = setInterval(() => {
-      setPaceProgress(prev => Math.min(prev + 0.5, 100));
-    }, 1000);
-
     // Track user activity
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
     events.forEach(event => document.addEventListener(event, handleActivity));
@@ -78,9 +82,54 @@ const QuizTakePage = () => {
       events.forEach(event => document.removeEventListener(event, handleActivity));
       if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
       if (ambientIntervalRef.current) clearInterval(ambientIntervalRef.current);
-      clearInterval(paceInterval);
     };
   }, []);
+
+  // Per-card timer: save time for previous card, resume time for new card (including revisits)
+  useEffect(() => {
+    const questionList = reviewMode ? userAnswersData : questions;
+    const prevIdx = prevActiveQuestionRef.current;
+    const prevQuestion = questionList?.[prevIdx];
+    const prevQuestionId = prevQuestion?.id;
+
+    // Save accumulated time for the card we're leaving
+    if (prevQuestionId != null) {
+      const currentElapsed = Math.floor((Date.now() - cardStartTimeRef.current) / 1000);
+      const total = cardBaseSecondsRef.current + currentElapsed;
+      perCardSecondsRef.current[prevQuestionId] = total;
+    }
+
+    // Load base time for the card we're entering (resumes when revisiting)
+    const currentQuestionId = currentQuestion?.id;
+    cardBaseSecondsRef.current = currentQuestionId != null ? (perCardSecondsRef.current[currentQuestionId] ?? 0) : 0;
+    cardStartTimeRef.current = Date.now();
+    setCardDisplaySeconds(cardBaseSecondsRef.current);
+    prevActiveQuestionRef.current = activeQuestion;
+
+    if (cardTimerIntervalRef.current) clearInterval(cardTimerIntervalRef.current);
+    cardTimerIntervalRef.current = setInterval(() => {
+      setCardDisplaySeconds(cardBaseSecondsRef.current + Math.floor((Date.now() - cardStartTimeRef.current) / 1000));
+    }, 1000);
+    return () => {
+      if (cardTimerIntervalRef.current) clearInterval(cardTimerIntervalRef.current);
+    };
+  }, [activeQuestion, reviewMode, questions, userAnswersData, currentQuestion?.id]);
+
+  // Overall test timer (starts when quiz is ready, never resets)
+  useEffect(() => {
+    if (loading || (!reviewMode && questions.length === 0) || (reviewMode && !userAnswersData?.length)) return;
+    if (overallStartTimeRef.current == null) {
+      overallStartTimeRef.current = Date.now();
+      quizSessionKeyRef.current = `quiz-card-times-${quizId}-${overallStartTimeRef.current}`;
+    }
+    if (overallTimerIntervalRef.current) clearInterval(overallTimerIntervalRef.current);
+    overallTimerIntervalRef.current = setInterval(() => {
+      setOverallElapsedSeconds(Math.floor((Date.now() - overallStartTimeRef.current) / 1000));
+    }, 1000);
+    return () => {
+      if (overallTimerIntervalRef.current) clearInterval(overallTimerIntervalRef.current);
+    };
+  }, [loading, reviewMode, questions.length, userAnswersData?.length]);
 
   // Question transition effect
   useEffect(() => {
@@ -203,6 +252,17 @@ const QuizTakePage = () => {
   const totalQuestions = reviewMode ? (userAnswersData?.length || 0) : questions.length;
   const currentConfidence = confidence[currentQuestion?.id];
 
+  const formatNavbarTimer = (totalSeconds) => {
+    if (totalSeconds < 60) return `${totalSeconds}s`;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / 3600);
+    if (totalSeconds < 3600) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+    if (hours === 1) return seconds > 0 ? `1hr ${minutes}m ${seconds}s` : (minutes > 0 ? `1hr ${minutes}m` : '1hr');
+    const hrsLabel = hours + 'hrs';
+    return minutes > 0 || seconds > 0 ? `${hrsLabel} ${minutes}m${seconds > 0 ? ` ${seconds}s` : ''}` : hrsLabel;
+  };
+
   // Check if there are any visited but unanswered questions
   const hasUnansweredVisitedQuestions = !reviewMode && questions.length > 0 && 
     questions.some(q => visitedQuestions.has(q.id) && !answers[q.id]);
@@ -234,16 +294,27 @@ const QuizTakePage = () => {
     );
   };
 
+  // Flush current card time and persist to localStorage when user answers this card
+  const flushCardTimeAndSave = (questionId) => {
+    const currentElapsed = Math.floor((Date.now() - cardStartTimeRef.current) / 1000);
+    const total = cardBaseSecondsRef.current + currentElapsed;
+    perCardSecondsRef.current[questionId] = total;
+    cardBaseSecondsRef.current = total;
+    cardStartTimeRef.current = Date.now();
+    const key = quizSessionKeyRef.current;
+    if (key) try { localStorage.setItem(key, JSON.stringify(perCardSecondsRef.current)); } catch (_) {}
+  };
+
   const handleSelect = (qIdx, oIdx) => {
     const q = questions[qIdx];
     const selectedAnswerId = q.answerIds[oIdx];
+    flushCardTimeAndSave(q.id);
     setAnswers(a => ({ ...a, [q.id]: selectedAnswerId }));
   };
 
   const handleWrittenChange = (qIdx, value) => {
     const q = questions[qIdx];
-    // For written answers, we'll need to handle this differently
-    // For now, we'll store the text value and handle it during submission
+    flushCardTimeAndSave(q.id);
     setAnswers(a => ({ ...a, [q.id]: value }));
   };
 
@@ -273,7 +344,8 @@ const QuizTakePage = () => {
       const token = sessionStorage.getItem('jwt_token');
       const response = await api.post('/test/review/', {
         quiz_id: parseInt(quizId),
-        qa_ids: qa_ids
+        qa_ids: qa_ids,
+        time_taken: overallElapsedSeconds
       }, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -284,14 +356,15 @@ const QuizTakePage = () => {
 
       console.log('Quiz submitted successfully:', response.data);
       
-      // Navigate to results page with score data
+      // Navigate to results page with score data and time taken
       navigate(`/quiz/${quizId}/results`, {
         state: {
           score: response.data.Score,
           totalQuestions: questions.length,
           questions,
           userAnswers: answers,
-          quizTitle
+          quizTitle,
+          timeTakenSeconds: overallElapsedSeconds
         }
       });
     } catch (err) {
@@ -403,16 +476,10 @@ const QuizTakePage = () => {
           <div className="quiz-review-question">{currentQuestion?.question_input}</div>
           <div className="quiz-review-subtext">Question {activeQuestion + 1} of {totalQuestions}</div>
           
-          {/* Pace indicator */}
+          {/* Time spent on card */}
           <div className="quiz-review-pace-indicator">
             <FiClock />
-            <div className="pace-bar">
-              <div 
-                className="pace-fill" 
-                style={{ width: `${paceProgress}%` }}
-              />
-            </div>
-            <span>Pace: {Math.round(paceProgress)}%</span>
+            <span>Time spent on card: {Math.floor(cardDisplaySeconds / 60)}:{(cardDisplaySeconds % 60).toString().padStart(2, '0')}</span>
           </div>
           
           <div className="quiz-review-options">
@@ -575,6 +642,7 @@ const QuizTakePage = () => {
           </button>
         </div>
         <div className="quiz-take-navbar-center-fixed">
+          <div className="quiz-take-navbar-title">{quizTitle}</div>
           <div className="quiz-take-progress-container">
             <div className="quiz-take-progress-bar">
               <div 
@@ -582,11 +650,11 @@ const QuizTakePage = () => {
                 style={{ width: `${((activeQuestion + 1) / totalQuestions) * 100}%` }}
               />
             </div>
-            <span className="quiz-take-questions-left">{activeQuestion + 1}/{totalQuestions}</span>
           </div>
         </div>
         <div className="quiz-take-navbar-right">
-          <div className="quiz-take-navbar-title">{quizTitle}</div>
+          <span className="quiz-take-navbar-total">{totalQuestions} {totalQuestions === 1 ? 'question' : 'questions'}</span>
+          <span className="quiz-take-navbar-timer">{formatNavbarTimer(overallElapsedSeconds)}</span>
         </div>
       </nav>
 
@@ -620,8 +688,8 @@ const QuizTakePage = () => {
             </div>
             
           <div className="quiz-take-pace-display">
-            <span className="quiz-take-pace-label">Pace:</span>
-            <span className="quiz-take-pace-number">{Math.round(paceProgress)}</span>
+            <span className="quiz-take-pace-label">Time spent on card:</span>
+            <span className="quiz-take-pace-number">{Math.floor(cardDisplaySeconds / 60)}:{(cardDisplaySeconds % 60).toString().padStart(2, '0')}</span>
           </div>
           
           <div className="quiz-take-options-list">

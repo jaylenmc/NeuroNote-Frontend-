@@ -98,23 +98,37 @@
 
 .quiz-take-navbar-center-fixed {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  flex: 1;
   justify-content: center;
+  flex: 1;
   margin: 0 1rem;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.quiz-take-navbar-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #f5f5f5;
+  text-align: center;
+  width: 100%;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .quiz-take-progress-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  min-width: 200px;
+  width: 100%;
 }
 
 .quiz-take-progress-bar {
   width: 100%;
-  height: 6px;
+  height: 9px;
   background: rgba(191,196,204,0.1);
   border-radius: 3px;
   overflow: hidden;
@@ -129,21 +143,10 @@
   position: relative;
 }
 
-.quiz-take-questions-left {
-  font-size: 0.9rem;
+.quiz-take-navbar-total {
+  font-size: 0.95rem;
   color: #bfc4cc;
   font-weight: 500;
-}
-
-.quiz-take-navbar-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #f5f5f5;
-  text-align: right;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .quiz-take-main {

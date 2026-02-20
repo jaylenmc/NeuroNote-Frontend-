@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiPlusCircle, FiTrash2, FiCheckCircle, FiEye, FiArrowLeft, FiChevronLeft, FiChevronRight, FiCheck } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../auth/AuthContext';
 import './QuizTakePage.css';
@@ -15,8 +15,11 @@ const initialQuestion = () => ({
 
 const QuizCreatePage = () => {
     const navigate = useNavigate();
+    const { quizId } = useParams();
     const { user } = useAuth();
+    const isEditMode = Boolean(quizId);
     const [title, setTitle] = useState('');
+    const [subject, setSubject] = useState('');
     const [editingTitle, setEditingTitle] = useState(false);
     const titleInputRef = useRef(null);
     const [questions, setQuestions] = useState([initialQuestion()]);
@@ -24,11 +27,71 @@ const QuizCreatePage = () => {
     const [saving, setSaving] = useState(false);
     const [showSaved, setShowSaved] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [loadError, setLoadError] = useState(null);
+    const [loadingEdit, setLoadingEdit] = useState(isEditMode);
     const [previewMode, setPreviewMode] = useState(false);
     const [previewActiveQuestion, setPreviewActiveQuestion] = useState(0);
     const [previewAnswers, setPreviewAnswers] = useState({}); // { qIdx: oIdx }
     const [questionTypeDropdown, setQuestionTypeDropdown] = useState(false);
     const [draggedOption, setDraggedOption] = useState(null);
+
+    // Load existing quiz when editing
+    useEffect(() => {
+        if (!isEditMode || !quizId) return;
+        let cancelled = false;
+        const loadQuiz = async () => {
+            setLoadingEdit(true);
+            setLoadError(null);
+            try {
+                const quizRes = await api.get(`/test/quiz/${quizId}/`);
+                const topic = quizRes.data?.topic ?? '';
+                const loadedSubject = quizRes.data?.subject ?? '';
+                const qRes = await api.get(`/test/quiz/question/${quizId}/`);
+                const qData = qRes.data;
+                if (cancelled) return;
+                if (!qData || Object.keys(qData).length === 0) {
+                    setTitle(topic || '');
+                    setSubject(loadedSubject || '');
+                    setQuestions([initialQuestion()]);
+                    setActiveQuestion(0);
+                    setLoadingEdit(false);
+                    return;
+                }
+                const questionList = Object.entries(qData).map(([qId, answersArr]) => {
+                    if (!answersArr?.length) return null;
+                    const first = answersArr[0];
+                    const prompt = first.question_input ?? '';
+                    const question_type = first.question_type ?? 'MC';
+                    const options = answersArr.map(a => a.answer_input ?? '');
+                    const safeOptions = options.length ? options : [''];
+                    const correctIdx = answersArr.findIndex(a => a.is_correct);
+                    const correct = correctIdx >= 0 ? Math.min(correctIdx, safeOptions.length - 1) : 0;
+                    const answerIds = answersArr.map(a => a.id);
+                    return {
+                        questionId: parseInt(qId, 10),
+                        prompt,
+                        options: safeOptions,
+                        correct,
+                        image: null,
+                        question_type,
+                        answerIds
+                    };
+                }).filter(Boolean);
+                setTitle(topic || '');
+                setSubject(loadedSubject || '');
+                setQuestions(questionList.length ? questionList : [initialQuestion()]);
+                setActiveQuestion(0);
+            } catch (err) {
+                if (!cancelled) {
+                    setLoadError(err.response?.data?.detail || err.message || 'Failed to load quiz.');
+                }
+            } finally {
+                if (!cancelled) setLoadingEdit(false);
+            }
+        };
+        loadQuiz();
+        return () => { cancelled = true; };
+    }, [quizId, isEditMode]);
 
     // Auto-resize any option textareas when content changes
     useEffect(() => {
@@ -96,7 +159,8 @@ const QuizCreatePage = () => {
         setQuestions(qs => qs.map((q, i) => i === qIdx ? {
             ...q,
             options: q.options.filter((_, j) => j !== oIdx),
-            correct: q.correct >= oIdx ? Math.max(0, q.correct - 1) : q.correct
+            correct: q.correct >= oIdx ? Math.max(0, q.correct - 1) : q.correct,
+            answerIds: q.answerIds ? q.answerIds.filter((_, j) => j !== oIdx) : undefined
         } : q));
     };
     const handleSetCorrect = (qIdx, oIdx) => {
@@ -154,7 +218,13 @@ const QuizCreatePage = () => {
                 const newOptions = [...q.options];
                 const [movedOption] = newOptions.splice(fromIdx, 1);
                 newOptions.splice(toIdx, 0, movedOption);
-                
+                let newAnswerIds = q.answerIds ? [...q.answerIds] : null;
+                if (newAnswerIds && newAnswerIds.length === q.options.length) {
+                    const [movedId] = newAnswerIds.splice(fromIdx, 1);
+                    newAnswerIds.splice(toIdx, 0, movedId);
+                } else {
+                    newAnswerIds = undefined;
+                }
                 // Update correct index if needed
                 let newCorrect = q.correct;
                 if (q.correct === fromIdx) {
@@ -164,8 +234,7 @@ const QuizCreatePage = () => {
                 } else if (fromIdx > toIdx && q.correct >= toIdx && q.correct < fromIdx) {
                     newCorrect = q.correct + 1;
                 }
-                
-                return { ...q, options: newOptions, correct: newCorrect };
+                return { ...q, options: newOptions, correct: newCorrect, answerIds: newAnswerIds };
             }
             return q;
         }));
@@ -182,23 +251,49 @@ const QuizCreatePage = () => {
         setSaving(true);
         setSaveError(null);
         try {
-            const transformedQuestions = questions.map(q => ({
-                question_input: q.prompt,
-                question_type: q.question_type,
-                answers: q.question_type === 'MC' ? q.options.map((opt, idx) => ({
-                    answer_input: opt,
-                    is_correct: q.correct === idx
-                })) : []
-            }));
-            await api.post('/test/quiz/', {
-                topic: title || 'Untitled Quiz',
-                questions: transformedQuestions
-            });
+            const topicVal = title || 'Untitled Quiz';
+            const subjectVal = subject || '';
+            if (isEditMode) {
+                const transformedQuestions = questions.map(q => {
+                    const answers = q.question_type === 'MC'
+                        ? q.options.map((opt, idx) => {
+                            const ans = { answer_input: opt, is_correct: q.correct === idx };
+                            if (q.answerIds && q.answerIds[idx] != null) ans.id = q.answerIds[idx];
+                            return ans;
+                        })
+                        : [];
+                    const qPayload = {
+                        question_input: q.prompt,
+                        question_type: q.question_type,
+                        answers
+                    };
+                    if (q.questionId != null) qPayload.id = q.questionId;
+                    return qPayload;
+                });
+                await api.patch(`/test/quiz/edit/${quizId}/`, {
+                    topic: topicVal,
+                    subject: subjectVal,
+                    questions: transformedQuestions
+                });
+            } else {
+                const transformedQuestions = questions.map(q => ({
+                    question_input: q.prompt,
+                    question_type: q.question_type,
+                    answers: q.question_type === 'MC' ? q.options.map((opt, idx) => ({
+                        answer_input: opt,
+                        is_correct: q.correct === idx
+                    })) : []
+                }));
+                await api.post('/test/quiz/', {
+                    topic: topicVal,
+                    subject: subjectVal,
+                    questions: transformedQuestions
+                });
+            }
             setShowSaved(true);
-            // Redirect to quiz center after successful save
             navigate('/quiz');
         } catch (err) {
-            setSaveError('Failed to save quiz. Please try again.');
+            setSaveError(err.response?.data?.detail || err.message || 'Failed to save quiz. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -223,6 +318,42 @@ const QuizCreatePage = () => {
     };
 
     const currentQuestion = questions[activeQuestion];
+
+    if (loadingEdit) {
+        return (
+            <div className="quiz-take-bg">
+                <nav className="quiz-take-navbar">
+                    <div className="quiz-take-navbar-left">
+                        <button className="quiz-take-navbar-back-btn" onClick={handleBack}>
+                            <FiArrowLeft style={{ marginRight: 6 }} /> Back
+                        </button>
+                    </div>
+                    <div className="quiz-take-navbar-center-fixed" style={{ color: '#bfc4cc', fontSize: '1rem' }}>
+                        Loading quiz…
+                    </div>
+                </nav>
+                <div className="quiz-take-main" style={{ padding: '2rem', color: '#bfc4cc', textAlign: 'center' }}>
+                    Loading quiz…
+                </div>
+            </div>
+        );
+    }
+    if (loadError) {
+        return (
+            <div className="quiz-take-bg">
+                <nav className="quiz-take-navbar">
+                    <div className="quiz-take-navbar-left">
+                        <button className="quiz-take-navbar-back-btn" onClick={handleBack}>
+                            <FiArrowLeft style={{ marginRight: 6 }} /> Back
+                        </button>
+                    </div>
+                </nav>
+                <div className="quiz-take-main" style={{ padding: '2rem', color: '#e74c3c', textAlign: 'center' }}>
+                    <p>{loadError}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="quiz-take-bg">
@@ -269,7 +400,7 @@ const QuizCreatePage = () => {
                     )}
                 </div>
                 <div className="quiz-take-navbar-right">
-                    <span className="quiz-take-questions-left">{progress}</span>
+                    <span className="quiz-take-navbar-total">{questions.length} {questions.length === 1 ? 'question' : 'questions'}</span>
                 </div>
             </nav>
 
@@ -515,33 +646,17 @@ const QuizCreatePage = () => {
             </div>
 
             {/* Save/Preview Footer */}
-            <footer style={{ 
-                position: 'fixed', 
-                bottom: 0, 
-                left: 0, 
-                width: '100vw', 
-                zIndex: 20, 
-                background: 'rgba(30,32,36,0.95)', 
-                backdropFilter: 'blur(15px)',
-                borderTop: '1px solid rgba(191,196,204,0.1)',
-                padding: '1rem 2rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <span style={{ color: '#bfc4cc', fontWeight: 500 }}>📝 {questions.length} Questions</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <footer className="quiz-create-footer">
+                <div className="quiz-create-footer-actions">
                     <button className="quiz-save-draft-btn" onClick={handleSaveQuiz} disabled={saving}>
                         {saving ? 'Saving…' : 'Save Draft'}
                     </button>
                     <button className="quiz-preview-btn" onClick={handlePreview}>
                         <FiEye /> Preview
                     </button>
+                    {showSaved && <span className="quiz-create-footer-saved">✔ Quiz Saved!</span>}
+                    {saveError && <span className="quiz-create-footer-error">{saveError}</span>}
                 </div>
-                {showSaved && <div style={{ color: '#5fffd7', marginLeft: 16 }}>✔ Quiz Saved!</div>}
-                {saveError && <div style={{ color: '#e05a5a', marginLeft: 16 }}>{saveError}</div>}
             </footer>
 
             {/* Preview Modal - renders current draft as take-quiz experience */}
@@ -572,6 +687,7 @@ const QuizCreatePage = () => {
                                     </button>
                                 </div>
                                 <div className="quiz-take-navbar-center-fixed">
+                                    <div className="quiz-take-navbar-title">{title || 'Untitled Quiz'}</div>
                                     <div className="quiz-take-progress-container">
                                         <div className="quiz-take-progress-bar">
                                             <div
@@ -579,11 +695,10 @@ const QuizCreatePage = () => {
                                                 style={{ width: `${questions.length ? ((previewActiveQuestion + 1) / questions.length) * 100 : 0}%` }}
                                             />
                                         </div>
-                                        <span className="quiz-take-questions-left">{questions.length ? (previewActiveQuestion + 1) : 0}/{questions.length}</span>
                                     </div>
                                 </div>
                                 <div className="quiz-take-navbar-right">
-                                    <div className="quiz-take-navbar-title">{title || 'Untitled Quiz'}</div>
+                                    <span className="quiz-take-navbar-total">{questions.length} {questions.length === 1 ? 'question' : 'questions'}</span>
                                 </div>
                             </nav>
 

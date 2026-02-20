@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../contexts/NotificationContext';
-import { Sun, Moon, ArrowLeft, BookOpen, HelpCircle, Target, RefreshCcw, BarChart2, MessageCircle, Play, Pause, RotateCcw, Settings, Coffee, Timer, Zap, FileText, Lock } from 'lucide-react';
+import { ArrowLeft, BookOpen, MessageCircle, Play, Pause, RotateCcw, Settings, Coffee, Timer, Zap, FileText, Lock } from 'lucide-react';
 import api from '../api/axios';
 import './StudyRoom.css';
 
 const tools = [
-  { icon: <BookOpen size={24} color="#7c83fd" />, label: 'Decks', route: '/study-room/decks', color: '#7c83fd' },
-  { icon: <HelpCircle size={24} color="#4ecdc4" />, label: 'Quiz', route: '/quiz', color: '#4ecdc4' },
-  { icon: <Target size={24} color="#3b82f6" />, label: 'Focus', route: '/focus', color: '#3b82f6' }, // blue
-  { icon: <RefreshCcw size={24} color="#ffd93d" />, label: 'Review', route: '/review', color: '#ffd93d' },
-  { icon: <BarChart2 size={24} color="#22c55e" />, label: 'Progress', route: '/progress', color: '#22c55e' }, // green
-  { icon: <MessageCircle size={24} color="#4ECDC4" />, label: 'Ask NeuroNote', route: '/chat', color: '#06B6D4' },
+  { icon: null, label: 'Decks', route: '/study-room/decks', color: '#7c83fd', materialIcon: 'stacks' },
+  { icon: null, label: 'Quiz', route: '/quiz', color: '#4ecdc4', materialIcon: 'quiz' },
+  { icon: null, label: 'Focus', route: '/focus', color: '#3b82f6', materialIcon: 'track_changes' }, // blue, locked card
+  { icon: null, label: 'Review', route: '/review', color: '#f59e0b', materialIcon: 'cognition_2' },
+  { icon: null, label: 'Progress', route: '/progress', color: '#22c55e', materialIcon: 'azm' }, // green
+  { icon: null, label: 'Ask NeuroNote', route: '/chat', color: '#06B6D4', materialIcon: 'forum' },
 ];
 
 const mockTasks = [
@@ -38,8 +38,6 @@ const phaseMeta = {
 };
 
 const StudyRoom = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isStudyMode, setIsStudyMode] = useState(false);
     const navigate = useNavigate();
   const [tasks, setTasks] = useState(mockTasks);
   const [showPomodoro, setShowPomodoro] = useState(false);
@@ -469,14 +467,8 @@ const StudyRoom = () => {
             </div>
             <div className="header-right">
                 <div className="header-controls">
-                    <button className="study-room-theme-toggle-button" onClick={() => setIsDarkMode((d) => !d)} aria-label="Toggle theme">
-                        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                    </button>
                     <button className="study-room-timer-button" onClick={() => setShowPomodoro(s => !s)} title="Pomodoro Timer">
                       <Timer size={20} />
-                    </button>
-                    <button className={`study-room-study-mode-button ${isStudyMode ? 'active' : ''}`} onClick={() => setIsStudyMode((s) => !s)}>
-                        {isStudyMode ? 'Exit Study Mode' : 'Enter Study Mode'}
                     </button>
                 </div>
             </div>
@@ -524,7 +516,11 @@ const StudyRoom = () => {
                   <Lock size={16} color="#ff6b6b" />
                 </div>
               )}
-              {React.cloneElement(tool.icon, { color: tool.color })}
+              {tool.materialIcon ? (
+                <span className="material-symbols-outlined study-room-card-quiz-icon" style={{ color: tool.color }}>{tool.materialIcon}</span>
+              ) : (
+                React.cloneElement(tool.icon, { color: tool.color })
+              )}
               <span>{tool.label}</span>
             </div>
           );

@@ -9,7 +9,7 @@ const QuizResultsPage = () => {
   const { quizId } = useParams();
   
   // Get results data from navigation state
-  const { score, totalQuestions, questions, userAnswers, quizTitle } = location.state || {};
+  const { score, totalQuestions, questions, userAnswers, quizTitle, timeTakenSeconds } = location.state || {};
 
   // Calculate correct answers from score
   const correctAnswers = Math.round((score / 100) * totalQuestions);
@@ -37,6 +37,17 @@ const QuizResultsPage = () => {
     if (score >= 70) return 'Good job!';
     if (score >= 50) return 'Not bad!';
     return 'Keep practicing!';
+  };
+
+  const formatTimeTaken = (totalSeconds) => {
+    if (totalSeconds == null || totalSeconds < 0) return null;
+    if (totalSeconds < 60) return `${totalSeconds}s`;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / 3600);
+    if (totalSeconds < 3600) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+    if (hours === 1) return minutes > 0 ? `1hr ${minutes}m` : '1hr';
+    return minutes > 0 ? `${hours}hrs ${minutes}m` : `${hours}hrs`;
   };
 
   const getWrongQuestions = () => {
@@ -97,6 +108,12 @@ const QuizResultsPage = () => {
               <div className="quiz-results-score-details">
                 You got {correctAnswers} out of {totalQuestions} questions correct
               </div>
+              {timeTakenSeconds != null && formatTimeTaken(timeTakenSeconds) && (
+                <div className="quiz-results-time-taken">
+                  <span className="material-symbols-outlined quiz-results-time-icon">pace</span>
+                  <span>Completed in: {formatTimeTaken(timeTakenSeconds)}</span>
+                </div>
+              )}
             </div>
 
             {/* Performance Breakdown */}

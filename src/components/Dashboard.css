@@ -309,6 +309,7 @@ body.reminders-modal-open .dashboard-sidebar {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-family: 'Poppins', 'Geist', 'IBM Plex Sans', Arial, sans-serif;
 }
 
 .workspace-name {

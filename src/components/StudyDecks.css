@@ -49,11 +49,11 @@
 
 /* --- Isolated StudyDecks styles --- */
 .studydeck-grid {
-  column-count: 3;
-  column-gap: 22px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
   padding: 0 4px;
   margin-top: 8px;
-  display: block;
 }
 
 .studydeck-card {
@@ -82,14 +82,14 @@
 /* Responsive breakpoints */
 @media (max-width: 1200px) {
   .studydeck-grid {
-    column-count: 2;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 700px) {
   .studydeck-grid {
-    column-count: 1;
-    column-gap: 0;
+    grid-template-columns: 1fr;
+    gap: 0;
     padding: 0;
   }
   
@@ -136,10 +136,11 @@
   box-shadow: none;
 }
 .studydeck-icon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #8b5cf6;
+  font-size: 3rem;
+  color: rgba(124, 131, 253, 0.9);
   opacity: 0.9;
   transition: all 0.2s ease;
 }
@@ -148,12 +149,6 @@
   width: 32px;
   height: 32px;
   stroke-width: 1.5;
-}
-
-.studydeck-card:hover .studydeck-icon {
-  color: #a855f7;
-  opacity: 1;
-  transform: scale(1.05);
 }
 
 .studydeck-title {
@@ -472,9 +467,10 @@
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -488,25 +484,48 @@
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    animation: deckViewModalFadeIn 0.2s ease forwards;
 }
 
 .deck-view-modal-content {
+    background: #1E1E1E;
+    border-radius: 24px;
+    padding: 32px;
     width: 100%;
     max-width: 700px;
-    padding: 2rem;
-    border-radius: 1.5rem;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    max-height: 80vh;
+    color: #fff;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    border: 1px solid #2A2A2A;
     position: relative;
     z-index: 10000;
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow: hidden;
     transform: scale(0.95);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
+    opacity: 0;
 }
 
 .deck-view-modal-overlay.show .deck-view-modal-content {
-    transform: scale(1);
-    padding: 1rem;
+    animation: deckViewModalMount 0.2s ease forwards;
+}
+
+@keyframes deckViewModalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes deckViewModalMount {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .deck-view-modal-header {
@@ -514,14 +533,14 @@
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 2rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
 }
 
 .deck-view-modal-icon {
-    color: #a855f7;
+    font-size: 3rem;
+    color: rgba(124, 131, 253, 0.9);
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -621,18 +640,11 @@
 }
 
 .deck-view-modal-actions button[type="submit"] {
-    background: #7c3aed;
-    color: white;
+    background: rgba(139, 92, 246, 0.2);
+    color: rgba(196, 181, 253, 0.95);
+    border: 1px solid rgba(139, 92, 246, 0.5);
 }
 
-.deck-view-modal-actions button[type="button"]:hover {
-    background: #444;
-}
-
-.deck-view-modal-actions button[type="submit"]:hover {
-    background: #6d28d9;
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-}
 
 .deck-view-header-actions {
     display: flex;

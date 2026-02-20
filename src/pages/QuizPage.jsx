@@ -23,6 +23,17 @@ const formatDate = (dateString) => {
     return formatDateForDisplay(dateString);
 };
 
+const formatTimeTaken = (totalSeconds) => {
+  if (totalSeconds == null || totalSeconds < 0) return '—';
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60) % 60;
+  const seconds = totalSeconds % 60;
+  const hours = Math.floor(totalSeconds / 3600);
+  if (totalSeconds < 3600) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+  if (hours === 1) return minutes > 0 ? `1hr ${minutes}m` : '1hr';
+  return minutes > 0 ? `${hours}hrs ${minutes}m` : `${hours}hrs`;
+};
+
 const getProgressColor = (score) => {
   if (score >= 80) return 'excellent';
   if (score >= 60) return 'good';
@@ -347,7 +358,7 @@ const QuizPage = () => {
                 </div>
                 <div className="quiz-header-right">
                     <button className="generate-button" onClick={handleGenerateQuiz}>
-                        <span style={{ color: 'white' }}>🎲</span> Generate Quiz
+                        <span className="material-symbols-outlined generate-button-icon">casino</span> Generate Quiz
                     </button>
                 <button className="create-button" onClick={handleCreateQuiz}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -362,7 +373,6 @@ const QuizPage = () => {
                 <div className="quiz-title-container">
                     <div className="quiz-title-content">
                         <h2 className="quiz-session-title">
-                            <span className="quiz-title-emoji">📝</span>
                             <span className="quiz-title-text">Quiz Center</span>
                         </h2>
                         <p className="quiz-session-subtitle">
@@ -380,7 +390,7 @@ const QuizPage = () => {
                             <h2 className="empty-state-title">No Quizzes Yet</h2>
                             <p className="empty-state-description">Ready to test your knowledge? Create your first quiz and start learning!</p>
                             <div className="no-quizzes-actions">
-                                <button className="generate-button" onClick={handleGenerateQuiz}>Generate Quiz</button>
+                                <button className="generate-button" onClick={handleGenerateQuiz}><span className="material-symbols-outlined generate-button-icon">casino</span> Generate Quiz</button>
                                 <button className="create-button" onClick={handleCreateQuiz}>Create Quiz</button>
                             </div>
                         </div>
@@ -395,6 +405,7 @@ const QuizPage = () => {
                                 <th className="quiz-th-center">Questions</th>
                                     <th className="quiz-th-center">Progress</th>
                                 <th className="quiz-th-center">Last Attempt</th>
+                                <th className="quiz-th-center">Time</th>
                                 <th className="quiz-th-center">Actions</th>
                             </tr>
                         </thead>
@@ -405,7 +416,6 @@ const QuizPage = () => {
                                             animation: `fadeInUp 0.4s ease ${index * 0.1}s both`
                                         }}>
                                         <td className="quiz-td-center quiz-title">
-                                            <span className="quiz-icon">🧠</span>
                                             <div>
                                                 <div>{quiz.topic}</div>
                                             </div>
@@ -415,6 +425,7 @@ const QuizPage = () => {
                                                 <ScoreDisplay score={quiz.last_score} />
                                             </td>
                                         <td className="quiz-td-center">{quiz.last_attempt ? formatDate(quiz.last_attempt) : '—'}</td>
+                                        <td className="quiz-td-center">{formatTimeTaken(quiz.time_taken)}</td>
                                         <td className="quiz-td-center">
                                             <QuizActionsDropdown quiz={quiz} />
                                         </td>
