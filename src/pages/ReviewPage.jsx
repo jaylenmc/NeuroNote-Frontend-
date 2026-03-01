@@ -222,7 +222,6 @@ const ReviewPage = () => {
       <div className="review-session-title-block enhanced-title-block">
         <h2 className="review-session-title gradient-title">
           <span className="review-session-title-inner">
-            <span className="material-symbols-outlined brain-icon">cognition_2</span>
             <span>Review Session</span>
           </span>
         </h2>

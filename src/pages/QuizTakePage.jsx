@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { FiArrowLeft, FiChevronRight, FiEdit3, FiSmile, FiMeh, FiFrown, FiClock, FiCheckCircle, FiXCircle, FiChevronLeft } from 'react-icons/fi';
 import './QuizTakePage.css';
@@ -7,6 +7,10 @@ import './QuizTakePage.css';
 const QuizTakePage = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state || {};
+  const isTimed = Boolean(locationState.timed && locationState.timeLimitMinutes > 0);
+  const timeLimitMinutes = locationState.timeLimitMinutes || 10;
   const [quizTitle, setQuizTitle] = useState('');
   const [questions, setQuestions] = useState([]);
   const [activeQuestion, setActiveQuestion] = useState(0);
@@ -33,8 +37,13 @@ const QuizTakePage = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [cardDisplaySeconds, setCardDisplaySeconds] = useState(0); // total time on current card (resumes when revisiting)
   const [overallElapsedSeconds, setOverallElapsedSeconds] = useState(0);
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(() =>
+    isTimed ? Math.max(60, Math.min(7200, (timeLimitMinutes || 10) * 60)) : null
+  );
   
   const idleTimeoutRef = useRef(null);
+  const timeUpCalledRef = useRef(false);
+  const countdownIntervalRef = useRef(null);
   const ambientIntervalRef = useRef(null);
   const cardStartTimeRef = useRef(Date.now());
   const cardBaseSecondsRef = useRef(0); // accumulated seconds for current card from previous visits
@@ -263,6 +272,17 @@ const QuizTakePage = () => {
     return minutes > 0 || seconds > 0 ? `${hrsLabel} ${minutes}m${seconds > 0 ? ` ${seconds}s` : ''}` : hrsLabel;
   };
 
+  const formatCountdownRemaining = (remainingSeconds) => {
+    const h = Math.floor(remainingSeconds / 3600);
+    const m = Math.floor((remainingSeconds % 3600) / 60);
+    const s = remainingSeconds % 60;
+    const parts = [];
+    if (h > 0) parts.push(h === 1 ? '1hr' : `${h}hrs`);
+    if (m > 0) parts.push(m === 1 ? '1min' : `${m}mins`);
+    if (s > 0 && h === 0) parts.push(s === 1 ? '1s' : `${s}s`);
+    return (parts.length ? parts.join(' ') : '0s') + ' left';
+  };
+
   // Check if there are any visited but unanswered questions
   const hasUnansweredVisitedQuestions = !reviewMode && questions.length > 0 && 
     questions.some(q => visitedQuestions.has(q.id) && !answers[q.id]);
@@ -324,18 +344,21 @@ const QuizTakePage = () => {
     setSubmitting(true);
     
     try {
-      // Prepare qa_ids for the new backend format
+      // Prepare qa_ids for the new backend format: { questionId: answerId }
       const qa_ids = {};
+      const qType = (t) => (t && String(t).toUpperCase()) || '';
       questions.forEach((question) => {
         const userAnswer = answers[question.id];
-        if (userAnswer !== undefined) {
-          if (question.question_type === 'MC') {
-            // For MC, userAnswer is already the answerId
-            qa_ids[question.id] = userAnswer;
-          } else if (question.question_type === 'WR') {
-            // For written answers, we need to find or create an answer
-            // For now, we'll skip written answers as they need special handling
-            console.log('Written answer handling not implemented yet');
+        const type = qType(question.question_type);
+        if (userAnswer === undefined) return;
+        if (type === 'MC') {
+          // For MC, userAnswer is already the answerId
+          qa_ids[question.id] = userAnswer;
+        } else if (type === 'WR') {
+          // For WR, backend expects an answer id; use the expected answer's id when user provided text
+          const answerStr = userAnswer != null ? String(userAnswer).trim() : '';
+          if (answerStr && question.answerIds && question.answerIds.length > 0) {
+            qa_ids[question.id] = question.answerIds[0];
           }
         }
       });
@@ -344,7 +367,7 @@ const QuizTakePage = () => {
       const token = sessionStorage.getItem('jwt_token');
       const response = await api.post('/test/review/', {
         quiz_id: parseInt(quizId),
-        qa_ids: qa_ids,
+        qa_ids,
         time_taken: overallElapsedSeconds
       }, {
         headers: {
@@ -373,6 +396,31 @@ const QuizTakePage = () => {
       setSubmitting(false);
     }
   };
+
+  // Timed quiz: countdown and auto-submit when time runs out
+  useEffect(() => {
+    if (reviewMode || !isTimed || timeRemainingSeconds === null || loading || questions.length === 0) {
+      return;
+    }
+    if (timeRemainingSeconds <= 0) {
+      if (!timeUpCalledRef.current) {
+        timeUpCalledRef.current = true;
+        handleSubmit();
+      }
+      return;
+    }
+    const id = setInterval(() => {
+      setTimeRemainingSeconds(prev => {
+        if (prev === null || prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+    countdownIntervalRef.current = id;
+    return () => {
+      clearInterval(id);
+      countdownIntervalRef.current = null;
+    };
+  }, [reviewMode, isTimed, loading, questions.length, timeRemainingSeconds]);
 
   useEffect(() => {
     if (correctOptionRef.current && currentQuestion) {
@@ -654,7 +702,13 @@ const QuizTakePage = () => {
         </div>
         <div className="quiz-take-navbar-right">
           <span className="quiz-take-navbar-total">{totalQuestions} {totalQuestions === 1 ? 'question' : 'questions'}</span>
-          <span className="quiz-take-navbar-timer">{formatNavbarTimer(overallElapsedSeconds)}</span>
+          {isTimed && timeRemainingSeconds !== null ? (
+            <span className={`quiz-take-navbar-timer quiz-take-navbar-countdown${timeRemainingSeconds <= 60 ? ' quiz-take-navbar-countdown-low' : ''}`}>
+              {formatCountdownRemaining(timeRemainingSeconds)}
+            </span>
+          ) : (
+            <span className="quiz-take-navbar-timer">{formatNavbarTimer(overallElapsedSeconds)}</span>
+          )}
         </div>
       </nav>
 
@@ -720,8 +774,19 @@ const QuizTakePage = () => {
                     </button>
                   );
               })
+            ) : (currentQuestion && String(currentQuestion.question_type || '').toUpperCase() === 'WR' ? (
+              // Test mode - written question: textarea for user to type answer
+              <div className="quiz-take-option" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                <textarea
+                  placeholder="Type your answer..."
+                  value={answers[currentQuestion.id] != null ? String(answers[currentQuestion.id]) : ''}
+                  onChange={(e) => handleWrittenChange(activeQuestion, e.target.value)}
+                  rows={4}
+                  style={{ width: '100%', background: 'transparent', border: 'none', color: 'inherit', outline: 'none', resize: 'vertical', fontFamily: 'inherit', fontSize: '1rem', padding: 0 }}
+                />
+              </div>
             ) : (
-              // Test mode - show interactive questions
+              // Test mode - multiple choice: show options as buttons
               currentQuestion?.options?.map((option, oIdx) => {
                     const selectedAnswerId = currentQuestion.answerIds[oIdx];
                 const isSelected = answers[currentQuestion.id] === selectedAnswerId;
@@ -742,7 +807,7 @@ const QuizTakePage = () => {
                       </button>
                     );
               })
-            )}
+            ))}
           </div>
         </div>
       </div>

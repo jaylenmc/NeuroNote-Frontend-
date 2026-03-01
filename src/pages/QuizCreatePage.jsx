@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiPlusCircle, FiTrash2, FiCheckCircle, FiEye, FiArrowLeft, FiChevronLeft, FiChevronRight, FiCheck } from 'react-icons/fi';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../auth/AuthContext';
 import './QuizTakePage.css';
@@ -16,12 +16,15 @@ const initialQuestion = () => ({
 const QuizCreatePage = () => {
     const navigate = useNavigate();
     const { quizId } = useParams();
+    const location = useLocation();
     const { user } = useAuth();
     const isEditMode = Boolean(quizId);
     const [title, setTitle] = useState('');
     const [subject, setSubject] = useState('');
     const [editingTitle, setEditingTitle] = useState(false);
     const titleInputRef = useRef(null);
+    const expectedAnswerRef = useRef(null);
+    const prevActiveQuestionRef = useRef(0);
     const [questions, setQuestions] = useState([initialQuestion()]);
     const [activeQuestion, setActiveQuestion] = useState(0);
     const [saving, setSaving] = useState(false);
@@ -34,6 +37,9 @@ const QuizCreatePage = () => {
     const [previewAnswers, setPreviewAnswers] = useState({}); // { qIdx: oIdx }
     const [questionTypeDropdown, setQuestionTypeDropdown] = useState(false);
     const [draggedOption, setDraggedOption] = useState(null);
+    const [showGeneratedBanner, setShowGeneratedBanner] = useState(
+        Boolean(location.state && location.state.fromGenerated)
+    );
 
     // Load existing quiz when editing
     useEffect(() => {
@@ -61,7 +67,8 @@ const QuizCreatePage = () => {
                     if (!answersArr?.length) return null;
                     const first = answersArr[0];
                     const prompt = first.question_input ?? '';
-                    const question_type = first.question_type ?? 'MC';
+                    const rawType = (first.question_type ?? 'MC').toString().toUpperCase();
+                    const question_type = rawType === 'WR' ? 'WR' : 'MC';
                     const options = answersArr.map(a => a.answer_input ?? '');
                     const safeOptions = options.length ? options : [''];
                     const correctIdx = answersArr.findIndex(a => a.is_correct);
@@ -92,6 +99,18 @@ const QuizCreatePage = () => {
         loadQuiz();
         return () => { cancelled = true; };
     }, [quizId, isEditMode]);
+
+    // Sync expected-answer span when switching question or when quiz loads (WR)
+    useEffect(() => {
+        const q = questions[activeQuestion];
+        if (q?.question_type !== 'WR' || !expectedAnswerRef.current) return;
+        const value = q.options[0] ?? '';
+        const prevActive = prevActiveQuestionRef.current;
+        if (activeQuestion !== prevActive || (expectedAnswerRef.current.textContent === '' && value !== '')) {
+            expectedAnswerRef.current.textContent = value;
+            prevActiveQuestionRef.current = activeQuestion;
+        }
+    }, [activeQuestion, questions]);
 
     // Auto-resize any option textareas when content changes
     useEffect(() => {
@@ -190,7 +209,13 @@ const QuizCreatePage = () => {
         setActiveQuestion(Math.max(0, idx - 1));
     };
     const handleQuestionTypeChange = (idx, value) => {
-        setQuestions(qs => qs.map((q, i) => i === idx ? { ...q, question_type: value } : q));
+        setQuestions(qs => qs.map((q, i) => {
+            if (i !== idx) return q;
+            if (value === 'WR' && (!q.options || q.options.length === 0)) {
+                return { ...q, question_type: value, options: [''] };
+            }
+            return { ...q, question_type: value };
+        }));
     };
 
     // Drag and drop handlers
@@ -406,7 +431,25 @@ const QuizCreatePage = () => {
 
             {/* Main Content */}
             <div className="quiz-take-main" style={{ paddingBottom: '100px' }}>
-                <div className="quiz-take-question-card">
+                {showGeneratedBanner && (
+                    <div
+                        className="quiz-take-generated-banner"
+                        onClick={() => setShowGeneratedBanner(false)}
+                    >
+                        <span className="quiz-take-generated-dot" />
+                        <span className="quiz-take-generated-text">
+                            AI-generated quiz – review and edit as needed.
+                        </span>
+                        <button
+                            type="button"
+                            className="quiz-take-generated-dismiss"
+                            onClick={() => setShowGeneratedBanner(false)}
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                )}
+                <div className="quiz-take-question-card" style={{ minHeight: 'fit-content' }}>
                     <div className="quiz-take-question-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>Question {activeQuestion + 1}</span>
                         <div style={{ position: 'relative' }}>
@@ -594,6 +637,20 @@ const QuizCreatePage = () => {
                             }} onClick={() => handleAddOption(activeQuestion)}>
                                 <FiPlusCircle /> Add Option
                             </button>
+                        </div>
+                    )}
+                    {currentQuestion.question_type === 'WR' && (
+                        <div className="quiz-take-options-list" style={{ marginTop: 12, fontFamily: 'Poppins, sans-serif', fontSize: '1rem', background: 'rgba(191,196,204,0.08)', borderRadius: 10, padding: '0.75rem 1rem' }}>
+                            <span style={{ display: 'block', width: '100%', color: 'inherit', fontFamily: 'Poppins, sans-serif', fontSize: '1rem', minHeight: '1.5em' }}>
+                                <span style={{ color: 'rgb(165, 180, 196)', fontFamily: 'Poppins, sans-serif' }}>Expected Answer:</span>
+                                <span
+                                    ref={expectedAnswerRef}
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onInput={e => handleOptionChange(activeQuestion, 0, e.currentTarget.textContent ?? '')}
+                                    style={{ outline: 'none', fontFamily: 'Poppins, sans-serif', fontSize: '1rem', display: 'inline', marginLeft: '0.5rem' }}
+                                />
+                            </span>
                         </div>
                     )}
                 </div>
