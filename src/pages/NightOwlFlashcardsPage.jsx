@@ -12,7 +12,11 @@ const NightOwlFlashcardsPage = () => {
   }, []);
 
   // Render Dashboard with flashcards view
-  return <Dashboard initialView="flashcards" />;
+  return (
+    <div className="nightowl-page-shell">
+      <Dashboard initialView="flashcards" />
+    </div>
+  );
 };
 
 export default NightOwlFlashcardsPage; 

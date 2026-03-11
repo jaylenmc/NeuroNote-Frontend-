@@ -1,0 +1,895 @@
+{
+  "version": "2.8",
+  "children": [
+    {
+      "type": "frame",
+      "id": "NYi5s",
+      "x": 0,
+      "y": 0,
+      "name": "nightowl-flashcards-bg",
+      "width": 1440,
+      "height": 980,
+      "fill": "#1d1f23",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        72,
+        32,
+        40,
+        32
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "W648C",
+          "name": "nightowl-header-row",
+          "width": "fill_container",
+          "fill": "#21242A",
+          "cornerRadius": 24,
+          "stroke": {
+            "thickness": 1,
+            "fill": "rgba(140,160,190,0.08)"
+          },
+          "effect": [
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "rgba(5,6,10,0.42)",
+              "offset": {
+                "x": 0,
+                "y": 18
+              },
+              "blur": 36
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "rgba(255,255,255,0.04)",
+              "offset": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          ],
+          "padding": 20,
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "s5Vga",
+              "name": "nightowl-header-content",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "9VEqX",
+                  "name": "nightowl-header-title",
+                  "fill": "#F3F6FB",
+                  "content": "Launchpad",
+                  "fontFamily": "Poppins",
+                  "fontSize": 20,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "Y4HKc",
+                  "name": "nightowl-header-subtitle-row",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "me6Dz",
+                      "name": "nightowl-header-sub",
+                      "fill": "#B6C2D1",
+                      "content": "Study smarter, not harder",
+                      "fontFamily": "Inter",
+                      "fontSize": 14
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kStz1",
+                      "name": "nightowl-streak-badge",
+                      "fill": {
+                        "type": "color",
+                        "color": "#2A2E35",
+                        "enabled": false
+                      },
+                      "cornerRadius": 10,
+                      "stroke": {
+                        "thickness": 1,
+                        "fill": "rgba(255,255,255,0.10)"
+                      },
+                      "gap": 4,
+                      "padding": [
+                        6,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "aSWoN",
+                          "name": "Badge/StreakRewardGlow",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "effect": [
+                            {
+                              "type": "shadow",
+                              "shadowType": "outer",
+                              "color": "#FF6B6B4D",
+                              "offset": {
+                                "x": 0,
+                                "y": 2
+                              },
+                              "blur": 10
+                            },
+                            {
+                              "type": "shadow",
+                              "shadowType": "outer",
+                              "color": "#FFFFFF1A",
+                              "offset": {
+                                "x": 0,
+                                "y": 1
+                              },
+                              "blur": 2
+                            }
+                          ],
+                          "gap": 8,
+                          "padding": [
+                            8,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "hfpHR",
+                              "name": "badgeIcon",
+                              "width": 15,
+                              "height": 15,
+                              "iconFontName": "flame",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFD9B3"
+                            },
+                            {
+                              "type": "text",
+                              "id": "N1O26",
+                              "name": "streakCount",
+                              "fill": "#FFE4E4",
+                              "content": "6",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jdQnx",
+              "name": "nightowl-studyroom-btn",
+              "fill": {
+                "type": "gradient",
+                "gradientType": "linear",
+                "enabled": true,
+                "rotation": 135,
+                "size": {
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "rgba(124,131,253,0.14)",
+                    "position": 0
+                  },
+                  {
+                    "color": "rgba(124,131,253,0.06)",
+                    "position": 1
+                  }
+                ]
+              },
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "rgba(124,131,253,0.28)"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "rgba(90,96,210,0.18)",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 18
+              },
+              "padding": [
+                12,
+                24
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LCyeb",
+                  "name": "btnTxtNO",
+                  "fill": "#FFFFFF",
+                  "content": "Study Room",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "1s8KQ",
+          "name": "nightowl-sticky-notes",
+          "width": "fill_container",
+          "fill": "#21242A",
+          "cornerRadius": 24,
+          "stroke": {
+            "thickness": 1,
+            "fill": "rgba(140,160,190,0.08)"
+          },
+          "effect": [
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "rgba(5,6,10,0.42)",
+              "offset": {
+                "x": 0,
+                "y": 18
+              },
+              "blur": 36
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "rgba(255,255,255,0.04)",
+              "offset": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          ],
+          "gap": 10,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "jtu4P",
+              "name": "nightowl-sticky-note due",
+              "width": "fill_container",
+              "fill": "transparent",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "rgba(140,160,190,0.06)"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "rgba(10,12,18,0.35)",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 16
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "OuJvk",
+                  "name": "c1tNO",
+                  "fill": "#B6C2D1",
+                  "content": "Cards Studied Today",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "QrE0d",
+                  "name": "c1vNO",
+                  "fill": "#F3F6FB",
+                  "content": "42",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "K47Qh",
+              "name": "nightowl-sticky-note upcoming",
+              "width": "fill_container",
+              "fill": "transparent",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "rgba(140,160,190,0.06)"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "rgba(10,12,18,0.35)",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 16
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "MeVrc",
+                  "name": "c2tNO",
+                  "fill": "#B6C2D1",
+                  "content": "Average Session Time",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "g06LO",
+                  "name": "c2vNO",
+                  "fill": "#F3F6FB",
+                  "content": "18 mins",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "X4LBo",
+              "name": "nightowl-sticky-note correct",
+              "width": "fill_container",
+              "fill": "transparent",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "rgba(140,160,190,0.06)"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "rgba(10,12,18,0.35)",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 16
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "u0Av3",
+                  "name": "c3tNO",
+                  "fill": "#B6C2D1",
+                  "content": "Time Studied Today",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "FfjrI",
+                  "name": "c3vNO",
+                  "fill": "#F3F6FB",
+                  "content": "2 hrs 20 mins",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "0uqd2",
+              "name": "nightowl-sticky-note mastered",
+              "width": "fill_container",
+              "fill": "transparent",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "rgba(140,160,190,0.06)"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "rgba(10,12,18,0.35)",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 16
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Pdoas",
+                  "name": "c4tNO",
+                  "fill": "#B6C2D1",
+                  "content": "Mastered Decks",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "EdEuY",
+                  "name": "c4vNO",
+                  "fill": "#F3F6FB",
+                  "content": "6",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "vDrnd",
+          "name": "nightowl-section progress",
+          "width": "fill_container",
+          "fill": "$--bg-panel",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "$--border-soft"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "3jbNN",
+              "name": "nightowl-section-header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "e3L7w",
+                  "name": "sec1TitleNO",
+                  "fill": "#F3F6FB",
+                  "content": "Study Growth",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "2EXbA",
+                  "name": "sec1SubNO",
+                  "fill": "#7A8CA3",
+                  "content": "XP progress this week",
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "6bNy6",
+              "name": "heroRightA",
+              "width": "fill_container",
+              "fill": {
+                "type": "color",
+                "color": "$--bg-panel",
+                "enabled": false
+              },
+              "cornerRadius": "$--radius-md",
+              "stroke": {
+                "thickness": 1,
+                "fill": "$--border-soft"
+              },
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "4zPMb",
+                  "name": "pulseTrackA",
+                  "width": "fill_container",
+                  "height": 10,
+                  "fill": "$--bg-hover",
+                  "cornerRadius": 999,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Rivww",
+                      "name": "pulseFillA",
+                      "width": 230,
+                      "height": "fill_container",
+                      "fill": "#f3f6fb",
+                      "cornerRadius": 999
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kMbcL",
+                  "name": "pulseMetaB",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "or2E2",
+                      "name": "pulseLevelB",
+                      "fill": "#f3f6fb",
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#F59E0B33",
+                        "offset": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "blur": 6
+                      },
+                      "content": "Level 7",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nFNCs",
+                      "name": "pulseNextB",
+                      "fill": "$--text-muted",
+                      "content": "72% to Level 8",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dKYpr",
+          "name": "nightowl-section upcoming-cards",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$--bg-panel",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "$--border-soft"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "bW2eB",
+              "name": "nightowl-section-header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "x7dj0",
+                  "name": "sec2TitleNO",
+                  "fill": "#F3F6FB",
+                  "content": "Upcoming Cards",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "kfUOJ",
+                  "name": "sec2SubNO",
+                  "fill": "#7A8CA3",
+                  "content": "Cards entering your queue over the next 30 days",
+                  "fontFamily": "Inter",
+                  "fontSize": 13
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sz3Tk",
+              "name": "nightowl-upcoming-chart-container",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": {
+                "type": "color",
+                "color": "#21242A",
+                "enabled": false
+              },
+              "cornerRadius": 24,
+              "stroke": {
+                "thickness": 1,
+                "fill": {
+                  "type": "color",
+                  "color": "rgba(140,160,190,0.08)",
+                  "enabled": false
+                }
+              },
+              "effect": [
+                {
+                  "type": "shadow",
+                  "shadowType": "outer",
+                  "color": "rgba(5,6,10,0.42)",
+                  "offset": {
+                    "x": 0,
+                    "y": 18
+                  },
+                  "blur": 36
+                },
+                {
+                  "type": "shadow",
+                  "shadowType": "outer",
+                  "color": "rgba(255,255,255,0.04)",
+                  "offset": {
+                    "x": 0,
+                    "y": 1
+                  }
+                }
+              ],
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "HiWc0",
+                  "name": "nightowl-upcoming-chart-header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lcDCr",
+                      "name": "avgNO",
+                      "fill": "#F3F6FB",
+                      "content": "Average: 46 cards",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bided",
+                      "name": "dateNO",
+                      "fill": "#7A8CA3",
+                      "content": "04 Sep 2025 - 04 Oct",
+                      "fontFamily": "Inter",
+                      "fontSize": 12
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "WluVv",
+                  "name": "nightowl-upcoming-chart-bars",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "gap": 10,
+                  "padding": [
+                    0,
+                    8
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "nhMkw",
+                      "name": "b1NO",
+                      "width": 179,
+                      "height": 230,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        6,
+                        6,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "mm3ik",
+                      "name": "b2NO",
+                      "width": 179,
+                      "height": 98,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        6,
+                        6,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "z4RGY",
+                      "name": "b3NO",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        6,
+                        6,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "6nbh1",
+                      "name": "b4NO",
+                      "width": "fill_container",
+                      "height": 28,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        6,
+                        6,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "OIa3K",
+                      "name": "b5NO",
+                      "width": "fill_container",
+                      "height": 22,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        6,
+                        6,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "4J5Kw",
+                      "name": "b6NO",
+                      "width": 179,
+                      "height": 123,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        6,
+                        6,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "EKjfM",
+                      "name": "b7NO",
+                      "width": "fill_container",
+                      "height": 16,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        6,
+                        6,
+                        0,
+                        0
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "--bg-panel": {
+      "type": "color",
+      "value": "#21242A"
+    },
+    "--border-soft": {
+      "type": "color",
+      "value": "rgba(140, 160, 190, 0.08)"
+    },
+    "--radius-md": {
+      "type": "number",
+      "value": 16
+    },
+    "--text-main": {
+      "type": "color",
+      "value": "#F3F6FB"
+    },
+    "--text-muted": {
+      "type": "color",
+      "value": "#7A8CA3"
+    },
+    "--bg-hover": {
+      "type": "color",
+      "value": "#31353D"
+    }
+  }
+}

@@ -26,7 +26,7 @@
     display: flex;
     width: 100vw;
     height: 100vh;
-    background: var(--nightowl-bg-main);
+    background: #1d1f23;
     position: relative;
     overflow: hidden;
     margin: 0;
@@ -65,7 +65,7 @@
     top: 24px;
     z-index: 1;
     border-radius: 16px;
-    background: var(--nightowl-bg-panel);
+    background: #21242a;
     border: 1px solid var(--nightowl-card-border-soft);
     box-shadow:
         var(--nightowl-card-shadow),
@@ -73,79 +73,9 @@
     transition: all 0.3s ease;
 }
 
-/* Night Owl Flashcards page - change sidebar background */
-.nightowl-root-bg .dashboard-sidebar {
-    background: #262A32;
-}
-
-/* Folder view page - change sidebar background */
-.folder-root-bg .dashboard-sidebar {
-    background: var(--nightowl-bg-panel);
-    border: 1px solid var(--nightowl-card-border-soft);
-    box-shadow: var(--nightowl-card-shadow), var(--nightowl-card-inner) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
 /* Put sidebar in background when reminders modal is open */
 body.reminders-modal-open .dashboard-sidebar {
     z-index: 1;
-}
-
-/* Night Owl Flashcards page - lighter tab highlight colors */
-.nightowl-root-bg .nav-item.active {
-    background-color: #343942; /* Using nightowl-bg-hover color */
-    color: #ffffff;
-}
-
-.nightowl-root-bg .nav-item.active::before {
-    background-color: #ffffff; /* Lighter gray */
-}
-
-/* Night Owl Flashcards page - lighter folder item highlight colors */
-.nightowl-root-bg .sidebar-content .nav-item.active,
-.nightowl-root-bg .folders-list .folder-item.active {
-    background-color: #343942 !important; /* Using nightowl-bg-hover color */
-    color: #ffffff !important;
-    font-weight: 600 !important;
-}
-
-.nightowl-root-bg .sidebar-content .nav-item.active::before,
-.nightowl-root-bg .folders-list .folder-item.active::before {
-    background-color: #ffffff !important; /* Lighter gray */
-}
-
-/* Night Owl Flashcards page - folders-list items background */
-.nightowl-root-bg .folders-list .folder-item {
-    background-color: #2C3038 !important; /* Using nightowl-bg-card color */
-}
-
-/* Folder view page - lighter tab highlight colors */
-.folder-root-bg .nav-item.active {
-    background-color: var(--nightowl-bg-hover);
-    color: var(--nightowl-text-main);
-}
-
-.folder-root-bg .nav-item.active::before {
-    background-color: var(--nightowl-text-main);
-}
-
-/* Folder view page - lighter folder item highlight colors */
-.folder-root-bg .sidebar-content .nav-item.active,
-.folder-root-bg .folders-list .folder-item.active {
-    background-color: var(--nightowl-bg-hover) !important;
-    color: var(--nightowl-text-main) !important;
-    font-weight: 600 !important;
-}
-
-.folder-root-bg .sidebar-content .nav-item.active::before,
-.folder-root-bg .folders-list .folder-item.active::before {
-    background-color: var(--nightowl-text-main) !important;
-}
-
-/* Folder view page - folders-list items background */
-.folder-root-bg .folders-list .folder-item {
-    background-color: var(--nightowl-bg-card) !important;
 }
 
 .sidebar-top {
@@ -182,6 +112,17 @@ body.reminders-modal-open .dashboard-sidebar {
     flex-direction: column;
     overflow: hidden; 
     gap: 0px!important;
+}
+
+.sidebar-nav-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-nav-items .nav-item {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 6px 16px !important;
 }
 
 .sidebar-bottom {
@@ -312,11 +253,6 @@ body.reminders-modal-open .dashboard-sidebar {
     font-family: 'Poppins', 'Geist', 'IBM Plex Sans', Arial, sans-serif;
 }
 
-.workspace-name {
-    color: #666;
-    font-size: 12px;
-}
-
 .main-area {
     flex: 1;
     margin-left: 274px;
@@ -328,11 +264,12 @@ body.reminders-modal-open .dashboard-sidebar {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: transparent;
 }
 
 /* Folder view page - change main area background */
 .folder-root-bg .main-area {
-    background: var(--nightowl-bg-main);
+    background: #1d1f23;
 }
 
 /* Folder view page - ensure content section is transparent */
@@ -361,23 +298,6 @@ body.reminders-modal-open .dashboard-sidebar {
     color: #ffffff !important;
 }
 
-/* Folder view page - lighter hover colors */
-.folder-root-bg .sidebar-content .nav-item:hover,
-.folder-root-bg .folders-list .folder-item:hover {
-    background-color: var(--nightowl-bg-hover) !important;
-    color: var(--nightowl-text-main) !important;
-}
-
-/* Dashboard home page - hover colors using base color variant */
-body:has(.dashboard-home-container) .sidebar-content .nav-item:hover,
-body:has(.dashboard-home-container) .folders-list .folder-item:hover,
-.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item:hover,
-.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item:hover,
-.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item:hover,
-.dashboard-home-container .dashboard-sidebar .folders-list .folder-item:hover {
-    background-color: var(--nightowl-bg-hover) !important;
-    color: var(--nightowl-text-main) !important;
-}
 
 .sidebar-content .nav-item.active,
 .folders-list .folder-item.active {
@@ -416,46 +336,6 @@ body:has(.dashboard-home-container) .folders-list .folder-item:hover,
     color: #ffffff !important;
 }
 
-/* Dashboard home page - icon hover colors */
-body:has(.dashboard-home-container) .sidebar-content .nav-item:hover .nav-icon,
-body:has(.dashboard-home-container) .folders-list .folder-item:hover .folder-icon,
-.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item:hover .nav-icon,
-.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item:hover .folder-icon,
-.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item:hover .nav-icon,
-.dashboard-home-container .dashboard-sidebar .folders-list .folder-item:hover .folder-icon {
-    color: var(--nightowl-text-main) !important;
-}
-
-/* Dashboard home page - active tab colors using lighter variant */
-body:has(.dashboard-home-container) .nav-item.active {
-    background-color: var(--nightowl-bg-hover);
-    color: var(--nightowl-text-main);
-}
-
-body:has(.dashboard-home-container) .nav-item.active::before {
-    background-color: var(--nightowl-text-main);
-}
-
-/* Dashboard home page - active folder item colors */
-body:has(.dashboard-home-container) .sidebar-content .nav-item.active,
-body:has(.dashboard-home-container) .folders-list .folder-item.active,
-.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item.active,
-.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item.active,
-.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item.active,
-.dashboard-home-container .dashboard-sidebar .folders-list .folder-item.active {
-    background-color: var(--nightowl-bg-hover) !important;
-    color: var(--nightowl-text-main) !important;
-    font-weight: 600 !important;
-}
-
-body:has(.dashboard-home-container) .sidebar-content .nav-item.active::before,
-body:has(.dashboard-home-container) .folders-list .folder-item.active::before,
-.dashboard-home-container ~ .dashboard-sidebar .sidebar-content .nav-item.active::before,
-.dashboard-home-container ~ .dashboard-sidebar .folders-list .folder-item.active::before,
-.dashboard-home-container .dashboard-sidebar .sidebar-content .nav-item.active::before,
-.dashboard-home-container .dashboard-sidebar .folders-list .folder-item.active::before {
-    background-color: var(--nightowl-text-main) !important;
-}
 
 .nav-item {
     display: flex;
@@ -504,6 +384,15 @@ body:has(.dashboard-home-container) .folders-list .folder-item.active::before,
     height: 20px;
     transition: color 0.2s ease;
     color: #888;
+}
+
+.sidebar-content .nav-item .nav-icon.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-size: 20px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-item:hover .nav-icon {
@@ -1305,13 +1194,23 @@ body:has(.dashboard-home-container) .folders-list .folder-item.active::before,
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     margin-right: 2px;
-    font-size: 10px;
-    transform: rotate(0deg);
     position: relative;
     top: 2px;
+}
+
+.folder-expand-btn .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-size: 18px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.folder-expand-btn.expanded .material-symbols-outlined {
+    transform: rotate(90deg);
 }
 
 .folder-icon {
@@ -1321,6 +1220,21 @@ body:has(.dashboard-home-container) .folders-list .folder-item.active::before,
     margin-right: 6px;
     position: relative;
     top: 7px;
+}
+
+.folders-list .folder-item .folder-icon.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-size: 18px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-item.subfolder .folder-icon.material-symbols-outlined {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
 }
 
 .folder-name {
@@ -3308,6 +3222,61 @@ body:has(.dashboard-home-container) .folders-list .folder-item.active::before,
 } 
 
 /* Notes Page Styles - Dark Theme + Notion-Inspired */
+
+/* SidebarPencil.pen sync overrides */
+.dashboard-sidebar .sidebar-content {
+    gap: 14px !important;
+}
+
+.dashboard-sidebar .sidebar-nav-items {
+    gap: 4px;
+}
+
+.dashboard-sidebar .sidebar-content .nav-item {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 6px 16px !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+}
+
+.dashboard-sidebar .sidebar-content .nav-item.active {
+    background: #2a2e35 !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+.dashboard-sidebar .sidebar-content .nav-item.active::before {
+    display: none !important;
+}
+
+.dashboard-sidebar .folders-section {
+    padding: 16px 9px 0 9px !important;
+    gap: 12px !important;
+}
+
+.dashboard-sidebar .folders-list {
+    padding-right: 0 !important;
+}
+
+.dashboard-sidebar .folder-item,
+.dashboard-sidebar .folder-item.subfolder,
+.dashboard-sidebar .folder-item-content {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    margin-bottom: 0 !important;
+}
+
+.dashboard-sidebar .folder-item.active {
+    background: #262930 !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dashboard-sidebar .folder-separator {
+    height: 1px;
+    width: 100%;
+    background: rgba(140, 160, 190, 0.08);
+}
 
 
 

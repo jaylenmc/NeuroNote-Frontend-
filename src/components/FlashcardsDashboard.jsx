@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlay, FiPause, FiRotateCcw, FiSettings } from 'react-icons/fi';
+import { Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Separator } from './ui/separator';
 import blackboardBg from '../assets/Blackboard.png';
 import { formatDateForDisplay } from '../utils/dateUtils';
 import api from '../api/axios';
@@ -206,11 +208,14 @@ const FlashcardsDashboard = ({
             <div className="nightowl-flashcards-content">
                 <div className="nightowl-header-row">
                     <div className="nightowl-header-content">
-                        <h1 className="nightowl-header-title">Launchpad 🚀</h1>
+                        <h1 className="nightowl-header-title">Launchpad</h1>
                         <div className="nightowl-header-subtitle-row">
                             <p className="nightowl-header-sub">Study smarter, not harder</p>
                             <span className="nightowl-streak-badge">
-                                🔥 {stats.studyStreak} day streak
+                                <span className="nightowl-streak-reward-glow">
+                                    <Flame className="nightowl-streak-reward-icon" size={15} />
+                                    <span className="nightowl-streak-reward-count">{stats.studyStreak}</span>
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -225,37 +230,32 @@ const FlashcardsDashboard = ({
                 <div className="nightowl-motivation-section">
                     
                     <div className="nightowl-sticky-notes">
-                        <div className="nightowl-sticky-note nightowl-sticky-due">
-                            <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-title">Cards Studied Today</span>
-                            </div>
+                        <div className="nightowl-sticky-note">
+                            <span className="nightowl-sticky-title">Cards Studied Today</span>
                             <div className="nightowl-sticky-value">
                                 {statsLoading ? '...' : studyStats.total_cards_studied_today}
                             </div>
                         </div>
+                        <Separator orientation="vertical" className="nightowl-sticky-separator" />
                         
-                        <div className="nightowl-sticky-note nightowl-sticky-upcoming">
-                            <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-title">Average Session Time</span>
-                            </div>
+                        <div className="nightowl-sticky-note">
+                            <span className="nightowl-sticky-title">Average Session Time</span>
                             <div className="nightowl-sticky-value">
                                 {statsLoading ? '...' : formatTime(studyStats.average_session_time)}
                             </div>
                         </div>
+                        <Separator orientation="vertical" className="nightowl-sticky-separator" />
                         
-                        <div className="nightowl-sticky-note nightowl-sticky-correct">
-                            <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-title">Time Studied Today</span>
-                            </div>
+                        <div className="nightowl-sticky-note">
+                            <span className="nightowl-sticky-title">Time Studied Today</span>
                             <div className="nightowl-sticky-value">
                                 {statsLoading ? '...' : formatTime(studyStats.time_studied_today)}
                             </div>
                         </div>
+                        <Separator orientation="vertical" className="nightowl-sticky-separator" />
                         
-                        <div className="nightowl-sticky-note nightowl-sticky-mastered">
-                            <div className="nightowl-sticky-header">
-                                <span className="nightowl-sticky-title">Mastered Decks</span>
-                            </div>
+                        <div className="nightowl-sticky-note">
+                            <span className="nightowl-sticky-title">Mastered Decks</span>
                             <div className="nightowl-sticky-value">
                                 {statsLoading ? '...' : studyStats.mastered_decks}
                             </div>
@@ -269,7 +269,7 @@ const FlashcardsDashboard = ({
 
                 <div className="nightowl-section">
                     <div className="nightowl-section-header">
-                        <h2 className="nightowl-section-title">🎯 Progress</h2>
+                        <h2 className="nightowl-section-title">Progress</h2>
                         <p className="nightowl-section-subtitle">Track your learning journey</p>
                     </div>
                     <div className="nightowl-xp-section">
@@ -302,7 +302,7 @@ const FlashcardsDashboard = ({
                 {/* Upcoming Cards Chart Section */}
                 <div className="nightowl-section">
                     <div className="nightowl-section-header">
-                        <h2 className="nightowl-section-title">📅 Upcoming Cards</h2>
+                        <h2 className="nightowl-section-title">Upcoming Cards</h2>
                         <p className="nightowl-section-subtitle">The number of cards which will be added to your queue over the next 30 days</p>
                     </div>
                     <div className="nightowl-upcoming-chart-container">
@@ -395,7 +395,7 @@ const FlashcardsDashboard = ({
                 {upcomingCards.length > 0 && (
                     <div className="nightowl-section">
                         <div className="nightowl-section-header">
-                            <h2 className="nightowl-section-title">⏰ Upcoming</h2>
+                            <h2 className="nightowl-section-title">Upcoming</h2>
                             <p className="nightowl-section-subtitle">Cards scheduled for review</p>
                         </div>
                     <div className="upcoming-review-widget">

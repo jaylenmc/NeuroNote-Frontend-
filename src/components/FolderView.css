@@ -22,7 +22,7 @@
 .folder-view {
   padding: 24px;
   height: 100vh;
-  background: var(--nightowl-bg-main);
+  background: #1d1f23;
   color: var(--nightowl-text-main);
   font-family: 'Inter', sans-serif;
   position: relative;
@@ -744,9 +744,9 @@
 }
 
   .new-item-btn {
-    background: #4d55c4;
-    color: #fff;
-    border: none;
+    background: rgba(154, 164, 255, 0.15);
+    color: var(--nightowl-highlight);
+    border: 1px solid rgba(154, 164, 255, 0.25);
     padding: 10px 16px;
     border-radius: 6px;
     font-weight: 500;
@@ -761,7 +761,8 @@
   }
 
 .new-item-btn:hover {
-  background-color: #5a62d9;
+  background: rgba(154, 164, 255, 0.25);
+  border-color: rgba(154, 164, 255, 0.4);
 }
 
 .new-item-dropdown {
@@ -844,8 +845,9 @@
 
 /* Folder Item - Modern Card Design */
 .folderview-items .folder-item {
-  background: var(--nightowl-bg-card) !important;
+  background: var(--nightowl-bg-panel) !important;
   border: 1px solid var(--nightowl-card-border-soft) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   padding: 16px 20px !important;
   cursor: pointer;
   transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease !important;
@@ -857,6 +859,10 @@
   min-height: 68px;
   justify-content: space-between;
   backdrop-filter: blur(8px);
+}
+
+.folderview-items .folder-item:hover {
+  background: color-mix(in srgb, var(--nightowl-bg-panel) 96%, white) !important;
 }
 
 /* Folder Item Icon */

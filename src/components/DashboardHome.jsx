@@ -1,331 +1,352 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { 
-  Trophy, Brain, Users, MessageSquare, Crown, Medal, Sparkles, 
-  Flame, Target, Star, CheckCircle, Clock, ChevronRight, Plus,
-  Zap, BookOpen, TrendingUp, Award, Rocket, Coffee
-} from 'lucide-react';
-import './DashboardHome.css';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CalendarDays, Check, Flame, Footprints, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { makeAuthenticatedRequest } from '../utils/api';
+import { useAuth } from '../auth/AuthContext';
+import api from '../api/axios';
+import { Calendar } from './ui/calendar';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
+import { Button } from './ui/button';
+import { ScrollArea } from './ui/scroll-area';
+import { Empty } from './ui/empty';
+import { Progress } from './ui/progress';
+import { Separator } from './ui/separator';
+import './DashboardHome.css';
+
+const stockDocs = [
+  {
+    preview: ['CNS PATHWAY', '- relay map', '- receptor flow'],
+    name: 'CNS Pathway Notes',
+    summary: 'Signal flow, relay map and receptor behavior references.',
+  },
+  {
+    preview: ['PHARMA', '- dose ratios', '- interactions'],
+    name: 'Pharma Formula Sheet',
+    summary: 'Dose ratios, contraindications, and high-priority reminders.',
+  },
+  {
+    preview: ['NEURO LAB', '- exp notes', '- assumptions'],
+    name: 'Neuro Lab Report Draft',
+    summary: 'Experiment notes and assumptions for peer review.',
+  },
+];
+
+const upcomingReviews = [
+  { title: 'Neuroscience 201', meta: 'In 22m' },
+  { title: 'Pharmacology Drill', meta: 'Tonight' },
+  { title: 'Synaptic Plasticity Set', meta: 'In 35m' },
+  { title: 'Neuroanatomy Labeling', meta: 'Tomorrow' },
+  { title: 'Axon Pathways Rapid Quiz', meta: 'In 1h' },
+  { title: 'Clinical Cases: Memory', meta: 'Tomorrow' },
+  { title: 'EEG Pattern Recognition', meta: 'In 2h' },
+  { title: 'Motor Cortex Deep Dive', meta: 'Friday' },
+  { title: 'Cranial Nerves Refresher', meta: 'In 3h' },
+  { title: 'Neurochemistry Basics', meta: 'Saturday' },
+  { title: 'Brainstem Review Sprint', meta: 'In 4h' },
+  { title: 'Behavioral Neuro Quiz', meta: 'Sunday' },
+];
+
+const studyRooms = [];
+
+const getDueMetaTone = (meta) => {
+  const value = String(meta || '').trim().toLowerCase();
+  if (!value) return 'upcoming';
+  if (value.includes('overdue') || value.includes('late') || value.includes('missed')) {
+    return 'overdue';
+  }
+  if (value.includes('due now') || value === 'now') {
+    return 'due-now';
+  }
+  if (value.includes('due soon') || value.startsWith('in ')) {
+    return 'due-soon';
+  }
+  return 'upcoming';
+};
 
 const DashboardHome = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    studyStreak: 7,
-    xpPoints: 2450,
-    level: 5,
-    nextLevelXp: 500,
-    bonusXp: 50
-  });
 
-  // State for achievements
-  const [achievements, setAchievements] = useState([]);
-  const [achievementsLoading, setAchievementsLoading] = useState(true);
-  const [achievementsError, setAchievementsError] = useState(null);
+  const [dueCount, setDueCount] = useState(0);
+  const [deckCount, setDeckCount] = useState(0);
+  const [totalCards, setTotalCards] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch achievements from API
   useEffect(() => {
-    const fetchAchievements = async () => {
-      setAchievementsLoading(true);
-      setAchievementsError(null);
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
-        const response = await makeAuthenticatedRequest(`${apiUrl}achievements/user/?user_achievements=false`);
-        if (!response) throw new Error('No response from server');
-        if (response.status !== 200) throw new Error(response.data?.message || 'Failed to fetch achievements');
-        setAchievements(response.data);
+        const [dueRes, decksRes] = await Promise.all([
+          api.get('/flashcards/cards/due/').catch(() => ({ data: [] })),
+          api.get('/flashcards/deck/').catch(() => ({ data: { decks: [] } })),
+        ]);
+
+        const dueCards = Array.isArray(dueRes.data) ? dueRes.data : [];
+        setDueCount(dueCards.length);
+
+        const decksData = decksRes.data?.decks ?? decksRes.data;
+        const decksList = Array.isArray(decksData) ? decksData : [];
+        setDeckCount(decksList.length);
+
+        let sum = 0;
+        for (const deck of decksList) {
+          try {
+            const cardsRes = await api.get(`/flashcards/cards/${deck.id}/`);
+            const cards = Array.isArray(cardsRes.data)
+              ? cardsRes.data
+              : cardsRes.data?.cards ?? [];
+            sum += cards.length;
+          } catch {
+            // Keep going if one deck request fails.
+          }
+        }
+        setTotalCards(sum);
       } catch (err) {
-        setAchievementsError(err.message || 'Failed to fetch achievements');
-        // Fallback to empty array if API fails
-        setAchievements([]);
+        console.error('Dashboard fetch error:', err);
+        setDueCount(0);
+        setDeckCount(0);
+        setTotalCards(0);
       } finally {
-        setAchievementsLoading(false);
+        setLoading(false);
       }
     };
-    fetchAchievements();
+
+    fetchData();
   }, []);
 
-  const stockCollaborations = [
-    {
-      name: "Advanced Math Study Group",
-      description: "Working on calculus and linear algebra",
-      members: [
-        { name: "Alex", color: "#FF6B6B" },
-        { name: "Sam", color: "#4ECDC4" },
-        { name: "Jordan", color: "#45B7AF" }
-      ],
-      isLive: true
-    },
-    {
-      name: "Computer Science Club",
-      description: "Data structures and algorithms",
-      members: [
-        { name: "Taylor", color: "#FFD93D" },
-        { name: "Casey", color: "#6C5CE7" }
-      ],
-      isLive: false
-    }
+  const xp = user?.xp ?? 72;
+  const level = user?.level ?? 7;
+  const nextLevelXp = 1000;
+  const progressPercent = useMemo(
+    () => Math.min(100, Math.max(8, Math.round((xp / nextLevelXp) * 100))),
+    [xp],
+  );
+
+  const streakCount = 6;
+  const [openStreakCalendar, setOpenStreakCalendar] = useState(false);
+
+  const streakPreview = [
+    { id: 'Mon', active: true },
+    { id: 'Tue', active: true },
+    { id: 'Wed', active: true },
+    { id: 'Thu', active: true },
+    { id: 'Fri', active: true },
+    { id: 'Sat', active: true },
+    { id: 'Sun', active: true },
   ];
 
-  const stockLeaderboard = [
-    { name: "Alex", points: 5000, color: "#FFD700" },
-    { name: "Sam", points: 4800, color: "#C0C0C0" },
-    { name: "Jordan", points: 4500, color: "#CD7F32" },
-    { name: "Taylor", points: 4200, color: "#4ECDC4" }
-  ];
-
-  const stockChats = [
-    {
-      name: "Math Help",
-      lastMessage: "Can someone explain derivatives?",
-      unread: 3,
-      activeMembers: 12
-    },
-    {
-      name: "CS Study Group",
-      lastMessage: "Let's review sorting algorithms",
-      unread: 1,
-      activeMembers: 8
+  const loginHistory = useMemo(() => {
+    const dates = [];
+    for (let i = 0; i < 28; i += 1) {
+      if (i % 4 !== 1) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        dates.push(d);
+      }
     }
-  ];
-
-  const stockActivity = [
-    {
-      message: "Alex earned the 'Knowledge Explorer' badge",
-      time: "2m ago",
-      color: "#FFD700",
-      icon: <Trophy size={20} />
-    },
-    {
-      message: "Sam completed a 2-hour study session",
-      time: "15m ago",
-      color: "#4ECDC4",
-      icon: <Clock size={20} />
-    },
-    {
-      message: "New study group 'Physics Club' created",
-      time: "1h ago",
-      color: "#6C5CE7",
-      icon: <Users size={20} />
-    }
-  ];
-
-  const [collaborations] = useState(stockCollaborations);
-  const [leaderboard] = useState(stockLeaderboard);
-  const [studyChats] = useState(stockChats);
-  const [recentActivity] = useState(stockActivity);
-
-  const getUsername = () => {
-    if (!user?.email) return 'User';
-    return user.email.split('@')[0];
-  };
-
-  const getAchievementIcon = (type) => {
-    switch (type) {
-      case 'knowledge': return <Brain size={24} />;
-      case 'streak': return <Flame size={24} />;
-      case 'mastery': return <Target size={24} />;
-      case 'social': return <Users size={24} />;
-      default: return <Trophy size={24} />;
-    }
-  };
-
-  const getAchievementTier = (tier) => {
-    switch (tier) {
-      case 'bronze': return '#cd7f32';
-      case 'silver': return '#c0c0c0';
-      case 'gold': return '#ffd700';
-      default: return '#4ecdc4';
-    }
-  };
-
-  // Helper function to determine achievement type from family
-  const getAchievementType = (family) => {
-    if (!family) return 'general';
-    const familyLower = family.toLowerCase();
-    if (familyLower.includes('flashcard') || familyLower.includes('study')) return 'knowledge';
-    if (familyLower.includes('streak') || familyLower.includes('consistency')) return 'streak';
-    if (familyLower.includes('social') || familyLower.includes('group')) return 'social';
-    if (familyLower.includes('mastery') || familyLower.includes('quiz')) return 'mastery';
-    return 'general';
-  };
-
-  // Get display achievements (limit to 3 for dashboard)
-  const getDisplayAchievements = () => {
-    if (achievementsLoading) {
-      return [
-        { name: "Loading...", description: "Fetching achievements", type: "general", tier: "general", progress: 0, isNew: false }
-      ];
-    }
-    
-    if (achievementsError || achievements.length === 0) {
-      return [
-        { name: "No Achievements", description: "Complete tasks to earn achievements", type: "general", tier: "general", progress: 0, isNew: false }
-      ];
-    }
-
-    // Take first 3 achievements and format them for display
-    return achievements.slice(0, 3).map(achievement => ({
-      name: achievement.name || "Achievement",
-      description: achievement.description || "Complete this achievement",
-      type: getAchievementType(achievement.family),
-      tier: achievement.tier || "general",
-      progress: 100, // All achievements from backend are considered completed
-      isNew: false // You could add logic to determine if achievement is new
-    }));
-  };
-
-  const xpForLevel = (level) => Math.floor(100 * Math.pow(1.5, level - 1));
-  const xp = user?.xp || 0;
-  const level = user?.level || 1;
-  const nextLevelXp = xpForLevel(level);
-  const progress = Math.min((xp / nextLevelXp) * 100, 100);
+    return dates;
+  }, []);
 
   return (
-    <div className="dashboard-home-container">
-      {/* Background Elements */}
-      <div className="background-blobs">
-        <div className="blob blob-1"></div>
-        <div className="blob blob-2"></div>
-        <div className="blob blob-3"></div>
-      </div>
-
-      {/* Welcome Section */}
-      <div className="dashboard-greeting">
-        <div className="avatar-area">
-          <div className="avatar-circle">
-            {user?.profile_picture ? (
-              <img src={user.profile_picture} alt="Profile" />
-            ) : (
-              <Brain size={32} className="avatar-icon" />
-            )}
-            <div className="avatar-glow"></div>
+    <div className="dh-root">
+      <section className="dh-hero-shell dh-card">
+        <div className="dh-hero-main">
+          <div className="dh-badges">
+            <span className="dh-badge dh-badge-secondary">
+              Welcome back, {user?.username || user?.first_name || 'jay'}
+            </span>
+            <span className="dh-badge dh-badge-secondary">Focus target: 42 min</span>
+            <span className="dh-badge dh-badge-streak">
+              <Flame size={15} />
+              <span className="dh-badge-streak-count">{streakCount}</span>
+            </span>
           </div>
+
+          <div className="dh-streak-head">
+            <h1 className="dh-title">Streak Calendar</h1>
+            <span className="dh-streak-chip">
+              <CalendarDays className="dh-streak-chip-icon" size={12} />
+              Week 1 Preview
+            </span>
+          </div>
+
+          <div className="dh-streak-preview-row">
+            {streakPreview.map((day) => (
+              <div className="dh-streak-day" key={day.id}>
+                <Check className="dh-streak-day-check" size={8} strokeWidth={2.6} />
+                <span>{day.id}</span>
+              </div>
+            ))}
+          </div>
+
+          <Dialog open={openStreakCalendar} onOpenChange={setOpenStreakCalendar}>
+            <DialogTrigger asChild>
+              <Button className="dh-btn dh-streak-calendar-btn" type="button">
+                <CalendarDays className="dh-streak-btn-icon" size={14} />
+                View Streak Calendar
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="dh-streak-dialog">
+              <DialogHeader>
+                <DialogTitle>Streak Calendar Overview</DialogTitle>
+                <DialogDescription>
+                  Complete login history and study activity by day.
+                </DialogDescription>
+              </DialogHeader>
+              <Calendar highlightedDates={loginHistory} />
+            </DialogContent>
+          </Dialog>
         </div>
-        <div className="greeting-area">
-          <h1 className="greeting-title">
-            {getUsername()}
-          </h1>
-          <p className="greeting-subtitle">Ready to crush your goals today?</p>
-          <div className="streak-area">
-            <Flame size={20} className="streak-icon" />
-            <span className="streak-count">{stats.studyStreak} day streak</span>
-            {stats.studyStreak >= 3 && (
-              <span className="bonus-badge">
-                +{stats.bonusXp} XP Bonus
+
+      </section>
+
+      <aside className="dh-growth dh-card">
+        <h3>Study Growth</h3>
+        <p>XP progress this week</p>
+        <Progress
+          className="dh-progress-track"
+          indicatorClassName="dh-progress-fill"
+          value={progressPercent}
+        />
+        <div className="dh-growth-row">
+          <span className="dh-level-text">Level {level}</span>
+          <span>{progressPercent}% to next</span>
+        </div>
+
+      </aside>
+
+      <section className="dh-metrics-shell dh-card">
+        <article className="dh-metric">
+          <strong>{loading ? '...' : deckCount}</strong>
+          <span>Total Decks</span>
+        </article>
+        <Separator orientation="vertical" />
+        <article className="dh-metric">
+          <strong>{loading ? '...' : totalCards}</strong>
+          <span>Cards Mastered</span>
+        </article>
+        <Separator orientation="vertical" />
+        <article className="dh-metric">
+          <strong>{loading ? '...' : dueCount}</strong>
+          <span>Due Today</span>
+        </article>
+      </section>
+
+      <section className="dh-content-shell dh-card">
+        <div className="dh-left">
+          <article className="dh-card dh-achievements">
+            <header>
+              <div className="dh-achievements-title-wrap">
+                <h3>Achievements</h3>
+                <p className="dh-achievements-subtext">Recent milestones and wins</p>
+              </div>
+              <span className="dh-reward-chip">
+                <Trophy size={12} />
+                <span>3 unlocked</span>
               </span>
-            )}
-          </div>
-        </div>
-      </div>
+            </header>
+            <div className="dh-achievement-tiles">
+              <div className="dh-achievement-tile">
+                <span className="dh-icon-wrap">
+                  <Flame size={18} />
+                </span>
+                <h4>Week Warrior</h4>
+                <p>6/7 days streak</p>
+              </div>
+              <div className="dh-achievement-tile">
+                <span className="dh-icon-wrap">
+                  <Trophy size={18} />
+                </span>
+                <h4>Quiz Master</h4>
+                <p>Best score 92%</p>
+              </div>
+              <div className="dh-achievement-tile">
+                <span className="dh-icon-wrap">
+                  <Footprints size={18} />
+                </span>
+                <h4>First Steps</h4>
+                <p>First review done</p>
+              </div>
+            </div>
+          </article>
 
-      {/* XP Progress */}
-      <div className="dashboard-xp">
-        <div className="section-header">
-          <h2><Zap size={24} /> XP Progress</h2>
-          <p>Level up your learning journey</p>
+          <article className="dh-card dh-docs">
+            <header>
+              <h3>Documents Overview</h3>
+              <span className="dh-doc-chip">Latest documents</span>
+            </header>
+            <p>Recent docs with quick visual preview.</p>
+
+            <div className="dh-doc-list">
+              {stockDocs.map((doc) => (
+                <div className="dh-doc-item" key={doc.name}>
+                  <div className="dh-doc-preview">
+                    {doc.preview.map((line) => (
+                      <span key={`${doc.name}-${line}`}>{line}</span>
+                    ))}
+                  </div>
+                  <div className="dh-doc-meta">
+                    <h4>{doc.name}</h4>
+                    <p>{doc.summary}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
         </div>
-        <div className="xp-container">
-          <div className="xp-ring">
-            <svg viewBox="0 0 100 100">
-              <circle className="xp-ring-bg" cx="50" cy="50" r="45" />
-              <circle 
-                className="xp-ring-progress" 
-                cx="50" 
-                cy="50" 
-                r="45"
-                style={{
-                  strokeDasharray: `${(progress / 100) * 283} 283`
-                }}
+
+        <aside className="dh-right">
+          <article className="dh-card">
+            <h3>Upcoming Reviews</h3>
+            {upcomingReviews.length > 0 ? (
+              <ScrollArea className="dh-scroll-area">
+                <div className="dh-scroll-list">
+                  {upcomingReviews.map((item) => (
+                    <div className="dh-list-row" key={`${item.title}-${item.meta}`}>
+                      <span>{item.title}</span>
+                      <em className={`dh-list-time-${getDueMetaTone(item.meta)}`}>{item.meta}</em>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <Empty
+                title="No upcoming reviews"
+                description="You're all caught up right now."
               />
-            </svg>
-            <div className="xp-center">
-              <span className="xp-level">Level {level}</span>
-              <span className="xp-points">{xp} / {nextLevelXp} XP</span>
-            </div>
-          </div>
-          <div className="xp-next">
-            <span>{nextLevelXp - xp} XP to Level {level + 1}</span>
-          </div>
-        </div>
-      </div>
+            )}
+          </article>
 
-      {/* Leaderboard Section */}
-      <div className="dashboard-leaderboard">
-        <div className="section-header">
-          <h2><Crown size={24} /> Leaderboard</h2>
-          <p>Top performers this week</p>
-        </div>
-        <div className="leaderboard-list">
-          {leaderboard.map((entry, index) => (
-            <div key={index} className="leaderboard-item">
-              <div className="rank-badge" style={{ background: index < 3 ? getAchievementTier(['gold', 'silver', 'bronze'][index]) : '#4ecdc4' }}>
-                {index + 1}
-              </div>
-              <div className="user-avatar" style={{ background: entry.color }}>
-                {entry.name[0]}
-              </div>
-              <div className="user-info">
-                <h4>{entry.name}</h4>
-                <p>{entry.points} points</p>
-              </div>
-              {index < 3 && <Medal size={20} color={getAchievementTier(['gold', 'silver', 'bronze'][index])} />}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Study Chat Rooms Section */}
-      <div className="dashboard-chats">
-        <div className="section-header">
-          <h2><MessageSquare size={24} /> Study Chat Rooms</h2>
-          <p>Join active study groups and discussions</p>
-        </div>
-        <div className="chats-grid">
-          {studyChats.map((chat, index) => (
-            <div key={index} className="chat-card">
-              <div className="chat-header">
-                <h3>{chat.name}</h3>
-                {chat.unread > 0 && (
-                  <span className="unread-badge">{chat.unread} new</span>
-                )}
-              </div>
-              <p className="last-message">{chat.lastMessage}</p>
-              <div className="chat-meta">
-                <span>{chat.activeMembers} active</span>
-                <button className="join-chat-btn">
-                  <MessageSquare size={16} /> Join Chat
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Activity Feed */}
-      <div className="dashboard-activity">
-        <div className="section-header">
-          <h2><Clock size={24} /> Recent Activity</h2>
-          <p>Latest updates from your network</p>
-        </div>
-        <div className="activity-feed">
-          {recentActivity.map((activity, index) => (
-            <div key={index} className="activity-item">
-              <div className="activity-icon" style={{ background: activity.color }}>
-                {activity.icon}
-              </div>
-              <div className="activity-content">
-                <p>{activity.message}</p>
-                <span className="activity-time">{activity.time}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+          <article className="dh-card">
+            <h3>Study Rooms</h3>
+            {studyRooms.length > 0 ? (
+              <ScrollArea className="dh-scroll-area">
+                <div className="dh-scroll-list">
+                  {studyRooms.map((item) => (
+                    <div className="dh-list-row" key={`${item.title}-${item.meta}`}>
+                      <span>{item.title}</span>
+                      <em className={`dh-list-time-${getDueMetaTone(item.meta)}`}>{item.meta}</em>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <Empty
+                title="No active study rooms"
+                description="New rooms will show up here once they go live."
+              />
+            )}
+          </article>
+        </aside>
+      </section>
     </div>
   );
 };
 
-export default DashboardHome; 
+export default DashboardHome;
