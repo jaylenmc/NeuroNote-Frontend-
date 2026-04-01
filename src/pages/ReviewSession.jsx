@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiClock, FiShuffle, FiArrowLeft, FiSkipForward, FiCheck, FiX, FiRotateCcw, FiZap, FiSend, FiCpu, FiEye, FiEyeOff, FiSettings, FiChevronDown, FiCheck as FiCheckIcon, FiLayers } from 'react-icons/fi';
 import { FaBrain, FaGraduationCap, FaPause, FaPlay } from 'react-icons/fa';
@@ -25,6 +27,35 @@ function isTokenExpired(token) {
   }
 }
 
+const LEARNING_STATUS_LABELS = {
+  mstrd: 'Mastered',
+  strgl: 'Struggling',
+  unseen: 'Unseen',
+  imprv: 'In progress',
+};
+
+/** Placeholder — swap for API payload of cards whose status changed this session */
+const MOCK_SESSION_STATUS_CHANGES = [
+  {
+    id: 'mock-1',
+    questionPreview: 'What is the role of the hippocampus in memory consolidation?',
+    fromStatus: 'strgl',
+    toStatus: 'imprv',
+  },
+  {
+    id: 'mock-2',
+    questionPreview: 'Define homeostasis and give one example from physiology.',
+    fromStatus: 'imprv',
+    toStatus: 'mstrd',
+  },
+  {
+    id: 'mock-3',
+    questionPreview: 'Compare and contrast mitosis and meiosis.',
+    fromStatus: 'unseen',
+    toStatus: 'imprv',
+  },
+];
+
 const ReviewSession = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,6 +66,13 @@ const ReviewSession = () => {
   const [currentReviewCardIndex, setCurrentReviewCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [showCompleteConfetti, setShowCompleteConfetti] = useState(false);
+  const [confettiDims, setConfettiDims] = useState(() =>
+    typeof window !== 'undefined'
+      ? { width: window.innerWidth, height: window.innerHeight }
+      : { width: 1200, height: 800 }
+  );
+  const sessionCompleteAudioPlayedRef = useRef(false);
   const [timer, setTimer] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -224,6 +262,20 @@ const ReviewSession = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!showLayerDropdown) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setShowLayerDropdown(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [showLayerDropdown]);
+
   // Initialize review session
   useEffect(() => {
     const initializeReviewSession = async () => {
@@ -317,6 +369,47 @@ const ReviewSession = () => {
     }
     return () => clearInterval(interval);
   }, [loading, sessionComplete, isPaused]);
+
+  // Confetti + success sound when session complete screen is shown (audio once; confetti ok under Strict Mode)
+  useEffect(() => {
+    if (!sessionComplete) {
+      sessionCompleteAudioPlayedRef.current = false;
+      setShowCompleteConfetti(false);
+      return;
+    }
+
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    setConfettiDims({ width: window.innerWidth, height: window.innerHeight });
+    setShowCompleteConfetti(true);
+
+    if (!sessionCompleteAudioPlayedRef.current) {
+      sessionCompleteAudioPlayedRef.current = true;
+      try {
+        const audio = new Audio('/sounds/pass.wav');
+        audio.volume = 0.65;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {});
+        }
+      } catch (_) {
+        /* ignore missing audio */
+      }
+    }
+
+    const hideTimer = setTimeout(() => setShowCompleteConfetti(false), 4500);
+    return () => clearTimeout(hideTimer);
+  }, [sessionComplete]);
+
+  useEffect(() => {
+    if (!showCompleteConfetti) return;
+    const onResize = () =>
+      setConfettiDims({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [showCompleteConfetti]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -901,7 +994,23 @@ const ReviewSession = () => {
 
   return (
     <div className="review-session">
-
+      {sessionComplete &&
+        showCompleteConfetti &&
+        typeof document !== 'undefined' &&
+        ReactDOM.createPortal(
+          <div className="session-complete-confetti" aria-hidden>
+            <Confetti
+              width={confettiDims.width}
+              height={confettiDims.height}
+              numberOfPieces={240}
+              gravity={0.32}
+              initialVelocityY={14}
+              recycle={false}
+              run={showCompleteConfetti}
+            />
+          </div>,
+          document.body
+        )}
 
       {showQuiz && selectedStudyMethod?.id !== 'doing-feedback' ? (
         <CardsToQuiz 
@@ -909,39 +1018,89 @@ const ReviewSession = () => {
           onBack={handleBackFromQuiz}
         />
       ) : sessionComplete ? (
-        <div className="session-complete">
-          <div className="complete-content">
-            <h2>Session Complete!</h2>
-            <p>
-              {selectedDeck 
-                ? `You've finished reviewing all cards in the ${selectedDeck.title} deck.`
-                : "You've finished reviewing all cards in this session."
-              }
+        <div className="session-complete-page">
+          <div className="session-complete">
+            <div className="complete-content">
+              <h2>Session Complete!</h2>
+              <p>
+                {selectedDeck 
+                  ? `You've finished reviewing all cards in the ${selectedDeck.title} deck.`
+                  : "You've finished reviewing all cards in this session."
+                }
+              </p>
+              <div className="session-stats">
+                <div className="stat">
+                  <span className="stat-label">Cards Reviewed:</span>
+                  <span className="stat-value">{reviewCards.length}</span>
+                </div>
+                <div className="stat">
+                  <span className="stat-label">Time Spent:</span>
+                  <span className="stat-value">{formatTime(timer)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="session-complete-status-section">
+            <h3 className="session-complete-status-heading">Status changes this session</h3>
+            <p className="session-complete-status-sub">
+              Learning ribbon updates from cards you just reviewed (sample data for layout).
             </p>
-            <div className="session-stats">
-              <div className="stat">
-                <span className="stat-label">Cards Reviewed:</span>
-                <span className="stat-value">{reviewCards.length}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Time Spent:</span>
-                <span className="stat-value">{formatTime(timer)}</span>
-              </div>
+            <div className="session-complete-cards-grid">
+              {MOCK_SESSION_STATUS_CHANGES.map((row, index) => (
+                <div key={row.id} className="session-complete-mini-card">
+                  <div className="session-complete-ribbon-wrap" aria-hidden>
+                    <div className="session-complete-ribbon-stack">
+                      <div
+                        className="session-complete-ribbon-layer session-complete-ribbon-from"
+                        data-status={row.fromStatus}
+                        style={{ ['--ribbon-delay']: `${index * 0.18}s` }}
+                      />
+                      <div
+                        className="session-complete-ribbon-layer session-complete-ribbon-to"
+                        data-status={row.toStatus}
+                      />
+                    </div>
+                  </div>
+                  <div className="session-complete-mini-card-inner">
+                    <div className="session-complete-mini-card-label">Question</div>
+                    <div className="session-complete-mini-card-text">{row.questionPreview}</div>
+                    <div className="session-complete-status-shift">
+                      <span
+                        className="session-complete-status-pill session-complete-status-pill--from"
+                        data-status={row.fromStatus}
+                      >
+                        {LEARNING_STATUS_LABELS[row.fromStatus] ?? row.fromStatus}
+                      </span>
+                      <span className="session-complete-status-arrow" aria-hidden>
+                        →
+                      </span>
+                      <span
+                        className="session-complete-status-pill session-complete-status-pill--to"
+                        data-status={row.toStatus}
+                      >
+                        {LEARNING_STATUS_LABELS[row.toStatus] ?? row.toStatus}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="session-actions">
-              <button className="end-session-btn" onClick={handleEndSession}>
-                <FiArrowLeft /> Back to Study Room
+          </div>
+
+          <div className="session-actions session-complete-page-actions">
+            <button className="end-session-btn" onClick={handleEndSession}>
+              <FiArrowLeft /> Back to Study Room
+            </button>
+            {selectedStudyMethod?.id !== 'doing-feedback' && (
+              <button 
+                className="take-quiz-btn" 
+                onClick={handleTakeQuiz}
+                disabled={Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length === 0}
+              >
+                Take Quiz ({Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length} cards)
               </button>
-              {selectedStudyMethod?.id !== 'doing-feedback' && (
-                <button 
-                  className="take-quiz-btn" 
-                  onClick={handleTakeQuiz}
-                  disabled={Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length === 0}
-                >
-                  Take Quiz ({Object.keys(cardRatings).filter(id => cardRatings[id] > 0).length} cards)
-                </button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       ) : (
@@ -958,39 +1117,77 @@ const ReviewSession = () => {
             <div className="header-center-layer">
               {/* Layer Indicator (only for doing-feedback method) */}
               {selectedStudyMethod?.id === 'doing-feedback' && (
-                <div 
-                  className="layer-toggle-group"
-                  onMouseEnter={() => setShowLayerDropdown(true)}
-                  onMouseLeave={() => setShowLayerDropdown(false)}
-                >
-                  <div className="layer-indicator-pill">
+                <div className="layer-toggle-group">
+                  <button
+                    type="button"
+                    className="layer-indicator-pill"
+                    aria-expanded={showLayerDropdown}
+                    aria-haspopup="dialog"
+                    aria-controls="layer-feedback-popup"
+                    onClick={() => setShowLayerDropdown((v) => !v)}
+                  >
                     <FiLayers className="layer-icon" />
                     <span className="layer-label">{layerDescriptions[currentLayer]?.label}</span>
-                  </div>
+                    <FiChevronDown className="layer-popup-chevron" aria-hidden />
+                  </button>
                   {showLayerDropdown && (
-                    <div className="layer-dropdown">
-                      <div className="layer-menu">
-                        {Object.entries(layerDescriptions).map(([key, { label, description }]) => {
-                          const layerNum = parseInt(key);
-                          return (
-                            <div
-                              key={key}
-                              className={`layer-option ${currentLayer === layerNum ? 'selected' : ''}`}
-                            >
-                              <div className="layer-option-content">
-                                <div className="layer-option-label">
-                                  {label}
-                                  {currentLayer === layerNum && (
-                                    <FiCheck className="layer-check-icon" />
-                                  )}
-                                </div>
-                                <div className="layer-option-description">{description}</div>
-                              </div>
+                    <>
+                      <div
+                        className="layer-popup-backdrop"
+                        aria-hidden
+                        onClick={() => setShowLayerDropdown(false)}
+                      />
+                      <div
+                        id="layer-feedback-popup"
+                        className="layer-popup"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="layer-popup-title"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="layer-popup-inner">
+                          <div className="layer-popup-header">
+                            <div>
+                              <h2 id="layer-popup-title" className="layer-popup-title">
+                                Feedback layers
+                              </h2>
+                              <p className="layer-popup-subtitle">
+                                How the session advances your understanding at each stage.
+                              </p>
                             </div>
-                          );
-                        })}
+                            <button
+                              type="button"
+                              className="layer-popup-close"
+                              aria-label="Close layer info"
+                              onClick={() => setShowLayerDropdown(false)}
+                            >
+                              <FiX size={20} />
+                            </button>
+                          </div>
+                          <div className="layer-popup-body">
+                            {Object.entries(layerDescriptions).map(([key, { label, description }]) => {
+                              const layerNum = parseInt(key, 10);
+                              return (
+                                <div
+                                  key={key}
+                                  className={`layer-option ${currentLayer === layerNum ? 'selected' : ''}`}
+                                >
+                                  <div className="layer-option-content">
+                                    <div className="layer-option-label">
+                                      {label}
+                                      {currentLayer === layerNum && (
+                                        <FiCheck className="layer-check-icon" />
+                                      )}
+                                    </div>
+                                    <div className="layer-option-description">{description}</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
               )}
@@ -1085,7 +1282,13 @@ const ReviewSession = () => {
                               const getStatusInfo = (status) => {
                                 switch (status) {
                                   case 'mstrd':
-                                    return { text: 'Mastered', color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' };
+                                    return {
+                                      text: 'Mastered',
+                                      color: '#e879f8',
+                                      bgColor: 'rgba(162, 28, 175, 0.14)',
+                                      boxShadow:
+                                        '0 0 10px rgba(219, 39, 119, 0.3), 0 0 20px rgba(162, 28, 175, 0.18)',
+                                    };
                                   case 'strgl':
                                     return { text: 'Struggling', color: '#EF4444', bgColor: 'rgba(239, 68, 68, 0.1)' };
                                   case 'unseen':
@@ -1101,7 +1304,10 @@ const ReviewSession = () => {
                                   className="status-text"
                                   style={{
                                     color: statusInfo.color,
-                                    backgroundColor: statusInfo.bgColor,
+                                    ...(statusInfo.background
+                                      ? { background: statusInfo.background }
+                                      : { backgroundColor: statusInfo.bgColor }),
+                                    ...(statusInfo.boxShadow ? { boxShadow: statusInfo.boxShadow } : {}),
                                     padding: '6px 12px',
                                     borderRadius: '10px',
                                     fontSize: '0.85rem',
@@ -1128,10 +1334,6 @@ const ReviewSession = () => {
                     <button className="skip-btn" onClick={handleNextReviewCard} title="Skip Card">
                       <FiSkipForward />
                     </button>
-                  </div>
-
-                  <div className="flip-hint">
-                    Click or press Space to flip
                   </div>
 
                   {/* AI Assistant Toggle */}
@@ -1220,7 +1422,7 @@ const ReviewSession = () => {
 
               {/* Rating Controls */}
               <div className="rating-controls">
-                {[5, 4, 3, 2, 1, 0].map((rating) => (
+                {[0, 1, 2, 3, 4, 5].map((rating) => (
                   <button
                     key={rating}
                     className={`rating-btn rating-${rating}`}
@@ -1228,7 +1430,7 @@ const ReviewSession = () => {
               
                       handleRatingSelect(rating);
                     }}
-                    style={{ borderBottomColor: ratingColors[rating] }}
+                    style={{ '--rating-accent': ratingColors[rating] }}
                   >
                     <div className="rating-value">{rating}</div>
                     <div className="rating-label">
@@ -1250,10 +1452,6 @@ const ReviewSession = () => {
                   <span className="review-session-emoji-text">+5</span>
                 </div>
               ))}
-
-              <div className="rating-hint">
-                Press number keys 0-5 to rate quickly
-              </div>
             </>
           )}
         </>

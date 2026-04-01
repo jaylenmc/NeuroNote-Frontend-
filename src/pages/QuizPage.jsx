@@ -6,6 +6,13 @@ import { FaBrain } from 'react-icons/fa';
 import api from '../api/axios';
 import './QuizPage.css';
 import { formatDateForDisplay } from '../utils/dateUtils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 
 const formatDate = (dateString) => {
     if (!dateString) return '—';
@@ -560,15 +567,16 @@ const QuizPage = () => {
                             
                             <div className="quiz-page-modal-form-group">
                                 <label>Preferred quiz type</label>
-                                <select
-                                    className="quiz-page-modal-select"
-                                    value={genType}
-                                    onChange={(e) => setGenType(e.target.value)}
-                                >
-                                    <option value="mc">Multiple choice</option>
-                                    <option value="wr">Written</option>
-                                    <option value="wrmc">Mixed (MC + Written)</option>
-                                </select>
+                                <Select value={genType} onValueChange={setGenType}>
+                                    <SelectTrigger className="quiz-page-modal-select-trigger" aria-label="Preferred quiz type">
+                                        <SelectValue placeholder="Select quiz type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="mc">Multiple choice</SelectItem>
+                                        <SelectItem value="wr">Written</SelectItem>
+                                        <SelectItem value="wrmc">Mixed (MC + Written)</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="quiz-page-modal-form-group">

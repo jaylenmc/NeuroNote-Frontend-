@@ -1,500 +1,201 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, Star, BookOpen, Users, Calendar, Filter, ChevronDown, Target, ArrowLeft, Check, AlertCircle } from 'lucide-react';
+import React from 'react';
+import { ArrowLeft, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './Achievements.css';
-import { makeAuthenticatedRequest } from '../utils/api';
 
-const sortOptions = ["Most Recent", "Hardest", "Locked/Unlocked", "Type"];
+const legendItems = [
+  {
+    tier: 'Bronze Tier',
+    description: 'Entry-level achievements or common milestones.',
+    color: '#B77431',
+  },
+  {
+    tier: 'Silver Tier',
+    description: 'Intermediate achievements that require consistency.',
+    color: '#A6B1C8',
+  },
+  {
+    tier: 'Gold Tier',
+    description: 'High-value milestones earned through dedication.',
+    color: '#D4A12C',
+  },
+  {
+    tier: 'Legend Tier',
+    description: 'Rare achievements reserved for exceptional streaks.',
+    color: '#FF5F93',
+  },
+];
+
+const cards = [
+  {
+    icon: '🔥',
+    iconBg: '#FF8A8A29',
+    iconBorder: '#FF8A8A52',
+    iconColor: '#FFD1D1',
+    title: '7-Day Streak',
+    desc: 'Stayed consistent and studied every day for a full week.',
+    progress: '39%',
+    xp: '+15 XP',
+    family: 'Consistency',
+  },
+  {
+    icon: '📚',
+    iconBg: '#5AE0AE2E',
+    iconBorder: '#5AE0AE59',
+    iconColor: '#C2FFE9',
+    title: 'Flashcard Pro',
+    desc: 'Mastered deck practice and hit your review accuracy goal.',
+    progress: '100%',
+    xp: '+20 XP',
+    family: 'Flashcards',
+  },
+  {
+    icon: '🎯',
+    iconBg: '#F7C7662E',
+    iconBorder: '#F7C76659',
+    iconColor: '#FFE7B8',
+    title: 'Quiz Sharpshooter',
+    desc: 'Scored top accuracy across recall quizzes and timed drills.',
+    progress: '72%',
+    xp: '+18 XP',
+    family: 'Quizzes',
+  },
+  {
+    icon: '⭐',
+    iconBg: '#9299FF2E',
+    iconBorder: '#9299FF59',
+    iconColor: '#C8CCFF',
+    title: 'Night Owl',
+    desc: 'Completed focused evening sessions and unlocked calm consistency.',
+    progress: '100%',
+    xp: '+25 XP',
+    family: 'General',
+  },
+];
 
 const Achievements = () => {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedSort, setSelectedSort] = useState("Most Recent");
-  const [achievements, setAchievements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const sortMenuRef = useRef(null);
-
-  useEffect(() => {
-    // Add Night Owl theme class to body
-    document.body.classList.add('achievements-root-bg');
-    
-    const fetchAchievements = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
-        const response = await makeAuthenticatedRequest(`${apiUrl}achievements/user/?user_achievements=false`);
-        if (!response) throw new Error('No response from server');
-        if (response.status !== 200) throw new Error(response.data?.message || 'Failed to fetch achievements');
-        // Ensure we always set an array
-        const achievementsData = Array.isArray(response.data) ? response.data : [];
-        setAchievements(achievementsData);
-      } catch (err) {
-        // Check if it's a 404 error
-        const errorStatus = err.response?.status || err.status;
-        if (errorStatus === 404) {
-          setError({ type: '404', message: 'Achievements endpoint not found' });
-        } else {
-          setError({ type: 'error', message: err.message || 'Failed to fetch achievements' });
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAchievements();
-
-    // Cleanup function to remove class when component unmounts
-    return () => {
-      document.body.classList.remove('achievements-root-bg');
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
-        setIsSortMenuOpen(false);
-      }
-    };
-
-    if (isSortMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isSortMenuOpen]);
-
-  // Generate categories from achievement families
-  const getCategories = () => {
-    if (!Array.isArray(achievements)) return ["All", "General"];
-    const families = [...new Set(achievements.map(a => a.family).filter(Boolean))];
-    return ["All", "General", ...families];
-  };
-
-  const categories = getCategories();
-
-  // Filter achievements based on selected category
-  const filteredAchievements = !Array.isArray(achievements) ? [] :
-    selectedCategory === "All" 
-    ? achievements 
-    : selectedCategory === "General"
-    ? achievements.filter(achievement => !achievement.family || achievement.family === "General")
-    : achievements.filter(achievement => achievement.family === selectedCategory);
-
-  const unlockedCount = Array.isArray(achievements) ? achievements.length : 0; // All achievements from backend are considered unlocked for now
-  const totalCount = Array.isArray(achievements) ? achievements.length : 0;
-
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case "All": return <Trophy size={16} />;
-      case "General": return <Star size={16} />;
-      case "Flashcards": return <BookOpen size={16} />;
-      case "Study Groups": return <Users size={16} />;
-      case "Quizzes": return <Target size={16} />;
-      case "Consistency": return <Calendar size={16} />;
-      default: return <Star size={16} />;
-    }
-  };
-
-  // Get achievement icon and badge classes
-  const getAchievementIcon = (achievement) => {
-    const family = achievement.family?.toLowerCase() || '';
-    const tier = achievement.tier?.toLowerCase() || '';
-    const name = achievement.name?.toLowerCase() || '';
-    
-    // Map achievement names and families to specific themed icons
-    if (name.includes('midnight') || name.includes('night') || name.includes('owl')) {
-      return { icon: '🦉', badgeClass: 'general' };
-    } else if (name.includes('scholar') || name.includes('study') || name.includes('academic')) {
-      return { icon: '🎓', badgeClass: 'general' };
-    } else if (name.includes('streak') || name.includes('consistency') || name.includes('daily')) {
-      return { icon: '🔥', badgeClass: 'streak' };
-    } else if (name.includes('flashcard') || name.includes('deck') || name.includes('card')) {
-      return { icon: '📚', badgeClass: 'flashcards' };
-    } else if (name.includes('quiz') || name.includes('recall') || name.includes('test')) {
-      return { icon: '🎯', badgeClass: 'quiz' };
-    } else if (name.includes('group') || name.includes('collaborat') || name.includes('team')) {
-      return { icon: '👥', badgeClass: 'study-groups' };
-    } else if (name.includes('master') || name.includes('expert') || name.includes('pro')) {
-      return { icon: '🏆', badgeClass: 'trophy' };
-    } else if (name.includes('speed') || name.includes('fast') || name.includes('quick')) {
-      return { icon: '⚡', badgeClass: 'general' };
-    } else if (name.includes('memory') || name.includes('remember') || name.includes('retention')) {
-      return { icon: '🧠', badgeClass: 'general' };
-    } else if (family.includes('streak') || family.includes('consistency')) {
-      return { icon: '🔥', badgeClass: 'streak' };
-    } else if (family.includes('flashcards') || family.includes('deck')) {
-      return { icon: '📚', badgeClass: 'flashcards' };
-    } else if (family.includes('quiz') || family.includes('recall')) {
-      return { icon: '🎯', badgeClass: 'quiz' };
-    } else if (family.includes('study') && family.includes('group')) {
-      return { icon: '👥', badgeClass: 'study-groups' };
-    } else if (family.includes('general') || !family) {
-      return { icon: '⭐', badgeClass: 'general' };
-    }
-    
-    // Default fallback
-    return { icon: '🏆', badgeClass: 'trophy' };
-  };
-
-  const getTierClass = (tier) => {
-    const tierLower = tier?.toLowerCase() || '';
-    if (tierLower.includes('bronze')) return 'bronze';
-    if (tierLower.includes('silver')) return 'silver';
-    if (tierLower.includes('gold')) return 'gold';
-    if (tierLower.includes('legend')) return 'legend';
-    return '';
-  };
-
-  // Level-up animation function
-  // Calculate XP progress for dashboard ring
-  const totalXP = 23; // This would come from user data
-  const currentLevelXP = totalXP % 100; // Assuming 100 XP per level
-  const currentLevelPercent = Math.round((currentLevelXP / 100) * 100);
-  const xpProgress = (currentLevelXP / 100) * 283; // 283 is circumference for radius 45
-
-  const getAchievementAccent = (badgeClass) => {
-    const accent = '#9aa4ff';
-    const soft = 'rgba(154, 164, 255, 0.18)';
-    return { accent, soft };
-  };
-
-  const unlockedPercent = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
-
-  const getAchievementProgress = (achievement) => {
-    if (!achievement || typeof achievement !== 'object') return null;
-
-    const percentFields = [
-      'progress_percentage',
-      'progress_percent',
-      'percent_complete',
-      'completion_percentage'
-    ];
-
-    for (const key of percentFields) {
-      const rawPercent = achievement[key];
-      if (typeof rawPercent === 'number' && !Number.isNaN(rawPercent)) {
-        const clamped = Math.max(0, Math.min(100, rawPercent));
-        return {
-          percent: clamped,
-          label: achievement.progress_label || 'Progress',
-          value: `${Math.round(clamped)}%`
-        };
-      }
-    }
-
-    const progressObj = achievement.progress ?? {};
-    const current =
-      achievement.progress_current ??
-      achievement.current_progress ??
-      progressObj.current ??
-      null;
-    const total =
-      achievement.progress_target ??
-      achievement.progress_total ??
-      achievement.target_progress ??
-      achievement.goal_total ??
-      progressObj.total ??
-      progressObj.target ??
-      null;
-
-    if (
-      typeof current === 'number' &&
-      typeof total === 'number' &&
-      total > 0
-    ) {
-      const percent = Math.max(0, Math.min(100, (current / total) * 100));
-      return {
-        percent,
-        label: achievement.progress_label || 'Progress',
-        value: `${current}/${total}`
-      };
-    }
-
-    return null;
-  };
-
-  const handleSortSelect = (option) => {
-    setSelectedSort(option);
-    setIsSortMenuOpen(false);
-  };
-
-  const rarityLegend = [
-    { key: 'rarity-bronze', label: 'Bronze Tier', color: '#B77431', description: 'Entry-level achievements or common milestones.' },
-    { key: 'rarity-silver', label: 'Silver Tier', color: '#A6B1C8', description: 'Intermediate achievements that require consistency.' },
-    { key: 'rarity-gold', label: 'Gold Tier', color: '#D4A12C', description: 'High-value milestones earned through dedication.' },
-    { key: 'rarity-legend', label: 'Legend Tier', color: '#FF5F93', description: 'Rare achievements reserved for exceptional streaks.' }
-  ];
 
   return (
-    <div className="achievements-page">
-      <button
-        onClick={() => navigate('/dashboard')}
-        className="back-to-dashboard-btn"
-      >
-        <ArrowLeft size={20} />
-        Back to Dashboard
+    <div className="ach-page">
+      <button className="ach-back-btn" onClick={() => navigate('/dashboard')} type="button">
+        <ArrowLeft size={16} />
+        <span>Back to Dashboard</span>
       </button>
-      <div className="achievements-content">
-        {/* Page Header */}
-        <div className="achievements-page-header">
-          <h1 className="achievements-page-title">Achievements</h1>
-          <p className="achievements-page-subtitle">
-            Track your progress, unlock milestones, and celebrate your study journey. 
-          </p>
-        </div>
 
-        {/* Summary Section */}
-        <div className="achievements-summary-grid">
-          <div className="summary-panel">
-            <div className="summary-heading">
-              <div>
-                <h1 className="summary-title">Your Achievements</h1>
-                <p className="summary-subtitle">Track your mastery journey across study sessions.</p>
-              </div>
+      <div className="ach-content">
+        <header className="ach-header">
+          <h1>Achievements</h1>
+          <p>Track your progress, unlock milestones, and celebrate your study journey.</p>
+        </header>
+
+        <section className="ach-summary-shell">
+          <div className="ach-summary-main">
+            <div className="ach-summary-title-wrap">
+              <h2>Your Achievements</h2>
+              <p>Track your mastery journey across study sessions.</p>
             </div>
 
-            <div className="summary-stat-grid">
-              <div className="summary-stat">
-                <span className="summary-stat-label">Achievements Unlocked</span>
-                <span className="summary-stat-value">
-                  {unlockedCount}
-                </span>
-                <span className="summary-stat-meta">
-                  {totalCount > 0 ? `${unlockedPercent}% complete (${unlockedCount}/${totalCount})` : 'Unlock your first badge to begin.'}
-                </span>
-              </div>
-
-              <div className="summary-stat">
-                <span className="summary-stat-label">Current Level</span>
-                <span className="summary-stat-value">
-                  Level 3
-                <span className="summary-stat-meta">Memory Architect</span>
-                </span>
-              </div>
-
-              <div className="summary-stat">
-                <span className="summary-stat-label">Latest Unlock</span>
-                <span className="summary-stat-value">
-                  {filteredAchievements[0]?.name || '––'}
-                <span className="summary-stat-meta">{filteredAchievements[0]?.family || 'Keep streaking to unlock more.'}</span>
-                </span>
-              </div>
+            <div className="ach-summary-stats">
+              <article className="ach-summary-stat">
+                <span className="ach-stat-label">Achievements Unlocked</span>
+                <strong>24</strong>
+                <em>100% complete (24/24)</em>
+              </article>
+              <article className="ach-summary-stat">
+                <span className="ach-stat-label">Current Level</span>
+                <strong>Level 3</strong>
+                <em>Memory Architect</em>
+              </article>
+              <article className="ach-summary-stat">
+                <span className="ach-stat-label">Latest Unlock</span>
+                <strong>Midnight Scholar</strong>
+                <em>General</em>
+              </article>
             </div>
           </div>
 
-          <div className="level-panel">
-            <div className="level-ring">
-              <div className="level-ring-chart">
-              <svg viewBox="0 0 100 100">
-                <circle className="level-ring-bg" cx="50" cy="50" r="45" />
-                <circle
-                  className="level-ring-progress"
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  style={{
-                    strokeDasharray: `${xpProgress} 283`
-                  }}
-                />
-              </svg>
-                <div className="level-ring-percentage">{currentLevelPercent}%</div>
+          <div className="ach-next-wrap">
+            <p className="ach-next-title">Next achievement you&apos;re closest to unlocking</p>
+            <article className="ach-card">
+              <span className="ach-card-badge ach-badge-flashcards">📚</span>
+              <h3>Flashcard Pro</h3>
+              <p>Mastered deck practice and hit your review accuracy goal.</p>
+              <div className="ach-card-meta">
+                <span className="ach-xp-chip">+20 XP</span>
+                <span className="ach-family-chip">Flashcards</span>
               </div>
-              <div className="level-ring-center">
-                <span className="summary-stat-meta">{currentLevelXP} / 100 XP</span>
+              <span className="ach-progress-label">Progress</span>
+              <div className="ach-progress-track">
+                <div className="ach-progress-fill" style={{ width: '100%' }} />
               </div>
-            </div>
-
-            <div className="level-details">
-              <span className="level-chip">Level 3</span>
-              <h2 className="level-title">Memory Architect</h2>
-              <p className="level-subtitle">
-                {totalCount > 0 ? `${100 - currentLevelXP} XP until your next mastery badge.` : 'Start unlocking achievements to climb the ranks.'}
-              </p>
-            </div>
+            </article>
           </div>
-        </div>
+        </section>
 
-        {/* Achievement Ribbon Legend */}
-        <div className="achievement-ribbon-legend" aria-label="Achievement rarity legend">
+        <section className="ach-legend">
           <h4>Rarity Guide</h4>
-          <div className="achievement-ribbon-legend-items">
-            {rarityLegend.map(item => (
-              <div className="achievement-ribbon-legend-item" key={item.key}>
-                <span
-                  className={`achievement-ribbon-legend-swatch ${item.key}`}
-                  style={{ backgroundColor: item.color }}
-                  aria-hidden="true"
-                />
-                <div className="achievement-ribbon-legend-copy">
-                  <span className="legend-title">{item.label}</span>
-                  <span className="legend-description">{item.description}</span>
+          <div className="ach-legend-items">
+            {legendItems.map((item) => (
+              <article className="ach-legend-item" key={item.tier}>
+                <span className="ach-legend-swatch" style={{ background: item.color }} />
+                <div className="ach-legend-copy">
+                  <span>{item.tier}</span>
+                  <p>{item.description}</p>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
+        </section>
+
+        <div className="ach-section-head">
+          <span>Unlocked Achievements</span>
+          <div className="ach-section-line" />
+          <span className="ach-count">24 achievements</span>
         </div>
 
-      {/* Achievement Grid */}
-      <div className="achievements-section-heading">
-        <span>Unlocked Achievements</span>
-        <span className="achievements-section-count">
-          {filteredAchievements.length} {filteredAchievements.length === 1 ? 'achievement' : 'achievements'}
-        </span>
-      </div>
-
-      {/* Filter & Sort Bar */}
-      <div className="filters-bar">
-        <div className="filter-pill-group">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`filter-pill ${selectedCategory === category ? 'active' : ''}`}
-            >
-              {getCategoryIcon(category)}
-              {category}
-            </button>
-          ))}
+        <div className="ach-filters">
+          <div className="ach-pill-group">
+            <button className="ach-pill ach-pill-active" type="button">All</button>
+            <button className="ach-pill" type="button">General</button>
+            <button className="ach-pill" type="button">Flashcards</button>
+          </div>
+          <button className="ach-sort-pill" type="button">
+            <SlidersHorizontal size={16} />
+            <span>Sort by: Most Recent</span>
+            <ChevronDown size={16} />
+          </button>
         </div>
 
-        <div
-          className="sort-menu-container"
-          ref={sortMenuRef}
-        >
-          <button
-            className="sort-pill"
-            onClick={() => setIsSortMenuOpen(prev => !prev)}
-            aria-haspopup="listbox"
-            aria-expanded={isSortMenuOpen}
-          >
-          <Filter size={16} />
-          Sort by: {selectedSort}
-          <ChevronDown size={16} />
-        </button>
-          <div className={`sort-menu ${isSortMenuOpen ? 'open' : ''}`} role="listbox">
-            {sortOptions.map(option => (
-              <button
-                key={option}
-                role="option"
-                className={`filter-pill sort-option ${selectedSort === option ? 'active' : ''}`}
-                aria-selected={selectedSort === option}
-                onClick={() => handleSortSelect(option)}
+        <section className="ach-grid">
+          {cards.map((card) => (
+            <article className="ach-card" key={card.title}>
+              <span
+                className="ach-card-badge"
+                style={{
+                  background: card.iconBg,
+                  borderColor: card.iconBorder,
+                  color: card.iconColor,
+                }}
               >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
+                {card.icon}
+              </span>
+              <h3>{card.title}</h3>
+              <p>{card.desc}</p>
+              <div className="ach-card-meta">
+                <span className="ach-xp-chip">{card.xp}</span>
+                <span className="ach-family-chip">{card.family}</span>
+              </div>
+              <span className="ach-progress-label">Progress</span>
+              <div className="ach-progress-track">
+                <div className="ach-progress-fill" style={{ width: card.progress }} />
+              </div>
+            </article>
+          ))}
+        </section>
       </div>
-
-      <div className="achievement-grid">
-        {loading && <div className="achievements-loading">Loading achievements...</div>}
-        {error && (
-          <div className="achievements-error-state">
-            <div className="error-state-icon">
-              <AlertCircle size={48} strokeWidth={1.5} />
-            </div>
-            <h3 className="error-state-title">
-              {typeof error === 'object' && error.type === '404' 
-                ? 'Achievements Not Found' 
-                : 'Error Loading Achievements'}
-            </h3>
-            <p className="error-state-message">
-              {typeof error === 'object' && error.type === '404' 
-                ? 'The achievements endpoint could not be found. Please check your connection or try again later.'
-                : typeof error === 'object' 
-                  ? (error.message || 'Something went wrong while loading your achievements.')
-                  : (error || 'Something went wrong while loading your achievements.')}
-            </p>
-            <button 
-              className="error-state-retry-btn"
-              onClick={() => window.location.reload()}
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-        {!loading && !error && filteredAchievements.map(achievement => {
-          const { icon, badgeClass } = getAchievementIcon(achievement);
-          const tierClass = getTierClass(achievement.tier);
-          const categoryClass = badgeClass || 'general';
-          const progressInfo = getAchievementProgress(achievement);
-          const displayProgress = progressInfo ?? {
-            percent: 100,
-            label: 'Progress',
-            value: 'Completed'
-          };
-          const rarityClass = tierClass ? `rarity-${tierClass}` : '';
-
-          const styles = getAchievementAccent(categoryClass);
-          const cardStyle = {
-            '--achievement-accent': styles.accent,
-            '--achievement-accent-soft': styles.soft
-          };
-
-          return (
-            <div
-              key={achievement.name}
-              className="achievement-card unlocked"
-              style={cardStyle}
-            >
-              {tierClass && (
-                <span
-                  className={`achievement-ribbon ${rarityClass}`}
-                  aria-hidden="true"
-                />
-              )}
-              <div className="achievement-card-header">
-                <div className="achievement-card-primary">
-                  <div className={`achievement-badge ${categoryClass} ${rarityClass}`}>
-                  {icon}
-                </div>
-                  <div className="achievement-card-text">
-                  <h3 className="achievement-card-title">{achievement.name}</h3>
-                  <p className="achievement-card-description">{achievement.description}</p>
-                </div>
-              </div>
-                <div className="achievement-card-meta">
-                <span className="achievement-xp-chip">+{achievement.xp_value || 10} XP</span>
-                <span className={`achievement-category-chip ${categoryClass}`}>
-                  {achievement.family || 'General'}
-                </span>
-                </div>
-              </div>
-
-              <div className="achievement-progress">
-                <div className="achievement-progress-meta">
-                  <span className="achievement-progress-label">{displayProgress.label}</span>
-                  <span className={`achievement-progress-status ${displayProgress.percent >= 99 ? 'status-complete' : ''}`}>
-                    {displayProgress.percent >= 99 ? (
-                      <>
-                        <Check size={14} strokeWidth={3} />
-                        <span>Completed</span>
-                      </>
-                    ) : (
-                      displayProgress.value
-                    )}
-                  </span>
-                </div>
-                <div className="achievement-progress-bar">
-                  <div
-                    className="achievement-progress-fill"
-                    style={{ width: `${Math.min(displayProgress.percent, 100)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        </div>
-      </div>
-      
     </div>
   );
 };
 
-export default Achievements; 
+export default Achievements;

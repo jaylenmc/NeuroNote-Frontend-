@@ -174,7 +174,7 @@ body, .quiz-take-bg {
 
 .quiz-take-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #A78BFA 0%, #C4B5FD 100%);
+  background: #A15E49;
   border-radius: 3px;
   transition: width 0.3s ease;
   position: relative;
@@ -231,7 +231,7 @@ body, .quiz-take-bg {
 
 .quiz-take-pace-number {
   font-size: 1.2rem;
-  color: #A78BFA;
+  color: #A15E49;
   font-weight: 700;
   min-width: 2rem;
   text-align: center;
@@ -388,16 +388,9 @@ body, .quiz-take-bg {
 }
 
 .quiz-take-option.selected {
-  border: 1.5px solid #A78BFA;
-  background: rgba(167,139,250,0.08);
-  color: #A78BFA;
-  transform: none !important;
-}
-
-.quiz-take-option.selected:hover {
-  border: 1.5px solid #A78BFA;
-  background: rgba(167,139,250,0.08);
-  color: #A78BFA;
+  border: 1px solid rgba(161, 94, 73, 0.28);
+  background: rgba(161, 94, 73, 0.3) !important;
+  color: rgba(255, 247, 243, 0.88) !important;
   transform: none !important;
 }
 
@@ -483,10 +476,9 @@ body, .quiz-take-bg {
 }
 
 .quiz-take-nav-btn:hover {
-  background: rgba(167,139,250,0.13);
-  color: #A78BFA;
-  border: 1.5px solid #A78BFA;
-  box-shadow: 0 0 0 4px rgba(167,139,250,0.13), 0 4px 24px 0 rgba(167,139,250,0.13);
+  background: rgba(161, 94, 73, 0.3) !important;
+  color: rgba(255, 247, 243, 0.88) !important;
+  border: 1px solid rgba(161, 94, 73, 0.28);
 }
 
 .quiz-take-nav-btn:active {
@@ -506,18 +498,12 @@ body, .quiz-take-bg {
 
 .quiz-take-nav-btn-submit {
   right: 2.5rem;
-  background: rgba(167,139,250,0.2);
-  border: 1.5px solid #A78BFA;
-  color: #A78BFA;
+  background: rgba(161, 94, 73, 0.3) !important;
+  border: 1px solid rgba(161, 94, 73, 0.28);
+  font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif !important;
+  color: rgba(255, 247, 243, 0.88) !important;
   font-size: 1.5rem;
   font-weight: 700;
-}
-
-.quiz-take-nav-btn-submit:hover:not(:disabled) {
-  background: rgba(167,139,250,0.3);
-  color: #A78BFA;
-  border: 1.5px solid #A78BFA;
-  box-shadow: 0 0 0 4px rgba(167,139,250,0.2), 0 4px 24px 0 rgba(167,139,250,0.2);
 }
 
 .quiz-take-nav-btn-submit:disabled {
@@ -554,65 +540,12 @@ body, .quiz-take-bg {
   cursor: default;
 }
 
-.quiz-take-tooltip {
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
-  transition: opacity 0.15s;
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  animation: tooltipFadeIn 0.2s ease-out;
-}
-
-.quiz-take-tooltip.visible {
-  opacity: 1;
-  pointer-events: auto;
-  visibility: visible;
-}
-
-.quiz-take-tooltip-arrow {
-  position: absolute;
-  top: 0px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 6px solid #373737;
-}
-
-.quiz-take-tooltip-content {
-  background: #373737;
-  color: #f5f5f5;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.1);
-  margin-top: 6px;
-}
-
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* Unanswered-questions tooltip: Radix (components/ui/tooltip.jsx) */
 
 .quiz-take-tooltip-jump {
   background: none;
   border: none;
-  color: #A78BFA;
+  color: #A15E49;
   font-weight: 700;
   cursor: pointer;
   font-size: 0.95em;
@@ -620,10 +553,6 @@ body, .quiz-take-bg {
   text-decoration: underline;
   transition: color 0.15s, background 0.15s;
   border-radius: 4px;
-}
-.quiz-take-tooltip-jump:hover {
-  color: #fff;
-  background: #A78BFA;
 }
 
 @media (max-width: 900px) {

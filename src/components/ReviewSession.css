@@ -1,7 +1,7 @@
 .review-session {
   min-height: 100vh;
   padding: 2rem;
-  background: var(--background-color);
+  background: #1d1f23;
   color: var(--text-color);
 }
 

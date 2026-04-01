@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CalendarDays, Check, Flame, Footprints, Trophy } from 'lucide-react';
+import { CalendarDays, Flame, Footprints, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api/axios';
@@ -18,6 +18,34 @@ import { Empty } from './ui/empty';
 import { Progress } from './ui/progress';
 import { Separator } from './ui/separator';
 import './DashboardHome.css';
+
+const DASHBOARD_METRICS_CACHE_KEY = 'dashboard-home-metrics-v1';
+
+const readMetricsCache = () => {
+  try {
+    const raw = window.sessionStorage.getItem(DASHBOARD_METRICS_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed?.dueCount === 'number' &&
+      typeof parsed?.deckCount === 'number' &&
+      typeof parsed?.totalCards === 'number'
+    ) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const writeMetricsCache = (metrics) => {
+  try {
+    window.sessionStorage.setItem(DASHBOARD_METRICS_CACHE_KEY, JSON.stringify(metrics));
+  } catch {
+    // Ignore storage failures; UI still works with in-memory state.
+  }
+};
 
 const stockDocs = [
   {
@@ -39,7 +67,7 @@ const stockDocs = [
 
 const upcomingReviews = [
   { title: 'Neuroscience 201', meta: 'In 22m' },
-  { title: 'Pharmacology Drill', meta: 'Tonight' },
+  { title: 'Pharmacology Drill', meta: 'Overdue 15m' },
   { title: 'Synaptic Plasticity Set', meta: 'In 35m' },
   { title: 'Neuroanatomy Labeling', meta: 'Tomorrow' },
   { title: 'Axon Pathways Rapid Quiz', meta: 'In 1h' },
@@ -72,15 +100,20 @@ const getDueMetaTone = (meta) => {
 const DashboardHome = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  const [dueCount, setDueCount] = useState(0);
-  const [deckCount, setDeckCount] = useState(0);
-  const [totalCards, setTotalCards] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const cachedMetrics = useMemo(() => readMetricsCache(), []);
+  const [metrics, setMetrics] = useState(() => cachedMetrics ?? {
+    dueCount: 0,
+    deckCount: 0,
+    totalCards: 0,
+  });
+  const [loading, setLoading] = useState(!cachedMetrics);
+  const [isRefreshing, setIsRefreshing] = useState(Boolean(cachedMetrics));
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
-      setLoading(true);
+      setIsRefreshing(true);
       try {
         const [dueRes, decksRes] = await Promise.all([
           api.get('/flashcards/cards/due/').catch(() => ({ data: [] })),
@@ -88,11 +121,9 @@ const DashboardHome = () => {
         ]);
 
         const dueCards = Array.isArray(dueRes.data) ? dueRes.data : [];
-        setDueCount(dueCards.length);
 
         const decksData = decksRes.data?.decks ?? decksRes.data;
         const decksList = Array.isArray(decksData) ? decksData : [];
-        setDeckCount(decksList.length);
 
         let sum = 0;
         for (const deck of decksList) {
@@ -106,18 +137,31 @@ const DashboardHome = () => {
             // Keep going if one deck request fails.
           }
         }
-        setTotalCards(sum);
+
+        if (!isMounted) return;
+
+        const nextMetrics = {
+          dueCount: dueCards.length,
+          deckCount: decksList.length,
+          totalCards: sum,
+        };
+        setMetrics(nextMetrics);
+        writeMetricsCache(nextMetrics);
       } catch (err) {
         console.error('Dashboard fetch error:', err);
-        setDueCount(0);
-        setDeckCount(0);
-        setTotalCards(0);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          setIsRefreshing(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const xp = user?.xp ?? 72;
@@ -138,7 +182,7 @@ const DashboardHome = () => {
     { id: 'Thu', active: true },
     { id: 'Fri', active: true },
     { id: 'Sat', active: true },
-    { id: 'Sun', active: true },
+    { id: 'Sun', active: false },
   ];
 
   const loginHistory = useMemo(() => {
@@ -178,9 +222,12 @@ const DashboardHome = () => {
 
           <div className="dh-streak-preview-row">
             {streakPreview.map((day) => (
-              <div className="dh-streak-day" key={day.id}>
-                <Check className="dh-streak-day-check" size={8} strokeWidth={2.6} />
-                <span>{day.id}</span>
+              <div
+                className={`dh-streak-flame-day${day.active ? ' is-active' : ' is-inactive'}`}
+                key={day.id}
+              >
+                <span className="dh-streak-flame-icon" aria-hidden="true" />
+                <span className="dh-streak-flame-label">{day.id}</span>
               </div>
             ))}
           </div>
@@ -206,41 +253,26 @@ const DashboardHome = () => {
 
       </section>
 
-      <aside className="dh-growth dh-card">
-        <h3>Study Growth</h3>
-        <p>XP progress this week</p>
-        <Progress
-          className="dh-progress-track"
-          indicatorClassName="dh-progress-fill"
-          value={progressPercent}
-        />
-        <div className="dh-growth-row">
-          <span className="dh-level-text">Level {level}</span>
-          <span>{progressPercent}% to next</span>
-        </div>
-
-      </aside>
-
       <section className="dh-metrics-shell dh-card">
         <article className="dh-metric">
-          <strong>{loading ? '...' : deckCount}</strong>
-          <span>Total Decks</span>
+          <span className="dh-metric-title">Total Decks</span>
+          <strong>{loading ? '...' : metrics.deckCount}</strong>
         </article>
         <Separator orientation="vertical" />
         <article className="dh-metric">
-          <strong>{loading ? '...' : totalCards}</strong>
-          <span>Cards Mastered</span>
+          <span className="dh-metric-title">Cards Mastered</span>
+          <strong>{loading ? '...' : metrics.totalCards}</strong>
         </article>
         <Separator orientation="vertical" />
         <article className="dh-metric">
-          <strong>{loading ? '...' : dueCount}</strong>
-          <span>Due Today</span>
+          <span className="dh-metric-title">Due Today</span>
+          <strong>{loading ? '...' : metrics.dueCount}</strong>
         </article>
       </section>
 
       <section className="dh-content-shell dh-card">
         <div className="dh-left">
-          <article className="dh-card dh-achievements">
+          {/* <article className="dh-card dh-achievements">
             <header>
               <div className="dh-achievements-title-wrap">
                 <h3>Achievements</h3>
@@ -274,7 +306,7 @@ const DashboardHome = () => {
                 <p>First review done</p>
               </div>
             </div>
-          </article>
+          </article> */}
 
           <article className="dh-card dh-docs">
             <header>

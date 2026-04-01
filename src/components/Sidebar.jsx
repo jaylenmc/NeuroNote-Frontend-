@@ -286,13 +286,6 @@ const Sidebar = ({
                         <span>Flashcards</span>
                     </div>
                     <div 
-                        className={`nav-item ${location.pathname === '/achievements' ? 'active' : ''}`}
-                        onClick={() => navigate('/achievements')}
-                    >
-                        <span className="material-symbols-outlined nav-icon">hotel_class</span>
-                        <span>Achievements</span>
-                    </div>
-                    <div 
                         className={`nav-item locked ${location.pathname === '/study-groups' ? 'active' : ''}`}
                         onClick={handleStudyGroupsClick}
                     >

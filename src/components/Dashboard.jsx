@@ -30,21 +30,45 @@ import './Dashboard.css';
 import './FlashcardsNightOwl.css';
 import './DashboardHome.css';
 
+const DASHBOARD_FOLDERS_CACHE_KEY = 'dashboard-folders-tree-v1';
+
+const readFoldersCache = () => {
+    try {
+        if (typeof window === 'undefined') return null;
+        const raw = window.sessionStorage.getItem(DASHBOARD_FOLDERS_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch {
+        return null;
+    }
+};
+
+const writeFoldersCache = (folders) => {
+    try {
+        if (typeof window === 'undefined') return;
+        window.sessionStorage.setItem(DASHBOARD_FOLDERS_CACHE_KEY, JSON.stringify(folders));
+    } catch {
+        // Ignore storage failures and keep runtime state.
+    }
+};
+
 function Dashboard({ initialView }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { folderId } = useParams();
     const { user, logout, login } = useAuth();
+    const cachedFolders = readFoldersCache();
     
     // State management
     const [showDropdown, setShowDropdown] = useState(false);
     const [showWelcome, setShowWelcome] = useState(false);
     const [isNewUser, setIsNewUser] = useState(false);
-    const [folders, setFolders] = useState([]);
+    const [folders, setFolders] = useState(cachedFolders || []);
     const [showNewFolderModal, setShowNewFolderModal] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
     const [selectedFolder, setSelectedFolder] = useState(null);
-    const [activeView, setActiveView] = useState(initialView || 'dashboard');
+    const [activeView, setActiveView] = useState(() => (folderId ? 'folder' : (initialView || 'dashboard')));
     const [selectedTab, setSelectedTab] = useState(null);
     const [expandedFolders, setExpandedFolders] = useState({});
     const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -68,7 +92,7 @@ function Dashboard({ initialView }) {
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
     const { showNotification } = useNotification();
     const [isLoading, setIsLoading] = useState({
-        initialLoad: true,
+        initialLoad: !cachedFolders,
         folders: false,
         decks: false,
         cards: false,
@@ -103,6 +127,10 @@ function Dashboard({ initialView }) {
     const [viewMode, setViewMode] = useState('grid');
     const [showNewItemDropdown, setShowNewItemDropdown] = useState(false);
     const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        writeFoldersCache(folders);
+    }, [folders]);
     // Helper: find a folder's parent name in the folder tree
     const findParentName = (nodes, childId) => {
         for (const node of nodes) {

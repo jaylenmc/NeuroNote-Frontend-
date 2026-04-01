@@ -1,0 +1,51 @@
+/* Radix Checkbox root — explicit sizing so it works without Tailwind scanning this file */
+.ui-checkbox-root {
+  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ui-checkbox-root[data-state="checked"] {
+  background: #fafafa;
+  border-color: transparent;
+  color: #18181b;
+}
+
+.ui-checkbox-root:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.ui-checkbox-root:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ui-checkbox-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  line-height: 0;
+}
+
+.ui-checkbox-indicator svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}

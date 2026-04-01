@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
 import { FiCheck, FiX, FiRotateCcw, FiTarget, FiZap, FiEdit, FiArrowRight, FiLock, FiUnlock, FiShuffle, FiLayers } from 'react-icons/fi';
 import api from '../api/axios';
 
@@ -20,7 +21,6 @@ const FeedbackLoopSession = ({
   const [currentStep, setCurrentStep] = useState('practice'); // practice, feedback, reflection
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
-  const [difficulty, setDifficulty] = useState('medium'); // easy, medium, hard
   const [attemptCount, setAttemptCount] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [layer1Reflection, setLayer1Reflection] = useState('');
@@ -34,6 +34,14 @@ const FeedbackLoopSession = ({
   const [showLayerTransition, setShowLayerTransition] = useState(false);
   const [transitioningToLayer, setTransitioningToLayer] = useState(null);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [showLayer3CompleteOverlay, setShowLayer3CompleteOverlay] = useState(false);
+  const [layer3ConfettiVisible, setLayer3ConfettiVisible] = useState(false);
+  const [layer3ConfettiDims, setLayer3ConfettiDims] = useState(() =>
+    typeof window !== 'undefined'
+      ? { width: window.innerWidth, height: window.innerHeight }
+      : { width: 1200, height: 800 }
+  );
+  const layer3CompleteAudioPlayedRef = useRef(false);
   const [shouldFadeIn, setShouldFadeIn] = useState(false);
   const [showShuffleConfirm, setShowShuffleConfirm] = useState(false);
   const [showCompletionOverlay, setShowCompletionOverlay] = useState(false);
@@ -92,7 +100,6 @@ const FeedbackLoopSession = ({
     setLayer1Reflection('');
     setLayer2Reflection('');
     setLayer3Reflection('');
-    setDifficulty('medium');
     setAiResponse('');
     setIsSubmitting(false);
     setShowCorrectAnswer(false);
@@ -101,6 +108,8 @@ const FeedbackLoopSession = ({
     setShowLayerTransition(false);
     setTransitioningToLayer(null);
     setIsFadingOut(false);
+    setShowLayer3CompleteOverlay(false);
+    layer3CompleteAudioPlayedRef.current = false;
     setShouldFadeIn(false);
     setShowCompletionOverlay(false);
     setCompletionOverlayTitle('');
@@ -111,6 +120,40 @@ const FeedbackLoopSession = ({
     // Fetch previous attempts before loading anything
     fetchPreviousAttempts();
   }, [currentCard?.id, onAttemptChange]);
+
+  useEffect(() => {
+    if (!showLayer3CompleteOverlay) {
+      layer3CompleteAudioPlayedRef.current = false;
+      setLayer3ConfettiVisible(false);
+      return;
+    }
+
+    setLayer3ConfettiDims({ width: window.innerWidth, height: window.innerHeight });
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setLayer3ConfettiVisible(!reduced);
+
+    if (!layer3CompleteAudioPlayedRef.current) {
+      layer3CompleteAudioPlayedRef.current = true;
+      try {
+        const audio = new Audio('/sounds/pass.wav');
+        audio.volume = 0.65;
+        const p = audio.play();
+        if (p !== undefined) p.catch(() => {});
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  }, [showLayer3CompleteOverlay]);
+
+  useEffect(() => {
+    if (!showLayer3CompleteOverlay) return;
+    const onResize = () =>
+      setLayer3ConfettiDims({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [showLayer3CompleteOverlay]);
 
   // Handle shuffle - call parent's shuffle and then fetch attempts for new card
   const handleShuffle = async () => {
@@ -301,29 +344,6 @@ const FeedbackLoopSession = ({
         
         // Allow layer advancement only if status is 'pass'
         setCanAdvanceLayer(status === 'pass');
-        
-        // Set difficulty based on next card's learning status
-        if (nextCard) {
-          const learningStatus = nextCard.learning_status;
-          switch (learningStatus) {
-            case 'strgl': // Struggling
-              setDifficulty('hard');
-              break;
-            case 'imprv': // In Progress
-              setDifficulty('intermediate');
-              break;
-            case 'unseen': // Unseen
-              setDifficulty('new');
-              break;
-            case 'mstrd': // Mastered
-              setDifficulty('easy');
-              break;
-            default:
-              setDifficulty('intermediate');
-          }
-        } else {
-          setDifficulty('intermediate');
-        }
       }
     } catch (error) {
       console.error('Error getting feedback:', error);
@@ -345,12 +365,31 @@ const FeedbackLoopSession = ({
   };
 
   const handleNextStep = () => {
-    if (currentStep === 'feedback') {
-      // Check if we should advance to next layer or go to reflection
-      // Based on AI feedback, user might need to stay at current layer or advance
-      // For now, we'll let users manually choose to advance layers or go to reflection
-      setCurrentStep('reflection');
+    if (currentStep !== 'feedback' || currentLayer !== 3) return;
+    setShowLayer3CompleteOverlay(true);
+  };
+
+  const handleLayer3ContinueToReflection = () => {
+    setShowLayer3CompleteOverlay(false);
+    setCurrentStep('reflection');
+  };
+
+  const handleLayer3NextCard = async () => {
+    if (!currentCard?.id) return;
+    setShowLayer3CompleteOverlay(false);
+
+    try {
+      await api.post('/flashcards/doing-feedback-review/', {
+        card: currentCard.id,
+        layer_one_explanation: '',
+        layer_two_explanation: '',
+        layer_three_explanation: ''
+      });
+    } catch (error) {
+      console.error('Error saving doing-feedback reflections:', error);
     }
+
+    onRatingSelect(4);
   };
 
   const handleCompleteExercise = async () => {
@@ -464,10 +503,10 @@ const FeedbackLoopSession = ({
     return "Consider the context and key terms in the question.";
   };
 
-  // Render overlay via Portal so it appears above everything, regardless of step
+  // Layer advance (L1→L2, L2→L3): brief overlay; auto-dismisses
   const renderOverlayPortal = () => {
     if (!showLayerTransition || !transitioningToLayer) return null;
-    
+
     return ReactDOM.createPortal(
       <div className={`layer-transition-overlay ${isFadingOut ? 'fade-out' : ''}`}>
         <div className="layer-transition-content">
@@ -480,6 +519,63 @@ const FeedbackLoopSession = ({
         </div>
       </div>,
       document.body
+    );
+  };
+
+  const renderLayer3CompleteOverlayPortal = () => {
+    if (!showLayer3CompleteOverlay) return null;
+
+    const confettiPortal =
+      layer3ConfettiVisible && typeof document !== 'undefined'
+        ? ReactDOM.createPortal(
+            <div className="layer3-session-complete-confetti" aria-hidden>
+              <Confetti
+                width={layer3ConfettiDims.width}
+                height={layer3ConfettiDims.height}
+                numberOfPieces={240}
+                gravity={0.32}
+                initialVelocityY={14}
+                recycle={false}
+                run={layer3ConfettiVisible}
+              />
+            </div>,
+            document.body
+          )
+        : null;
+
+    const panelPortal = ReactDOM.createPortal(
+      <div className="layer-transition-overlay layer3-session-complete-overlay">
+        <div className="layer-transition-content layer3-session-complete-content">
+          <div className="layer-transition-title">Session complete!</div>
+          <div className="layer-transition-description">
+            You finished all three layers on this card. Continue to reflection or move on.
+          </div>
+          <div className="layer3-complete-actions">
+            <button
+              type="button"
+              className="layer3-complete-btn-reflection"
+              onClick={handleLayer3ContinueToReflection}
+            >
+              Continue to reflection
+            </button>
+            <button
+              type="button"
+              className="layer3-complete-btn-next"
+              onClick={handleLayer3NextCard}
+            >
+              {nextCard ? 'Next Card' : 'End session'}
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+
+    return (
+      <>
+        {panelPortal}
+        {confettiPortal}
+      </>
     );
   };
 
@@ -544,6 +640,7 @@ const FeedbackLoopSession = ({
     return (
       <>
         {renderOverlayPortal()}
+        {renderLayer3CompleteOverlayPortal()}
         {renderCompletionOverlayPortal()}
         {renderShuffleConfirmModal()}
         <div className={`feedback-loop-session ${shouldFadeIn ? 'fade-in' : ''}`}>
@@ -589,13 +686,6 @@ const FeedbackLoopSession = ({
           )}
 
           <div className="practice-actions">
-            <button 
-              className="hint-btn action-btn"
-              onClick={() => setShowHint(!showHint)}
-            >
-              <FiZap />
-              {showHint ? 'Hide Hint' : 'Show Hint'}
-            </button>
             {onShuffle && (
               <button 
                 className="hint-btn action-btn"
@@ -615,10 +705,6 @@ const FeedbackLoopSession = ({
               {isSubmitting ? 'Getting Feedback...' : 'Submit Answer'}
             </button>
           </div>
-          
-          {!userAnswer.trim() && (
-            <div className="action-hint">Complete your answer to submit</div>
-          )}
         </div>
         </div>
       </div>
@@ -630,6 +716,7 @@ const FeedbackLoopSession = ({
     return (
       <>
         {renderOverlayPortal()}
+        {renderLayer3CompleteOverlayPortal()}
         {renderCompletionOverlayPortal()}
         {renderShuffleConfirmModal()}
         <div className="feedback-loop-feedback">
@@ -640,47 +727,33 @@ const FeedbackLoopSession = ({
         
         <div className="feedback-content">
           <div className="user-answer-section">
-            <div className="answer-label">
-              <FiEdit className="answer-label-icon" />
-              <h4>Your Answer</h4>
-            </div>
-            <div className="user-answer-content">
-              {userAnswer || "No answer provided"}
-            </div>
-          </div>
-
-          <div className="feedback-card">
-            <div className="feedback-header">
-              <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: 'var(--nightowl-text-main)' }}>Neuro Feedback</h3>
-              <div className="feedback-header-badges">
-                {passFailStatus && (
-                  <span className={`feedback-status-badge ${passFailStatus}`}>
-                    {passFailStatus === 'pass' ? '✓ Pass' : '✗ Fail'}
-                  </span>
-                )}
-                <span className="tutor-style-badge">
-                  {tutorStyles[tutorStyle].label} Style
-                </span>
+            <div className="user-answer-preview">
+              <div className="answer-label">
+                <h3>Your Answer</h3>
+              </div>
+              <div className="user-answer-body">
+                {userAnswer || "No answer provided"}
               </div>
             </div>
-            <div className="feedback-message">
-              <div className="feedback-html-content">
-                {parsedFeedbackContent}
+
+            <div className="feedback-card">
+              <div className="feedback-header">
+                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#F7F0F0' }}>Neuro Feedback</h3>
+                <div className="feedback-header-badges">
+                  {passFailStatus && (
+                    <span className={`feedback-status-badge ${passFailStatus}`}>
+                      {passFailStatus === 'pass' ? '✓ Pass' : '✗ Fail'}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="feedback-message">
+                <div className="feedback-html-content">
+                  {parsedFeedbackContent}
+                </div>
               </div>
             </div>
           </div>
-
-          {currentLayer === 1 && canAdvanceLayer && (
-            <div className="difficulty-card">
-              <span className="difficulty-label">Next Challenge Level:</span>
-              <span className={`difficulty-badge ${difficulty}`}>
-                {difficulty === 'easy' && 'Easy'}
-                {difficulty === 'intermediate' && 'Intermediate'}
-                {difficulty === 'new' && 'New Content'}
-                {difficulty === 'hard' && 'Hard'}
-              </span>
-            </div>
-          )}
 
           <div className="feedback-actions">
             <button className="try-again-btn action-btn" onClick={handleRetryLayer}>
@@ -708,15 +781,8 @@ const FeedbackLoopSession = ({
               </button>
             )}
           </div>
-          
-          {currentLayer < 3 && (
-            <div className="action-hint" style={{ textAlign: 'center', marginTop: '12px', color: 'var(--nightowl-text-steel)' }}>
-              💡 You can advance to {layerDescriptions[currentLayer + 1].label} for deeper understanding, or continue to reflection
-            </div>
-          )}
         </div>
       </div>
-      {renderShuffleConfirmModal()}
       </>
     );
   }
@@ -725,6 +791,7 @@ const FeedbackLoopSession = ({
     return (
       <>
         {renderOverlayPortal()}
+        {renderLayer3CompleteOverlayPortal()}
         {renderCompletionOverlayPortal()}
         {renderShuffleConfirmModal()}
         <div className="feedback-loop-reflection">

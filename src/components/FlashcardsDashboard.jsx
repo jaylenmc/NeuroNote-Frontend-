@@ -8,6 +8,42 @@ import { formatDateForDisplay } from '../utils/dateUtils';
 import api from '../api/axios';
 import './FlashcardsNightOwl.css';
 
+const NIGHTOWL_STUDY_STATS_CACHE_KEY = 'nightowl-study-stats-v1';
+
+const getDefaultStudyStats = () => ({
+    total_cards_studied_today: 0,
+    average_session_time: '00:00:00',
+    mastered_decks: 0,
+    time_studied_today: '00:00:00'
+});
+
+const readStudyStatsCache = () => {
+    try {
+        const raw = window.sessionStorage.getItem(NIGHTOWL_STUDY_STATS_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (
+            typeof parsed?.total_cards_studied_today === 'number' &&
+            typeof parsed?.average_session_time === 'string' &&
+            typeof parsed?.mastered_decks === 'number' &&
+            typeof parsed?.time_studied_today === 'string'
+        ) {
+            return parsed;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+};
+
+const writeStudyStatsCache = (stats) => {
+    try {
+        window.sessionStorage.setItem(NIGHTOWL_STUDY_STATS_CACHE_KEY, JSON.stringify(stats));
+    } catch {
+        // Ignore storage failures and rely on in-memory state.
+    }
+};
+
 const FlashcardsDashboard = ({
     selectedReview,
     setSelectedReview,
@@ -20,13 +56,8 @@ const FlashcardsDashboard = ({
     const navigate = useNavigate();
     
     // State for study stats
-    const [studyStats, setStudyStats] = useState({
-        total_cards_studied_today: 0,
-        average_session_time: '00:00:00',
-        mastered_decks: 0,
-        time_studied_today: '00:00:00'
-    });
-    const [statsLoading, setStatsLoading] = useState(true);
+    const [studyStats, setStudyStats] = useState(() => readStudyStatsCache() || getDefaultStudyStats());
+    const [statsLoading, setStatsLoading] = useState(() => !readStudyStatsCache());
     const [statsError, setStatsError] = useState(null);
 
     // Helper function to format time strings (HH:MM:SS format)
@@ -63,7 +94,6 @@ const FlashcardsDashboard = ({
 
     const fetchStudyStats = async () => {
         try {
-            setStatsLoading(true);
             setStatsError(null);
             
             // Get user timezone - default to UTC if not available
@@ -75,7 +105,9 @@ const FlashcardsDashboard = ({
                 }
             });
             
-            setStudyStats(response.data);
+            const nextStats = response.data || getDefaultStudyStats();
+            setStudyStats(nextStats);
+            writeStudyStatsCache(nextStats);
         } catch (error) {
             console.error('Error fetching study stats:', error);
             setStatsError(error.message || 'Failed to fetch study stats');
@@ -206,29 +238,29 @@ const FlashcardsDashboard = ({
     return (
         <div className="nightowl-flashcards-bg">
             <div className="nightowl-flashcards-content">
-                <div className="nightowl-header-row">
-                    <div className="nightowl-header-content">
-                        <h1 className="nightowl-header-title">Launchpad</h1>
-                        <div className="nightowl-header-subtitle-row">
-                            <p className="nightowl-header-sub">Study smarter, not harder</p>
-                            <span className="nightowl-streak-badge">
-                                <span className="nightowl-streak-reward-glow">
-                                    <Flame className="nightowl-streak-reward-icon" size={15} />
-                                    <span className="nightowl-streak-reward-count">{stats.studyStreak}</span>
+                <div className="nightowl-hero-shell">
+                    <div className="nightowl-header-row">
+                        <div className="nightowl-header-content">
+                            <div className="nightowl-header-title-row">
+                                <h1 className="nightowl-header-title">Launchpad</h1>
+                                <span className="nightowl-streak-badge">
+                                    <span className="nightowl-streak-reward-glow">
+                                        <Flame className="nightowl-streak-reward-icon" size={15} />
+                                        <span className="nightowl-streak-reward-count">{stats.studyStreak}</span>
+                                    </span>
                                 </span>
-                            </span>
+                            </div>
+                            <div className="nightowl-header-subtitle-row">
+                                <p className="nightowl-header-sub">Study smarter, not harder</p>
+                            </div>
                         </div>
+                        <button 
+                            className="nightowl-studyroom-btn"
+                            onClick={handleStudyRoomClick}
+                        >
+                           Study Room
+                        </button>
                     </div>
-                    <button 
-                        className="nightowl-studyroom-btn"
-                        onClick={handleStudyRoomClick}
-                    >
-                       Study Room
-                    </button>
-                </div>
-
-                <div className="nightowl-motivation-section">
-                    
                     <div className="nightowl-sticky-notes">
                         <div className="nightowl-sticky-note">
                             <span className="nightowl-sticky-title">Cards Studied Today</span>
@@ -268,153 +300,59 @@ const FlashcardsDashboard = ({
 
 
                 <div className="nightowl-section">
-                    <div className="nightowl-section-header">
-                        <h2 className="nightowl-section-title">Progress</h2>
-                        <p className="nightowl-section-subtitle">Track your learning journey</p>
+                    <div className="nightowl-section-header-study-growth">
+                        <h2 className="nightowl-section-title">Study Growth</h2>
+                        <p className="nightowl-section-subtitle">XP progress this week</p>
                     </div>
-                    <div className="nightowl-xp-section">
-                        <div className="nightowl-xp-container">
-                            <div className="nightowl-xp-ring">
-                                <svg viewBox="0 0 100 100">
-                                    <circle className="nightowl-xp-ring-bg" cx="50" cy="50" r="45" />
-                                    <circle 
-                                        className="nightowl-xp-ring-progress" 
-                                        cx="50" 
-                                        cy="50" 
-                                        r="45"
-                                        style={{
-                                            strokeDasharray: `${(userProgress.progressPercentage / 100) * 283} 283`
-                                        }}
-                                    />
-                                </svg>
-                                <div className="nightowl-xp-center">
-                                    <span className="nightowl-xp-level">Level {userProgress.level}</span>
-                                    <span className="nightowl-xp-points">{userProgress.currentXP} / {userProgress.xpForNextLevel} XP</span>
-                                </div>
-                            </div>
-                            <div className="nightowl-xp-next">
-                                <span>{userProgress.xpForNextLevel - userProgress.currentXP} XP to Level {userProgress.level + 1}</span>
-                            </div>
+                    <div className="nightowl-growth-card">
+                        <div className="nightowl-growth-track">
+                            <div
+                                className="nightowl-growth-fill"
+                                style={{
+                                    width: `${Math.max(
+                                        8,
+                                        Math.min(100, Math.round(userProgress.progressPercentage)),
+                                    )}%`,
+                                }}
+                            />
+                        </div>
+                        <div className="nightowl-growth-meta">
+                            <span className="nightowl-growth-level">Level {userProgress.level}</span>
+                            <span className="nightowl-growth-next">
+                                {Math.round(userProgress.progressPercentage)}% to Level {userProgress.level + 1}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Upcoming Cards Chart Section */}
-                <div className="nightowl-section">
+                {/* Upcoming Cards Chart Section (dKYpr sync) */}
+                <div className="nightowl-section nightowl-section-upcoming-cards">
                     <div className="nightowl-section-header">
-                        <h2 className="nightowl-section-title">Upcoming Cards</h2>
-                        <p className="nightowl-section-subtitle">The number of cards which will be added to your queue over the next 30 days</p>
+                        <div>
+                            <h2 className="nightowl-section-title">Average Cards Studied</h2>
+                            <p className="nightowl-section-subtitle">Cards entering your queue over the next 30 days</p>
+                        </div>
+                        <div className="nightowl-upcoming-chart-header-right">
+                            <span className="nightowl-upcoming-date-range">04 Sep 2025 - 04 Oct</span>
+                            <span className="nightowl-upcoming-average">Average: 46 cards</span>
+                        </div>
                     </div>
                     <div className="nightowl-upcoming-chart-container">
                         <div className="nightowl-upcoming-chart-header">
-                            <div className="nightowl-upcoming-stats">
-                                <div className="nightowl-upcoming-stat">
-                                    <span className="nightowl-upcoming-stat-label">Average</span>
-                                    <span className="nightowl-upcoming-stat-value">0 cards</span>
-                                </div>
-                                <div className="nightowl-upcoming-date-range">
-                                    04 Sep 2025 - 04 Oct
-                                </div>
-                            </div>
                         </div>
                         <div className="nightowl-upcoming-chart-content">
-                            {(() => {
-                                const maxHeightPx = 120; // must match CSS height of .nightowl-upcoming-chart-bars
-                                const scaleValues = [1.0, 0.8, 0.6, 0.4, 0.2, 0];
-                                return (
-                                    <div className="nightowl-upcoming-grid">
-                                        {scaleValues.map((value, idx) => {
-                                            const topPx = (1 - value / 1.0) * maxHeightPx;
-                                            return (
-                                                <div
-                                                    key={idx}
-                                                    className="nightowl-upcoming-gridline"
-                                                    style={{ top: `${topPx}px` }}
-                                                />
-                                            );
-                                        })}
-                                    </div>
-                                );
-                            })()}
                             <div className="nightowl-upcoming-chart-bars">
-                                {[
-                                    { date: '05 Sep', cards: 1.0 },
-                                    { date: '08 Sep', cards: 0.6 },
-                                    { date: '11 Sep', cards: 0.4 },
-                                    { date: '14 Sep', cards: 0.2 },
-                                    { date: '17 Sep', cards: 0.2 },
-                                    { date: '20 Sep', cards: 0.3 },
-                                    { date: '23 Sep', cards: 0.1 },
-                                    { date: '26 Sep', cards: 0.25 },
-                                    { date: '29 Sep', cards: 0.35 },
-                                    { date: '02 Oct', cards: 0.5 }
-                                ].map((data, index) => (
-                                    <div key={index} className="nightowl-upcoming-bar-group">
-                                        <div 
-                                            className="nightowl-upcoming-bar"
-                                            style={{ 
-                                                height: `${Math.max((data.cards / 1.0) * 120, 2)}px`,
-                                                animationDelay: `${index * 0.1}s`,
-                                                background: 'linear-gradient(180deg, #60a5fa 0%, #3b82f6 60%, #1d4ed8 100%)'
-                                            }}
-                                            title={`${data.date}: ${data.cards} cards`}
-                                        >
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="nightowl-upcoming-y-axis">
-                                {[1.0, 0.8, 0.6, 0.4, 0.2, 0].map((value, index) => (
-                                    <div key={index} className="nightowl-upcoming-y-label">
-                                        {value}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="nightowl-upcoming-x-labels">
-                                {[
-                                    { date: '05 Sep' },
-                                    { date: '08 Sep' },
-                                    { date: '11 Sep' },
-                                    { date: '14 Sep' },
-                                    { date: '17 Sep' },
-                                    { date: '20 Sep' },
-                                    { date: '23 Sep' },
-                                    { date: '26 Sep' },
-                                    { date: '29 Sep' },
-                                    { date: '02 Oct' }
-                                ].map((data, index) => (
-                                    <div key={index} className="nightowl-upcoming-x-label">
-                                        {data.date}
-                                    </div>
-                                ))}
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 230 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 98 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 48 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 28 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 22 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 123 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 16 }} />
                             </div>
                         </div>
                     </div>
                 </div>
-
-                {upcomingCards.length > 0 && (
-                    <div className="nightowl-section">
-                        <div className="nightowl-section-header">
-                            <h2 className="nightowl-section-title">Upcoming</h2>
-                            <p className="nightowl-section-subtitle">Cards scheduled for review</p>
-                        </div>
-                    <div className="upcoming-review-widget">
-                        <h3 className="upcoming-review-widget-title">Upcoming Cards</h3>
-                        <div className="upcoming-review-widget-content">
-                            {upcomingCards.slice(0, 5).map((card, index) => (
-                                <div key={index} className="upcoming-review-item">
-                                    <div className="upcoming-review-item-question">
-                                        <strong>Q:</strong> {card.question.substring(0, 50)}...
-                                    </div>
-                                    <div className="upcoming-review-item-date">
-                                        Due: {formatDateForDisplay(card.scheduled_date)}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    </div>
-                )}
             </div>
 
             {isTransitioning && (

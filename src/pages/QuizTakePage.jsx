@@ -1,8 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { FiArrowLeft, FiChevronRight, FiEdit3, FiSmile, FiMeh, FiFrown, FiClock, FiCheckCircle, FiXCircle, FiChevronLeft } from 'react-icons/fi';
 import './QuizTakePage.css';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../components/ui/tooltip';
 
 const QuizTakePage = () => {
   const { quizId } = useParams();
@@ -34,7 +40,6 @@ const QuizTakePage = () => {
   const [currentNote, setCurrentNote] = useState('');
   const [showConfidenceMeter, setShowConfidenceMeter] = useState(false);
   const [visitedQuestions, setVisitedQuestions] = useState(new Set()); // Track visited questions
-  const [showTooltip, setShowTooltip] = useState(false);
   const [cardDisplaySeconds, setCardDisplaySeconds] = useState(0); // total time on current card (resumes when revisiting)
   const [overallElapsedSeconds, setOverallElapsedSeconds] = useState(0);
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(() =>
@@ -55,7 +60,6 @@ const QuizTakePage = () => {
   const quizSessionKeyRef = useRef(null); // for localStorage key when saving after answer
   const [flipExplanation, setFlipExplanation] = useState(false);
   const correctOptionRef = useRef(null);
-  const tooltipTimeout = useRef();
 
   // Detect review mode by checking if the path ends with /review
   const reviewMode = window.location.pathname.endsWith('/review');
@@ -261,6 +265,20 @@ const QuizTakePage = () => {
   const totalQuestions = reviewMode ? (userAnswersData?.length || 0) : questions.length;
   const currentConfidence = confidence[currentQuestion?.id];
 
+  const quizAnsweredProgressPercent = useMemo(() => {
+    if (reviewMode || totalQuestions === 0) return 0;
+    const qType = (t) => (t && String(t).toUpperCase()) || '';
+    const answeredCount = questions.filter((q) => {
+      const v = answers[q.id];
+      if (v === undefined || v === null) return false;
+      if (qType(q.question_type) === 'WR') {
+        return String(v).trim().length > 0;
+      }
+      return true;
+    }).length;
+    return (answeredCount / totalQuestions) * 100;
+  }, [reviewMode, totalQuestions, questions, answers]);
+
   const formatNavbarTimer = (totalSeconds) => {
     if (totalSeconds < 60) return `${totalSeconds}s`;
     const minutes = Math.floor(totalSeconds / 60) % 60;
@@ -433,14 +451,6 @@ const QuizTakePage = () => {
       }
     }
   }, [currentQuestion, activeQuestion]);
-
-  const handleTooltipEnter = () => {
-    clearTimeout(tooltipTimeout.current);
-    setShowTooltip(true);
-  };
-  const handleTooltipLeave = () => {
-    tooltipTimeout.current = setTimeout(() => setShowTooltip(false), 250);
-  };
 
   if (loading) return <div className="quiz-review-bg"><div className="loading">Loading quiz...</div></div>;
   if (error) return <div className="quiz-review-bg"><div className="error-message">{error}</div></div>;
@@ -695,7 +705,7 @@ const QuizTakePage = () => {
             <div className="quiz-take-progress-bar">
               <div 
                 className="quiz-take-progress-fill" 
-                style={{ width: `${((activeQuestion + 1) / totalQuestions) * 100}%` }}
+                style={{ width: `${quizAnsweredProgressPercent}%` }}
               />
             </div>
           </div>
@@ -717,23 +727,18 @@ const QuizTakePage = () => {
         <div className="quiz-take-question-card">
           {/* Warning indicator if there are visited but unanswered questions */}
           {hasUnansweredVisitedQuestions && (
-            <div
-              className="quiz-take-warning-indicator"
-              onMouseEnter={handleTooltipEnter}
-              onMouseLeave={handleTooltipLeave}
-            >
-              <span>!</span>
-              <div
-                className={`quiz-take-tooltip${showTooltip ? ' visible' : ''}`}
-                onMouseEnter={handleTooltipEnter}
-                onMouseLeave={handleTooltipLeave}
-              >
-                <div className="quiz-take-tooltip-arrow"></div>
-                <div className="quiz-take-tooltip-content">
+            <TooltipProvider delayDuration={0} skipDelayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="quiz-take-warning-indicator" tabIndex={0} role="button">
+                    <span>!</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center" sideOffset={8}>
                   {getUnansweredQuestionsList()}
-                </div>
-              </div>
-            </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           
           <div className="quiz-take-question-header">Question {activeQuestion + 1}</div>

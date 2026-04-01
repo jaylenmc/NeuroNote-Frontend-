@@ -303,13 +303,6 @@
   outline: none;
 }
 
-.quiz-take-nav-btn:hover {
-  background: rgba(95,255,215,0.13);
-  color: #5fffd7;
-  border: 1.5px solid #5fffd7;
-  box-shadow: 0 0 0 4px rgba(95,255,215,0.13), 0 4px 24px 0 rgba(95,255,215,0.13);
-}
-
 .quiz-take-nav-btn-back {
   left: 2.5rem;
 }

@@ -5,6 +5,41 @@ import { ArrowLeft, BookOpen, MessageCircle, Play, Pause, RotateCcw, Settings, C
 import api from '../api/axios';
 import './StudyRoom.css';
 
+/** Class added to `<main className="main-content">` in App.jsx on Study Room routes. */
+export const STUDY_ROOM_MAIN_CONTENT_CLASS = 'study-room-main-content';
+
+const STUDY_ROOM_PINNED_CACHE_KEY = 'study-room-pinned-resources-v1';
+const EMPTY_PINNED_RESOURCES = { file: [], link: [], document: [] };
+
+const normalizePinnedResources = (value) => ({
+  file: Array.isArray(value?.file) ? value.file : [],
+  link: Array.isArray(value?.link) ? value.link : [],
+  document: Array.isArray(value?.document) ? value.document : [],
+});
+
+const readPinnedResourcesCache = () => {
+  try {
+    if (typeof window === 'undefined') return null;
+    const raw = window.sessionStorage.getItem(STUDY_ROOM_PINNED_CACHE_KEY);
+    if (!raw) return null;
+    return normalizePinnedResources(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+};
+
+const writePinnedResourcesCache = (value) => {
+  try {
+    if (typeof window === 'undefined') return;
+    window.sessionStorage.setItem(
+      STUDY_ROOM_PINNED_CACHE_KEY,
+      JSON.stringify(normalizePinnedResources(value)),
+    );
+  } catch {
+    // Ignore storage failures and continue with runtime state.
+  }
+};
+
 const tools = [
   { icon: null, label: 'Decks', route: '/study-room/decks', color: '#7c83fd', materialIcon: 'stacks' },
   { icon: null, label: 'Quiz', route: '/quiz', color: '#4ecdc4', materialIcon: 'quiz' },
@@ -39,6 +74,7 @@ const phaseMeta = {
 
 const StudyRoom = () => {
     const navigate = useNavigate();
+  const cachedPinnedResources = readPinnedResourcesCache();
   const [tasks, setTasks] = useState(mockTasks);
   const [showPomodoro, setShowPomodoro] = useState(false);
   const [resources, setResources] = useState(mockResources);
@@ -58,8 +94,8 @@ const StudyRoom = () => {
   const [isLoadingFolders, setIsLoadingFolders] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [pinnedResources, setPinnedResources] = useState({ file: [], link: [], document: [] });
-  const [isLoadingPinnedResources, setIsLoadingPinnedResources] = useState(false);
+  const [pinnedResources, setPinnedResources] = useState(cachedPinnedResources || EMPTY_PINNED_RESOURCES);
+  const [isLoadingPinnedResources, setIsLoadingPinnedResources] = useState(!cachedPinnedResources);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayContent, setOverlayContent] = useState(null);
   const [overlayType, setOverlayType] = useState(null);
@@ -100,17 +136,19 @@ const StudyRoom = () => {
     fetchPinnedResources();
   }, []);
 
+  useEffect(() => {
+    writePinnedResourcesCache(pinnedResources);
+  }, [pinnedResources]);
+
   const fetchPinnedResources = async () => {
     try {
-      setIsLoadingPinnedResources(true);
       const response = await api.get('/solostudyroom/pinned/');
       if (response.status === 200) {
-        setPinnedResources(response.data);
+        setPinnedResources(normalizePinnedResources(response.data));
       }
     } catch (error) {
       console.error('Error fetching pinned resources:', error);
-      // Set empty pinned resources if there's an error
-      setPinnedResources({ file: [], link: [], document: [] });
+      // Keep current pinned resources on error to avoid flicker.
     } finally {
       setIsLoadingPinnedResources(false);
     }
@@ -467,9 +505,9 @@ const StudyRoom = () => {
             </div>
             <div className="header-right">
                 <div className="header-controls">
-                    <button className="study-room-timer-button" onClick={() => setShowPomodoro(s => !s)} title="Pomodoro Timer">
+                    {/* <button className="study-room-timer-button" onClick={() => setShowPomodoro(s => !s)} title="Pomodoro Timer">
                       <Timer size={20} />
-                    </button>
+                    </button> */}
                 </div>
             </div>
             </div>
@@ -642,8 +680,10 @@ const StudyRoom = () => {
           <div className="study-room-import-modal-content">
             {importStep === 'select' && (
               <>
-                <h3 className="study-room-import-modal-title">Import Resource</h3>
-                <p className="study-room-import-modal-description">Choose the type of resource to import:</p>
+                <div className="study-room-import-header">
+                  <h3 className="study-room-import-modal-title">Import Resource</h3>
+                  <p className="study-room-import-modal-description">Choose the type of resource to import:</p>
+                </div>
                 <div className="study-room-import-modal-buttons-grid">
                   {resourceTypes.map(rt => (
                     <button

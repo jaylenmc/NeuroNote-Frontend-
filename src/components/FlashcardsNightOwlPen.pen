@@ -286,8 +286,8 @@
               }
             }
           ],
-          "gap": 10,
           "padding": 16,
+          "alignItems": "center",
           "children": [
             {
               "type": "frame",
@@ -295,20 +295,15 @@
               "name": "nightowl-sticky-note due",
               "width": "fill_container",
               "fill": "transparent",
-              "cornerRadius": 12,
               "stroke": {
-                "thickness": 1,
-                "fill": "rgba(140,160,190,0.06)"
+                "thickness": 0,
+                "fill": "transparent"
               },
               "effect": {
                 "type": "shadow",
                 "shadowType": "outer",
-                "color": "rgba(10,12,18,0.35)",
-                "offset": {
-                  "x": 0,
-                  "y": 8
-                },
-                "blur": 16
+                "enabled": false,
+                "color": "#000000"
               },
               "layout": "vertical",
               "gap": 8,
@@ -343,24 +338,27 @@
             },
             {
               "type": "frame",
+              "id": "aWwWF",
+              "name": "separator-shadcn-vertical",
+              "width": 1,
+              "height": "fill_container",
+              "fill": "rgba(140,160,190,0.12)"
+            },
+            {
+              "type": "frame",
               "id": "K47Qh",
               "name": "nightowl-sticky-note upcoming",
               "width": "fill_container",
               "fill": "transparent",
-              "cornerRadius": 12,
               "stroke": {
-                "thickness": 1,
-                "fill": "rgba(140,160,190,0.06)"
+                "thickness": 0,
+                "fill": "transparent"
               },
               "effect": {
                 "type": "shadow",
                 "shadowType": "outer",
-                "color": "rgba(10,12,18,0.35)",
-                "offset": {
-                  "x": 0,
-                  "y": 8
-                },
-                "blur": 16
+                "enabled": false,
+                "color": "#000000"
               },
               "layout": "vertical",
               "gap": 8,
@@ -395,24 +393,28 @@
             },
             {
               "type": "frame",
+              "id": "hzNCu",
+              "name": "separator-shadcn-vertical",
+              "width": 1,
+              "height": "fill_container",
+              "fill": "rgba(140,160,190,0.12)"
+            },
+            {
+              "type": "frame",
               "id": "X4LBo",
               "name": "nightowl-sticky-note correct",
+              "rotation": 0.0017357885373680357,
               "width": "fill_container",
               "fill": "transparent",
-              "cornerRadius": 12,
               "stroke": {
-                "thickness": 1,
-                "fill": "rgba(140,160,190,0.06)"
+                "thickness": 0,
+                "fill": "transparent"
               },
               "effect": {
                 "type": "shadow",
                 "shadowType": "outer",
-                "color": "rgba(10,12,18,0.35)",
-                "offset": {
-                  "x": 0,
-                  "y": 8
-                },
-                "blur": 16
+                "enabled": false,
+                "color": "#000000"
               },
               "layout": "vertical",
               "gap": 8,
@@ -447,24 +449,27 @@
             },
             {
               "type": "frame",
+              "id": "b1SnW",
+              "name": "separator-shadcn-vertical",
+              "width": 1,
+              "height": "fill_container",
+              "fill": "rgba(140,160,190,0.12)"
+            },
+            {
+              "type": "frame",
               "id": "0uqd2",
               "name": "nightowl-sticky-note mastered",
               "width": "fill_container",
               "fill": "transparent",
-              "cornerRadius": 12,
               "stroke": {
-                "thickness": 1,
-                "fill": "rgba(140,160,190,0.06)"
+                "thickness": 0,
+                "fill": "transparent"
               },
               "effect": {
                 "type": "shadow",
                 "shadowType": "outer",
-                "color": "rgba(10,12,18,0.35)",
-                "offset": {
-                  "x": 0,
-                  "y": 8
-                },
-                "blur": 16
+                "enabled": false,
+                "color": "#000000"
               },
               "layout": "vertical",
               "gap": 8,

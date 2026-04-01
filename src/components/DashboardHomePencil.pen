@@ -23,7 +23,15 @@
           "id": "60shc",
           "name": "heroA",
           "width": "fill_container",
+          "fill": "$--bg-panel",
+          "cornerRadius": "$--radius-lg",
+          "stroke": {
+            "thickness": 1,
+            "fill": "$--border-soft"
+          },
+          "layout": "vertical",
           "gap": 16,
+          "padding": 16,
           "children": [
             {
               "type": "frame",
@@ -31,21 +39,20 @@
               "name": "heroLeftA",
               "width": "fill_container",
               "fill": "$--bg-panel",
-              "cornerRadius": "$--radius-lg",
               "stroke": {
-                "thickness": 1,
-                "fill": "\\$--accent-purple"
+                "thickness": 0,
+                "fill": "$--bg-panel"
               },
               "layout": "vertical",
               "gap": 14,
-              "padding": 24,
+              "padding": 8,
               "children": [
                 {
                   "type": "frame",
                   "id": "atiU6",
                   "name": "tagRowA",
                   "width": "fill_container",
-                  "gap": 8,
+                  "gap": 10,
                   "children": [
                     {
                       "type": "frame",
@@ -58,8 +65,8 @@
                         "fill": "$--border-soft"
                       },
                       "padding": [
-                        4,
-                        10
+                        8,
+                        12
                       ],
                       "children": [
                         {
@@ -69,8 +76,8 @@
                           "fill": "$--text-main",
                           "content": "Welcome back, Jaylen",
                           "fontFamily": "Inter",
-                          "fontSize": 11,
-                          "fontWeight": "500"
+                          "fontSize": 12,
+                          "fontWeight": "600"
                         }
                       ]
                     },
@@ -85,8 +92,8 @@
                         "fill": "$--border-soft"
                       },
                       "padding": [
-                        4,
-                        10
+                        8,
+                        12
                       ],
                       "children": [
                         {
@@ -96,8 +103,8 @@
                           "fill": "$--text-main",
                           "content": "Focus target: 42 min",
                           "fontFamily": "Inter",
-                          "fontSize": 11,
-                          "fontWeight": "500"
+                          "fontSize": 12,
+                          "fontWeight": "600"
                         }
                       ]
                     },
@@ -151,10 +158,10 @@
                           "blur": 2
                         }
                       ],
-                      "gap": 7,
+                      "gap": 8,
                       "padding": [
-                        5,
-                        10
+                        8,
+                        12
                       ],
                       "alignItems": "center",
                       "children": [
@@ -162,8 +169,8 @@
                           "type": "icon_font",
                           "id": "NSt0S",
                           "name": "badgeIcon",
-                          "width": 14,
-                          "height": 14,
+                          "width": 15,
+                          "height": 15,
                           "iconFontName": "flame",
                           "iconFontFamily": "lucide",
                           "fill": "#FFD9B3"
@@ -175,323 +182,552 @@
                           "fill": "#FFE4E4",
                           "content": "6",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "700"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "lgATK",
-                  "name": "heroTitleSplit",
-                  "width": "fill_container",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "tCLlR",
-                      "name": "heroTitlePart1",
-                      "fill": "$--text-main",
-                      "content": "Ready To ",
-                      "lineHeight": 1.1,
-                      "fontFamily": "Inter",
-                      "fontSize": 34,
-                      "fontWeight": "700"
-                    },
-                    {
-                      "type": "text",
-                      "id": "FvxQV",
-                      "name": "heroTitlePart2",
-                      "fill": "#7C83FDB3",
-                      "effect": {
-                        "type": "shadow",
-                        "shadowType": "outer",
-                        "color": "#7C83FD55",
-                        "blur": 6
-                      },
-                      "content": "Dive",
-                      "lineHeight": 1.1,
-                      "fontFamily": "Inter",
-                      "fontSize": 34,
-                      "fontWeight": "700"
-                    },
-                    {
-                      "type": "text",
-                      "id": "Bb3LM",
-                      "name": "heroTitlePart3",
-                      "fill": "$--text-main",
-                      "content": " In?",
-                      "lineHeight": 1.1,
-                      "fontFamily": "Inter",
-                      "fontSize": 34,
-                      "fontWeight": "700"
-                    }
-                  ]
-                },
-                {
-                  "type": "text",
-                  "id": "OwvBK",
-                  "name": "heroSubA",
-                  "fill": "$--text-muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Today is optimized for momentum: complete one focused sprint, clear your due stack, and claim your next badge.",
-                  "lineHeight": 1.45,
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "frame",
-                  "id": "SozgS",
-                  "name": "heroActionA",
-                  "width": "fill_container",
-                  "gap": 10,
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "vGdvT",
-                      "name": "startBtnA",
-                      "fill": {
-                        "type": "gradient",
-                        "gradientType": "linear",
-                        "enabled": true,
-                        "rotation": 135,
-                        "size": {
-                          "height": 1
-                        },
-                        "colors": [
-                          {
-                            "color": "#7C83FD1A",
-                            "position": 0
-                          },
-                          {
-                            "color": "#7C83FD0D",
-                            "position": 1
-                          }
-                        ]
-                      },
-                      "cornerRadius": "$--radius-md",
-                      "stroke": {
-                        "thickness": 1,
-                        "fill": "#7C83FD4D"
-                      },
-                      "gap": 8,
-                      "padding": [
-                        10,
-                        14
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "O4e8X",
-                          "name": "startBtnTxtA",
-                          "fill": "#7c83fd",
-                          "content": "Flashcard Review",
-                          "fontFamily": "Inter",
                           "fontSize": 13,
                           "fontWeight": "700"
                         }
                       ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "X8ny9",
-                      "name": "queueBtnA",
-                      "fill": "$--bg-card",
-                      "cornerRadius": "$--radius-md",
-                      "stroke": {
-                        "thickness": 1,
-                        "fill": "\\$--accent-purple"
-                      },
-                      "gap": 8,
-                      "padding": [
-                        10,
-                        14
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "vfQ9e",
-                          "name": "queueBtnTxtA",
-                          "fill": "$--text-main",
-                          "content": "Open Review Queue",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "mQnj2",
-              "name": "heroRightA",
-              "width": 360,
-              "fill": "$--bg-panel",
-              "cornerRadius": "$--radius-md",
-              "stroke": {
-                "thickness": 1,
-                "fill": "\\$--accent-purple"
-              },
-              "layout": "vertical",
-              "gap": 12,
-              "padding": 20,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "fMtDk",
-                  "name": "heroRightTitleA",
-                  "fill": "$--text-main",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Study Growth",
-                  "fontFamily": "Inter",
-                  "fontSize": 16,
-                  "fontWeight": "700"
-                },
-                {
-                  "type": "text",
-                  "id": "mEIzj",
-                  "name": "heroRightSubA",
-                  "fill": "$--text-muted",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "XP progress this week",
-                  "fontFamily": "Inter",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "frame",
-                  "id": "ec0lv",
-                  "name": "pulseTrackA",
-                  "width": "fill_container",
-                  "height": 10,
-                  "fill": "$--bg-hover",
-                  "cornerRadius": 999,
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "HmGz1",
-                      "name": "pulseFillA",
-                      "width": 230,
-                      "height": "fill_container",
-                      "fill": "#7c83fd",
-                      "cornerRadius": 999
                     }
                   ]
                 },
                 {
                   "type": "frame",
-                  "id": "Tr5mQ",
-                  "name": "pulseMetaB",
+                  "id": "27TAV",
+                  "name": "streakPreviewHeaderN",
                   "width": "fill_container",
                   "justifyContent": "space_between",
                   "alignItems": "center",
                   "children": [
                     {
                       "type": "text",
-                      "id": "gV9NF",
-                      "name": "pulseLevelB",
-                      "fill": "$--text-main",
-                      "content": "Level 7",
+                      "id": "e34WZ",
+                      "name": "streakTitleN",
+                      "fill": "#f3f6fbff",
+                      "content": "Streak Calendar",
+                      "lineHeight": 1.2,
                       "fontFamily": "Inter",
-                      "fontSize": 13,
+                      "fontSize": 20,
                       "fontWeight": "700"
                     },
                     {
-                      "type": "text",
-                      "id": "kbVAg",
-                      "name": "pulseNextB",
-                      "fill": "$--text-muted",
-                      "content": "72% to Level 8",
-                      "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "500"
+                      "type": "frame",
+                      "id": "DbrpK",
+                      "name": "weekChipN",
+                      "fill": "$--bg-card",
+                      "cornerRadius": 999,
+                      "stroke": {
+                        "thickness": 1,
+                        "fill": "$--border-soft"
+                      },
+                      "gap": 6,
+                      "padding": [
+                        4,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "4oE4p",
+                          "name": "weekChipIconN",
+                          "width": 12,
+                          "height": 12,
+                          "iconFontName": "calendar",
+                          "iconFontFamily": "lucide",
+                          "fill": "#C8CEDA"
+                        },
+                        {
+                          "type": "text",
+                          "id": "7UnJn",
+                          "name": "weekChipTxtN",
+                          "fill": "#f3f6fb",
+                          "content": "Week 1 Preview",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
+                      ]
                     }
                   ]
                 },
                 {
                   "type": "frame",
-                  "id": "ZI7E8",
-                  "name": "pulseListB",
+                  "id": "igmgj",
+                  "name": "streakPanelN",
                   "width": "fill_container",
                   "layout": "vertical",
-                  "gap": 8,
+                  "gap": 10,
                   "children": [
                     {
                       "type": "frame",
-                      "id": "UpWk1",
-                      "name": "pulseItem1B",
+                      "id": "4CCmg",
+                      "name": "weekGridN",
                       "width": "fill_container",
-                      "fill": "$--bg-hover",
-                      "cornerRadius": "$--radius-sm",
-                      "padding": [
-                        8,
-                        10
-                      ],
-                      "justifyContent": "space_between",
+                      "gap": 8,
                       "children": [
                         {
-                          "type": "text",
-                          "id": "Lml19",
-                          "name": "pulseItem1TxtB",
-                          "fill": "$--text-steel",
-                          "content": "Reviews completed",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "frame",
+                          "id": "cwbXj",
+                          "name": "dayMonN",
+                          "width": "fill_container",
+                          "height": 58,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": "$--radius-sm",
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "7V8Tq",
+                              "name": "streakCheckMon",
+                              "width": 8,
+                              "height": 8,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFC7C7"
+                            },
+                            {
+                              "type": "text",
+                              "id": "xA5m2",
+                              "name": "dayMonLblN",
+                              "fill": "#FFD1D1",
+                              "content": "Mon",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
                         },
                         {
-                          "type": "text",
-                          "id": "mccJU",
-                          "name": "pulseItem1ValB",
-                          "fill": "$--text-main",
-                          "content": "31",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "700"
+                          "type": "frame",
+                          "id": "kH24x",
+                          "name": "dayTueN",
+                          "width": "fill_container",
+                          "height": 58,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": "$--radius-sm",
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "TZkz0",
+                              "name": "streakCheckTue",
+                              "width": 8,
+                              "height": 8,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFC7C7"
+                            },
+                            {
+                              "type": "text",
+                              "id": "lTOGz",
+                              "name": "dayTueLblN",
+                              "fill": "#FFD1D1",
+                              "content": "Tue",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "I7hx9",
+                          "name": "dayWedN",
+                          "width": "fill_container",
+                          "height": 58,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": "$--radius-sm",
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "xD0Fa",
+                              "name": "streakCheckWed",
+                              "width": 8,
+                              "height": 8,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFC7C7"
+                            },
+                            {
+                              "type": "text",
+                              "id": "DJpHh",
+                              "name": "dayWedLblN",
+                              "fill": "#FFD1D1",
+                              "content": "Wed",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "kwqQW",
+                          "name": "dayThuN",
+                          "width": "fill_container",
+                          "height": 58,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": "$--radius-sm",
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "0V00z",
+                              "name": "streakCheckThu",
+                              "width": 8,
+                              "height": 8,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFC7C7"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EIKAm",
+                              "name": "dayThuLblN",
+                              "fill": "#FFD1D1",
+                              "content": "Thu",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RpsPW",
+                          "name": "dayFriN",
+                          "width": "fill_container",
+                          "height": 58,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": "$--radius-sm",
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "DlUeB",
+                              "name": "streakCheckFri",
+                              "width": 8,
+                              "height": 8,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFC7C7"
+                            },
+                            {
+                              "type": "text",
+                              "id": "sN3bc",
+                              "name": "dayFriLblN",
+                              "fill": "#FFD1D1",
+                              "content": "Fri",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "oWPp8",
+                          "name": "daySatN",
+                          "width": "fill_container",
+                          "height": 58,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": "$--radius-sm",
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "AE6xG",
+                              "name": "streakCheckSat",
+                              "width": 8,
+                              "height": 8,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFC7C7"
+                            },
+                            {
+                              "type": "text",
+                              "id": "vpQJl",
+                              "name": "daySatLblN",
+                              "fill": "#FFD1D1",
+                              "content": "Sat",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Ec7tU",
+                          "name": "daySunN",
+                          "width": "fill_container",
+                          "height": 58,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF7A7A3D",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFA86B21",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": "$--radius-sm",
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#FF9B7A88"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "sSo65",
+                              "name": "streakCheckSun",
+                              "width": 8,
+                              "height": 8,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#FFC7C7"
+                            },
+                            {
+                              "type": "text",
+                              "id": "8KCGL",
+                              "name": "daySunLblN",
+                              "fill": "#FFD1D1",
+                              "content": "Sun",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
                         }
                       ]
                     },
                     {
                       "type": "frame",
-                      "id": "0aHyo",
-                      "name": "pulseItem2B",
+                      "id": "m1DX6",
+                      "name": "viewStreakCalendarBtnN",
                       "width": "fill_container",
-                      "fill": "$--bg-hover",
+                      "fill": "#272B32",
                       "cornerRadius": "$--radius-sm",
+                      "stroke": {
+                        "thickness": 1,
+                        "fill": {
+                          "type": "color",
+                          "color": "#7C83FD40",
+                          "enabled": false
+                        }
+                      },
+                      "gap": 8,
                       "padding": [
-                        8,
-                        10
+                        9,
+                        12
                       ],
-                      "justifyContent": "space_between",
+                      "justifyContent": "center",
+                      "alignItems": "center",
                       "children": [
                         {
-                          "type": "text",
-                          "id": "XZSAF",
-                          "name": "pulseItem2TxtB",
-                          "fill": "$--text-steel",
-                          "content": "Decks Mastered",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "icon_font",
+                          "id": "8pKty",
+                          "name": "viewStreakIconN",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "calendar",
+                          "iconFontFamily": "lucide",
+                          "fill": "#C8CEDA"
                         },
                         {
                           "type": "text",
-                          "id": "bCiE7",
-                          "name": "pulseItem2ValB",
-                          "fill": "$--text-main",
-                          "content": "5",
+                          "id": "isCLH",
+                          "name": "viewStreakTxtN",
+                          "fill": "#F3F6FB",
+                          "content": "View Streak Calendar",
                           "fontFamily": "Inter",
                           "fontSize": 12,
-                          "fontWeight": "700"
+                          "fontWeight": "600"
                         }
                       ]
                     }
@@ -503,21 +739,126 @@
         },
         {
           "type": "frame",
+          "id": "mQnj2",
+          "name": "heroRightA",
+          "width": "fill_container",
+          "fill": "$--bg-panel",
+          "cornerRadius": "$--radius-md",
+          "stroke": {
+            "thickness": 1,
+            "fill": "$--border-soft"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "fMtDk",
+              "name": "heroRightTitleA",
+              "fill": "$--text-main",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Study Growth",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "mEIzj",
+              "name": "heroRightSubA",
+              "fill": "$--text-muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "XP progress this week",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "ec0lv",
+              "name": "pulseTrackA",
+              "width": "fill_container",
+              "height": 10,
+              "fill": "$--bg-hover",
+              "cornerRadius": 999,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "HmGz1",
+                  "name": "pulseFillA",
+                  "width": 230,
+                  "height": "fill_container",
+                  "fill": "#f3f6fb",
+                  "cornerRadius": 999
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Tr5mQ",
+              "name": "pulseMetaB",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gV9NF",
+                  "name": "pulseLevelB",
+                  "fill": "#f3f6fb",
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#F59E0B33",
+                    "offset": {
+                      "x": 0,
+                      "y": 1
+                    },
+                    "blur": 6
+                  },
+                  "content": "Level 7",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "kbVAg",
+                  "name": "pulseNextB",
+                  "fill": "$--text-muted",
+                  "content": "72% to Level 8",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
           "id": "zC5Fs",
           "name": "metricsRowB",
           "width": "fill_container",
-          "gap": 14,
+          "fill": "$--bg-panel",
+          "cornerRadius": "$--radius-md",
+          "stroke": {
+            "thickness": 1,
+            "fill": "$--border-soft"
+          },
           "children": [
             {
               "type": "frame",
               "id": "Q6Dch",
               "name": "metricCard1B",
               "width": "fill_container",
-              "fill": "$--bg-panel",
-              "cornerRadius": "$--radius-md",
+              "fill": "transparent",
               "stroke": {
-                "thickness": 1,
-                "fill": "\\$--accent-purple"
+                "thickness": 0,
+                "fill": "transparent"
               },
               "layout": "vertical",
               "gap": 6,
@@ -547,14 +888,21 @@
             },
             {
               "type": "frame",
+              "id": "D9tRW",
+              "name": "separatorStat1S",
+              "width": 1,
+              "height": "fill_container",
+              "fill": "$--border-soft"
+            },
+            {
+              "type": "frame",
               "id": "ObYLg",
               "name": "metricCard2B",
               "width": "fill_container",
-              "fill": "$--bg-panel",
-              "cornerRadius": "$--radius-md",
+              "fill": "transparent",
               "stroke": {
-                "thickness": 1,
-                "fill": "\\$--accent-purple"
+                "thickness": 0,
+                "fill": "transparent"
               },
               "layout": "vertical",
               "gap": 6,
@@ -584,14 +932,21 @@
             },
             {
               "type": "frame",
+              "id": "CEHyH",
+              "name": "separatorStat2S",
+              "width": 1,
+              "height": "fill_container",
+              "fill": "$--border-soft"
+            },
+            {
+              "type": "frame",
               "id": "JboOg",
               "name": "metricCard3B",
               "width": "fill_container",
-              "fill": "$--bg-panel",
-              "cornerRadius": "$--radius-md",
+              "fill": "transparent",
               "stroke": {
-                "thickness": 1,
-                "fill": "\\$--accent-purple"
+                "thickness": 0,
+                "fill": "transparent"
               },
               "layout": "vertical",
               "gap": 6,
@@ -626,7 +981,14 @@
           "id": "KF8S8",
           "name": "contentRowB",
           "width": "fill_container",
+          "fill": "$--bg-panel",
+          "cornerRadius": "$--radius-lg",
+          "stroke": {
+            "thickness": 1,
+            "fill": "$--border-soft"
+          },
           "gap": 16,
+          "padding": 16,
           "children": [
             {
               "type": "frame",
@@ -722,7 +1084,7 @@
                               "height": 12,
                               "iconFontName": "trophy",
                               "iconFontFamily": "lucide",
-                              "fill": "#FDE68A"
+                              "fill": "#d1fae5"
                             },
                             {
                               "type": "text",
@@ -899,7 +1261,7 @@
                                   "name": "achIcon3L",
                                   "width": 18,
                                   "height": 18,
-                                  "iconFontName": "trophy",
+                                  "iconFontName": "footprints",
                                   "iconFontFamily": "lucide",
                                   "fill": "$--accent-purple"
                                 }
@@ -983,7 +1345,7 @@
                               "type": "text",
                               "id": "Ctox7",
                               "name": "docChipTxtJ",
-                              "fill": "$--accent-purple",
+                              "fill": "#f3f6fb",
                               "content": "Latest Documents",
                               "fontFamily": "Inter",
                               "fontSize": 12,
@@ -1262,72 +1624,9 @@
               "children": [
                 {
                   "type": "frame",
-                  "id": "rqc2I",
-                  "name": "aiCardC",
-                  "width": "fill_container",
-                  "fill": "$--bg-panel",
-                  "cornerRadius": "$--radius-md",
-                  "stroke": {
-                    "thickness": 1,
-                    "fill": "\\$--accent-purple"
-                  },
-                  "layout": "vertical",
-                  "gap": 10,
-                  "padding": 18,
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "5E6Md",
-                      "name": "aiTitleC",
-                      "fill": "$--text-main",
-                      "content": "Neuro Assistant",
-                      "fontFamily": "Inter",
-                      "fontSize": 16,
-                      "fontWeight": "700"
-                    },
-                    {
-                      "type": "text",
-                      "id": "WQfZS",
-                      "name": "aiDescC",
-                      "fill": "$--text-muted",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Suggested next move: 2x spaced-repetition loops before your quiz window.",
-                      "lineHeight": 1.4,
-                      "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "T17ev",
-                      "name": "aiBtnC",
-                      "fill": "$--bg-hover",
-                      "cornerRadius": "$--radius-sm",
-                      "gap": 8,
-                      "padding": [
-                        8,
-                        12
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "8OP7w",
-                          "name": "aiBtnTxtC",
-                          "fill": "#8878B0",
-                          "content": "Apply Plan",
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
                   "id": "RRErS",
                   "name": "upcomingCardC",
+                  "rotation": -0.02328707128192342,
                   "width": "fill_container",
                   "fill": "$--bg-panel",
                   "cornerRadius": "$--radius-md",

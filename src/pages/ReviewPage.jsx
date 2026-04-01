@@ -5,16 +5,7 @@ import { Brain, ChevronDown } from 'lucide-react';
 import ReviewWidget from '../components/ReviewWidget';
 import api from '../api/axios';
 import './ReviewPage.css';
-import { useAuth } from '../auth/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
-
-const motivationalQuotes = [
-  "Let's sharpen your memory.",
-  "Time to master your decks.",
-  "🧠 Boosting recall one card at a time.",
-  "Stay consistent, see results!",
-  "Review now, remember forever."
-];
 
 const studyMethods = [
   {
@@ -50,16 +41,13 @@ const studyMethods = [
 
 const ReviewPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { showNotification } = useNotification();
   // Deck dropdown state
   const [decks, setDecks] = useState([]);
   const [selectedDeckId, setSelectedDeckId] = useState(null);
   const [showDeckDropdown, setShowDeckDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [quoteIdx, setQuoteIdx] = useState(0);
-  const userName = user?.email ? user.email.split('@')[0] : 'User';
-  
+
   // Study Method state
   const [showStudyMethodDropdown, setShowStudyMethodDropdown] = useState(false);
   const [selectedStudyMethod, setSelectedStudyMethod] = useState(studyMethods.find(method => method.id === 'recall-retention'));
@@ -84,13 +72,6 @@ const ReviewPage = () => {
       }
     };
     fetchDecks();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setQuoteIdx(idx => (idx + 1) % motivationalQuotes.length);
-    }, 4000);
-    return () => clearInterval(interval);
   }, []);
 
   // Close dropdowns when clicking outside
@@ -129,7 +110,7 @@ const ReviewPage = () => {
   return (
     <div className="review-page">
       <div className="review-header enhanced-review-header">
-        <button className="back-button" onClick={() => navigate('/study-room')}>
+        <button type="button" className="review-page-back-button" onClick={() => navigate('/study-room')}>
           <FiArrowLeft /> Back to Study Room
         </button>
         <div className="review-header-right">
@@ -139,7 +120,7 @@ const ReviewPage = () => {
               onClick={toggleStudyMethodDropdown}
               title="Select Study Method"
             >
-              <Brain size={20} />
+              <Brain size={selectedStudyMethod ? 16 : 20} />
               <span>{selectedStudyMethod ? (selectedStudyMethod.title.includes('(Default)') ? selectedStudyMethod.title.replace(' (Default)', '') : selectedStudyMethod.title) : 'Study Method'}</span>
               <ChevronDown size={16} />
             </button>
@@ -225,7 +206,7 @@ const ReviewPage = () => {
             <span>Review Session</span>
           </span>
         </h2>
-        <p className="review-session-subtitle dynamic-quote">{motivationalQuotes[quoteIdx]}</p>
+        <p className="review-session-subtitle">Time to master your decks</p>
       </div>
       <div className="review-content">
         <ReviewWidget 

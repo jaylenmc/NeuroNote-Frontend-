@@ -48,6 +48,7 @@
 .dashboard-container .tabs-content-container {
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
     scrollbar-width: none;  /* Firefox */
+    border-radius: 16px;
 }
 
 
@@ -57,9 +58,6 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     position: fixed;
     left: 24px;
     top: 24px;
@@ -67,9 +65,6 @@
     border-radius: 16px;
     background: #21242a;
     border: 1px solid var(--nightowl-card-border-soft);
-    box-shadow:
-        var(--nightowl-card-shadow),
-        var(--nightowl-card-inner);
     transition: all 0.3s ease;
 }
 
@@ -1144,11 +1139,14 @@ body.reminders-modal-open .dashboard-sidebar {
 }
 
 .folders-list {
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
     max-height: 50vh;
     overflow-y: auto;
     padding-right: 16px;
+    gap: 4px;
     box-sizing: border-box;
 }
 
@@ -2009,7 +2007,8 @@ body.reminders-modal-open .dashboard-sidebar {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background: rgba(6, 8, 12, 0.74);
+    backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2018,29 +2017,39 @@ body.reminders-modal-open .dashboard-sidebar {
 
 
 .dashboard-modal {
-    background-color: #2c2c2c;
+    background: var(--nightowl-bg-panel, #21242A);
     padding: 2rem;
-    border-radius: 12px;
+    border-radius: 16px;
     width: 90%;
     max-width: 400px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    border: 1px solid var(--nightowl-card-border-soft, rgba(140, 160, 190, 0.08));
+    box-shadow:
+        var(--nightowl-card-shadow, 0 18px 36px rgba(5, 6, 10, 0.42)),
+        var(--nightowl-card-inner, inset 0 1px 0 rgba(255, 255, 255, 0.04));
 }
 
 .dashboard-modal h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
-    color: #fff;
+    color: var(--nightowl-text-main, #F3F6FB);
 }
 
 .dashboard-modal-input {
     width: 100%;
     padding: 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #444;
-    background-color: #1e1e1e;
-    color: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--nightowl-card-border-soft, rgba(140, 160, 190, 0.08));
+    background: var(--nightowl-bg-card, #272B32);
+    color: var(--nightowl-text-main, #F3F6FB);
     font-size: 1rem;
     margin-bottom: 1.5rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.dashboard-modal-input:focus {
+    border-color: rgba(154, 164, 255, 0.35);
+    box-shadow: 0 0 0 3px rgba(154, 164, 255, 0.12);
 }
 
 .dashboard-modal-actions {
@@ -2051,25 +2060,32 @@ body.reminders-modal-open .dashboard-sidebar {
 
 .dashboard-modal-btn {
     padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
+    border: 1px solid var(--nightowl-card-border-soft, rgba(140, 160, 190, 0.08));
+    border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .dashboard-modal-btn.cancel {
-    background-color: #444;
-    color: #fff;
+    background: var(--nightowl-bg-card, #272B32);
+    color: var(--nightowl-text-steel, #B6C2D1);
 }
 
 .dashboard-modal-btn.create {
-    background-color: white;
-    color: #121212;
+    background: rgba(161, 94, 73, 0.32);
+    border-color: rgba(161, 94, 73, 0.72);
+    color: #FFF7F3;
+}
+
+.dashboard-modal-btn.create:hover {
+    border-color: rgba(161, 94, 73, 0.82);
+    color: #FFFFFF;
 }
 
 .dashboard-modal-btn:hover {
-    opacity: 0.8;
+    transform: translateY(-1px);
+    filter: brightness(1.06);
 }
 
 /* Dashboard Overview */
@@ -3179,8 +3195,8 @@ body.reminders-modal-open .dashboard-sidebar {
     position: absolute;
     top: 100%;
     right: 0;
-    background: #2A2A2A;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #272b32;
+    border: 1px solid rgba(140, 160, 190, 0.08);
     border-radius: 8px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     z-index: 1000;
@@ -3273,9 +3289,7 @@ body.reminders-modal-open .dashboard-sidebar {
 }
 
 .dashboard-sidebar .folder-separator {
-    height: 1px;
-    width: 100%;
-    background: rgba(140, 160, 190, 0.08);
+    display: none;
 }
 
 

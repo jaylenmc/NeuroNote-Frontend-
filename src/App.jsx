@@ -12,7 +12,7 @@ import './App.css'; // Import the CSS file
 import Signin from './auth/Signin';
 import Authentication from './api/OAuthSuccess';
 import Dashboard from './components/Dashboard';
-import StudyRoom from './components/StudyRoom';
+import StudyRoom, { STUDY_ROOM_MAIN_CONTENT_CLASS } from './components/StudyRoom';
 import StudyRoomPage from './pages/StudyRoom';
 import DeckContent from './components/DeckContent';
 import { useAuth, AuthProvider } from './auth/AuthContext'; // or wherever it's defined
@@ -70,9 +70,12 @@ function AppContent() {
     }
   }, [location.pathname]);
 
+  const studyRoomMainClass =
+    location.pathname.startsWith('/study-room') ? STUDY_ROOM_MAIN_CONTENT_CLASS : '';
+
   return (
     <>
-      <main className="main-content">
+      <main className={['main-content', studyRoomMainClass].filter(Boolean).join(' ')}>
         <Routes>
           <Route path='/auth/callback/' element={<Authentication />} />
           <Route path="/" element={<Home />} /> {/* Home page route */}
