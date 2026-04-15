@@ -570,7 +570,7 @@ const ProgressPage = () => {
             </button>
             
             <div className="progress-header">
-                <h1>📊 Learning Analytics</h1>
+                <h1>Learning Analytics</h1>
                 <p className="subtitle">Track your progress, analyze your learning patterns, and optimize your study habits</p>
             </div>
 

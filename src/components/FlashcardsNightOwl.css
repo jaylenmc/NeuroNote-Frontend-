@@ -31,8 +31,20 @@ html.nightowl-root-bg, body.nightowl-root-bg {
   min-height: 100vh;
 }
 
+/* Launchpad: let parent (main area) pass height so sections can flex */
+.dashboard-container .tabs-content-container:has(.nightowl-flashcards-bg) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
 .nightowl-flashcards-bg {
-  min-height: 100vh;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   width: 100%;
   background: #1d1f23;
   position: relative;
@@ -52,11 +64,13 @@ html.nightowl-root-bg, body.nightowl-root-bg {
 .nightowl-flashcards-content {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   overflow-x: visible;
   overflow-y: visible;
-  min-height: 100vh;
+  min-height: 0;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
@@ -412,6 +426,12 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   border-radius: 16px;
   margin-top: 16px;
   padding-bottom: 0px;
+}
+
+/* Grow to fill remaining column height (Launchpad / full-viewport layout) */
+.nightowl-section.nightowl-section-upcoming-cards {
+  flex: 1 1 auto;
+  margin-bottom: 0;
 }
 
 .nightowl-section-header {
@@ -966,6 +986,10 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 .nightowl-upcoming-chart-container {
   position: relative;
   overflow: visible;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .nightowl-upcoming-chart-header {
@@ -990,24 +1014,34 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 
 .nightowl-upcoming-chart-content {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   height: auto;
-  display: block;
 }
 
 .nightowl-upcoming-chart-bars {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  height: 230px;
+  flex: 1 1 auto;
+  min-height: 230px;
+  height: 100%;
   padding: 0 8px;
   gap: 10px;
   position: relative;
   width: 100%;
 }
 
+/* Browser fullscreen: use as much vertical space as possible for the chart */
+:fullscreen .nightowl-upcoming-chart-bars,
+:-webkit-full-screen .nightowl-upcoming-chart-bars {
+  min-height: max(230px, min(70vh, 900px));
+}
+
 .nightowl-upcoming-bar {
   background: #D9D6D6;
-  border-radius: 6px 6px 0 0;
   min-width: 12px;
 }
 
@@ -1388,6 +1422,8 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   }
 
   .nightowl-upcoming-chart-bars {
+    flex: 0 0 auto;
+    min-height: 140px;
     height: 140px;
     padding: 0 4px;
     gap: 8px;

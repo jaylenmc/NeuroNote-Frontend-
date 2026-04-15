@@ -4,6 +4,8 @@ import { Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Separator } from './ui/separator';
 import blackboardBg from '../assets/Blackboard.png';
+import closedFolderIconFallback from '../assets/ClosedFolder.svg';
+import openFolderIconFallback from '../assets/OpenFolder.svg';
 import { formatDateForDisplay } from '../utils/dateUtils';
 import api from '../api/axios';
 import './FlashcardsNightOwl.css';
@@ -51,7 +53,9 @@ const FlashcardsDashboard = ({
     upcomingCards,
     reviewProgress,
     isTransitioning,
-    refreshUserData
+    refreshUserData,
+    folderClosedIcon,
+    folderOpenIcon
 }) => {
     const navigate = useNavigate();
     
@@ -59,6 +63,7 @@ const FlashcardsDashboard = ({
     const [studyStats, setStudyStats] = useState(() => readStudyStatsCache() || getDefaultStudyStats());
     const [statsLoading, setStatsLoading] = useState(() => !readStudyStatsCache());
     const [statsError, setStatsError] = useState(null);
+    const [upcomingCardsSectionOpen, setUpcomingCardsSectionOpen] = useState(true);
 
     // Helper function to format time strings (HH:MM:SS format)
     const formatTime = (timeString) => {
@@ -327,31 +332,35 @@ const FlashcardsDashboard = ({
 
                 {/* Upcoming Cards Chart Section (dKYpr sync) */}
                 <div className="nightowl-section nightowl-section-upcoming-cards">
-                    <div className="nightowl-section-header">
-                        <div>
-                            <h2 className="nightowl-section-title">Average Cards Studied</h2>
-                            <p className="nightowl-section-subtitle">Cards entering your queue over the next 30 days</p>
+                    <div className="nightowl-section-header nightowl-section-header-upcoming-cards">
+                        <div className="nightowl-upcoming-cards-heading">
+                            <div>
+                                <h2 className="nightowl-section-title">Average Cards Studied</h2>
+                                <p className="nightowl-section-subtitle">Cards entering your queue over the next 30 days</p>
+                            </div>
                         </div>
                         <div className="nightowl-upcoming-chart-header-right">
                             <span className="nightowl-upcoming-date-range">04 Sep 2025 - 04 Oct</span>
                             <span className="nightowl-upcoming-average">Average: 46 cards</span>
                         </div>
                     </div>
-                    <div className="nightowl-upcoming-chart-container">
-                        <div className="nightowl-upcoming-chart-header">
-                        </div>
-                        <div className="nightowl-upcoming-chart-content">
-                            <div className="nightowl-upcoming-chart-bars">
-                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 230 }} />
-                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 98 }} />
-                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 48 }} />
-                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 28 }} />
-                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 22 }} />
-                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 123 }} />
-                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 16 }} />
+                    {upcomingCardsSectionOpen && (
+                        <div className="nightowl-upcoming-chart-container">
+                            <div className="nightowl-upcoming-chart-header">
+                            </div>
+                            <div className="nightowl-upcoming-chart-content">
+                                <div className="nightowl-upcoming-chart-bars">
+                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 230 }} />
+                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 98 }} />
+                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 48 }} />
+                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 28 }} />
+                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 22 }} />
+                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 123 }} />
+                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 16 }} />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

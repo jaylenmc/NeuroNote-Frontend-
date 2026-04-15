@@ -1515,7 +1515,7 @@ html, body, #root {
 @media (min-width: 1400px) and (min-height: 900px) {
   .review-header-flashcards {
     max-width: 1400px;
-    margin: 1rem 2rem 4rem 2rem;
+    margin: 1rem 2rem 2rem 2rem;
     padding: 1rem 3rem;
   }
 
@@ -1538,28 +1538,33 @@ html, body, #root {
     margin: 0 2rem;
   }
   
-  /* Ensure main content is properly centered */
+  /* Main card row: height follows content so a large empty band doesn’t sit above ratings */
   .flashcard-with-ai-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 3rem;
-    height: calc(100vh - 200px); /* Use more of the available height */
+    flex: 0 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: calc(100vh - 160px);
+    overflow: visible;
   }
   
   .flashcard-section {
     max-width: 1000px;
     margin: 0 auto;
-    height: 100%;
+    height: auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
   }
   
   /* Make flashcard bigger for full screen */
   .flashcard-container {
     max-width: 1000px;
     margin: 0 auto;
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1572,11 +1577,11 @@ html, body, #root {
     min-height: 400px;
   }
   
-  /* Adjust rating controls spacing for full screen */
+  /* Tuck ratings under the card stack (was separated by flex + tall fixed height) */
   .rating-controls {
     max-width: 1000px;
-    margin: 0 auto;
-    padding-bottom: 2rem;
+    margin: 0.35rem auto 1.25rem;
+    padding-bottom: 1rem;
   }
   
   /* Adjust rating buttons for full screen */
@@ -1584,6 +1589,38 @@ html, body, #root {
     padding: 1rem 1.5rem; /* Larger buttons */
     font-size: 1rem;
   }
+}
+
+/* True browser fullscreen: keep card stack and ratings visually close */
+:fullscreen .review-session .flashcard-with-ai-container,
+:-webkit-full-screen .review-session .flashcard-with-ai-container {
+  flex: 0 1 auto;
+  height: auto;
+  min-height: 0;
+  max-height: calc(100vh - 140px);
+}
+
+:fullscreen .review-session .flashcard-section,
+:-webkit-full-screen .review-session .flashcard-section {
+  height: auto;
+  justify-content: flex-start;
+}
+
+:fullscreen .review-session .flashcard-container,
+:-webkit-full-screen .review-session .flashcard-container {
+  flex: 0 0 auto;
+}
+
+:fullscreen .review-session .rating-controls,
+:-webkit-full-screen .review-session .rating-controls {
+  margin-top: 0.35rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+}
+
+:fullscreen .review-session .review-header-flashcards,
+:-webkit-full-screen .review-session .review-header-flashcards {
+  margin-bottom: 1.25rem;
 }
 
 /* Responsive Design */

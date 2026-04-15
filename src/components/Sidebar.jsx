@@ -1,8 +1,15 @@
 import React from 'react';
 import { FiPlus, FiSettings, FiLogOut, FiFileText, FiBookOpen, FiFile } from 'react-icons/fi';
+import { FaFolder, FaFolderOpen } from 'react-icons/fa';
 import { Lock } from 'lucide-react';
-import closedFolderIcon from '../assets/ClosedFolder.svg';
-import openFolderIcon from '../assets/OpenFolder.svg';
+
+/** Solid filled folder glyphs (FA) — use currentColor so sidebar hover/active styles apply */
+const SidebarFolderIcon = ({ expanded, size, className = '' }) =>
+    expanded ? (
+        <FaFolderOpen className={className} size={size} aria-hidden={true} />
+    ) : (
+        <FaFolder className={className} size={size} aria-hidden={true} />
+    );
 
 const Sidebar = ({
     user,
@@ -95,9 +102,9 @@ const Sidebar = ({
                                 }, 100);
                             }}
                         >
-                            <img 
-                                src={closedFolderIcon} 
-                                alt="subfolder" 
+                            <SidebarFolderIcon
+                                expanded={!!expandedFolders[subfolder.id]}
+                                size={12}
                                 className="flyout-folder-icon"
                             />
                             <span className="flyout-folder-name" title={subfolder.name}>
@@ -155,7 +162,11 @@ const Sidebar = ({
                                 <span className="material-symbols-outlined">keyboard_arrow_right</span>
                             </button>
                         )}
-                        <span className="material-symbols-outlined folder-icon">folder</span>
+                        <SidebarFolderIcon
+                            expanded={!!expandedFolders[subfolder.id]}
+                            size={14}
+                            className="folder-icon folder-icon-filled"
+                        />
                         <span className="folder-name" title={subfolder.name}>
                             {subfolder.name.length > Math.max(8 - depth, 5) ? 
                                 subfolder.name.slice(0, Math.max(6 - depth, 3)) + '...' : 
@@ -197,9 +208,9 @@ const Sidebar = ({
                             className={`folders-flyout-item ${selectedFolder?.id === folder.id && activeView === 'folder' ? 'active' : ''}`}
                             onClick={(e) => handleFolderClick(folder.id, e)}
                         >
-                            <img 
-                                src={expandedFolders[folder.id] ? openFolderIcon : closedFolderIcon} 
-                                alt="folder" 
+                            <SidebarFolderIcon
+                                expanded={!!expandedFolders[folder.id]}
+                                size={16}
                                 className="folders-flyout-icon"
                             />
                             <span className="folders-flyout-name" title={folder.name}>
@@ -316,10 +327,10 @@ const Sidebar = ({
                                     >
                                         <span className="material-symbols-outlined">keyboard_arrow_right</span>
                                     </button>
-                                    <img
-                                        src={expandedFolders[folder.id] ? openFolderIcon : closedFolderIcon}
-                                        alt="folder"
-                                        className="folder-icon"
+                                    <SidebarFolderIcon
+                                        expanded={!!expandedFolders[folder.id]}
+                                        size={20}
+                                        className="folder-icon folder-icon-filled"
                                     />
                                     <span className="folder-name" title={folder.name}>{folder.name}</span>
                                 </div>
@@ -346,7 +357,11 @@ const Sidebar = ({
                                                                 <span className="material-symbols-outlined">keyboard_arrow_right</span>
                                                             </button>
                                                         )}
-                                                        <span className="material-symbols-outlined folder-icon">folder</span>
+                                                        <SidebarFolderIcon
+                                                            expanded={!!expandedFolders[subfolder.id]}
+                                                            size={14}
+                                                            className="folder-icon folder-icon-filled"
+                                                        />
                                                         <span className="folder-name" title={subfolder.name}>
                                                             {subfolder.name.length > 10 ? subfolder.name.slice(0, 7) + '...' : subfolder.name}
                                                         </span>

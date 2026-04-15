@@ -959,6 +959,8 @@ function Dashboard({ initialView }) {
                         reviewProgress={reviewProgress}
                         isTransitioning={isTransitioning}
                         refreshUserData={refreshUserData}
+                        folderClosedIcon={closedFolderIcon}
+                        folderOpenIcon={openFolderIcon}
                     />
                 );
             case 'quiz':

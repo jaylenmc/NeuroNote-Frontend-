@@ -618,73 +618,6 @@ const ReviewSession = () => {
     }
   };
 
-  // Function to play success sound
-  const playReviewSessionSuccessSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const now = audioContext.currentTime;
-      
-      // Create a celebratory fanfare sound with multiple tones
-      // First note - C5
-      const osc1 = audioContext.createOscillator();
-      const gain1 = audioContext.createGain();
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(523.25, now); // C5
-      gain1.gain.setValueAtTime(0, now);
-      gain1.gain.linearRampToValueAtTime(0.15, now + 0.05);
-      gain1.gain.linearRampToValueAtTime(0, now + 0.3);
-      osc1.connect(gain1);
-      gain1.connect(audioContext.destination);
-      
-      // Second note - E5 (after slight delay)
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(659.25, now + 0.05); // E5
-      gain2.gain.setValueAtTime(0, now + 0.05);
-      gain2.gain.linearRampToValueAtTime(0.15, now + 0.1);
-      gain2.gain.linearRampToValueAtTime(0, now + 0.35);
-      osc2.connect(gain2);
-      gain2.connect(audioContext.destination);
-      
-      // Third note - G5 (completes the chord)
-      const osc3 = audioContext.createOscillator();
-      const gain3 = audioContext.createGain();
-      osc3.type = 'sine';
-      osc3.frequency.setValueAtTime(783.99, now + 0.1); // G5
-      gain3.gain.setValueAtTime(0, now + 0.1);
-      gain3.gain.linearRampToValueAtTime(0.15, now + 0.15);
-      gain3.gain.linearRampToValueAtTime(0, now + 0.4);
-      osc3.connect(gain3);
-      gain3.connect(audioContext.destination);
-      
-      // High triumphant note - C6
-      const osc4 = audioContext.createOscillator();
-      const gain4 = audioContext.createGain();
-      osc4.type = 'sine';
-      osc4.frequency.setValueAtTime(1046.50, now + 0.2); // C6
-      gain4.gain.setValueAtTime(0, now + 0.2);
-      gain4.gain.linearRampToValueAtTime(0.2, now + 0.25);
-      gain4.gain.linearRampToValueAtTime(0, now + 0.5);
-      osc4.connect(gain4);
-      gain4.connect(audioContext.destination);
-      
-      // Start all oscillators
-      osc1.start(now);
-      osc2.start(now + 0.05);
-      osc3.start(now + 0.1);
-      osc4.start(now + 0.2);
-      
-      // Stop all oscillators
-      osc1.stop(now + 0.3);
-      osc2.stop(now + 0.35);
-      osc3.stop(now + 0.4);
-      osc4.stop(now + 0.5);
-    } catch (error) {
-      // Silently fail if audio context is not available
-    }
-  };
-
   // Function to trigger floating emoji animation
   const triggerFloatingEmoji = (rating) => {
     // Only show for ratings above 2 (3, 4, 5)
@@ -694,9 +627,6 @@ const ReviewSession = () => {
         rating
       };
       setFloatingEmojis(prev => [...prev, newEmoji]);
-      
-      // Play success sound
-      playReviewSessionSuccessSound();
       
       // Remove the emoji after animation completes
       setTimeout(() => {
@@ -1090,7 +1020,7 @@ const ReviewSession = () => {
 
           <div className="session-actions session-complete-page-actions">
             <button className="end-session-btn" onClick={handleEndSession}>
-              <FiArrowLeft /> Back to Study Room
+              Back to Study Room
             </button>
             {selectedStudyMethod?.id !== 'doing-feedback' && (
               <button 
