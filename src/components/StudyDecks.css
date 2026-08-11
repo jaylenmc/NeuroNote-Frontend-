@@ -142,7 +142,7 @@
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: rgba(124, 131, 253, 0.9);
+  color: rgba(161, 94, 73, 0.7) !important;
   opacity: 0.9;
   transition: all 0.2s ease;
 }
@@ -181,7 +181,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 3.2rem;
 }
 
 .studydeck-progress-label {
@@ -211,6 +211,13 @@
   font-weight: 500;
   font-size: 0.9rem;
 }
+
+.studydeck-metric-row svg,
+.studydeck-metric-label svg {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
 .studydeck-metric-row .studydeck-metric-value {
   font-weight: 600;
   color: white;
@@ -254,36 +261,6 @@
 .studydeck-progress-fill.mastery-poor {
   background: #A15E49;
   box-shadow: 0 0 8px rgba(248, 113, 113, 0.25);
-}
-
-.studydeck-review-btn {
-  width: 100%;
-  margin-top: 1.2rem;
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  border: none;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 2rem;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #fff;
-  box-shadow: none;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  letter-spacing: 0.01em;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(8px);
-}
-.studydeck-review-btn:hover {
-  background: rgba(139, 92, 246, 0.1);
-  color: #a855f7;
-  border-color: rgba(139, 92, 246, 0.5);
-}
-
-.studydeck-review-btn:active {
-  transform: translateY(0) scale(0.98);
-  transition: all 0.1s ease;
 }
 
 /* ---------- Action icons ---------- */

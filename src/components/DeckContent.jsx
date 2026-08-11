@@ -568,25 +568,6 @@ export default function DeckContent() {
      <div className="main-content-header">
            <button className="deck-back-button" onClick={() => navigate('/study-room/decks')}><FiArrowLeft /> Back</button>
           
-          {/* Stats Bar - In the middle of header */}
-          <div className="deck-stats-bar">
-            <div className="stat-inline">
-              <span className="stat-piece stat-review"><span className="stat-key">Avg. Review:</span> <span className="stat-val">3.2s</span></span>
-              <span className="stat-sep">|</span>
-              <span className="stat-piece stat-cards"><span className="stat-key">Cards Due:</span> <span className="stat-val">5</span></span>
-              <span className="stat-sep">|</span>
-              {cards.length > 0 && deck && (() => {
-                const total = cards.length;
-                const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
-                return (
-                  <span className="stat-piece stat-mastered"><span className="stat-key">Mastered:</span> <span className="stat-val">{mastered}/{total}</span></span>
-                );
-              })()}
-              <span className="stat-sep">|</span>
-              <span className="stat-piece stat-next"><span className="stat-key">Next Due:</span> <span className="stat-val">2h 15m</span></span>
-            </div>
-          </div>
-          
           <button className="add-card-btn" onClick={() => setShowAdd(true)} disabled={!deck}><FiPlus /> Add New Card</button>
         </div>
       <div className="deck-content-page">

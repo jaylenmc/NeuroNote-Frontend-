@@ -501,13 +501,13 @@ const StudyDecks = () => {
                             <div className="studydeck-metrics">
                                 <div className="studydeck-metric-row">
                                     <span className="studydeck-metric-label">
-                                        <BookOpen size={16} style={{ color: '#7c3aed' }}/> Cards
+                                        <BookOpen size={16} /> Cards
                                     </span>
                                     <span className="studydeck-metric-value">{deck.cards?.length || 0}</span>
                                 </div>
                                 <div className="studydeck-metric-row">
                                     <span className="studydeck-metric-label">
-                                        <CheckCircle size={16} style={{ color: '#f59e42' }}/> Reviewed
+                                        <CheckCircle size={16} /> Reviewed
                                     </span>
                                     <span className="studydeck-metric-value">{deck.cards?.filter(c => c.last_review_date)?.length || 0}</span>
                                 </div>
@@ -524,16 +524,6 @@ const StudyDecks = () => {
                                     }}
                                 />
                             </div>
-                            {/* Review button */}
-                            <button
-                                className="studydeck-review-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeckClick(deck.id);
-                                }}
-                            >
-                                <CheckCircle size={18} style={{marginRight: 8}}/> Review Now
-                            </button>
                         </div>
                        ))
                    ) : (

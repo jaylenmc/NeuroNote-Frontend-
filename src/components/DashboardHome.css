@@ -33,6 +33,10 @@
   padding: 16px;
 }
 
+.dh-hero-shell.dh-card {
+  display: none;
+}
+
 .dh-hero-main {
   padding: 8px;
 }
@@ -258,7 +262,6 @@
 }
 
 .dh-metrics-shell {
-  margin-top: 16px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;
@@ -297,6 +300,11 @@
   padding: 16px;
   border-radius: 24px;
   border: 1px solid rgba(140,160,190,0.08);
+}
+
+.dh-content-shell.dh-card {
+  height: 100vh;
+  min-height: 100vh;
 }
 
 .dh-left,
@@ -881,7 +889,6 @@
 }
 
 .dh-metrics-shell {
-  margin-top: 16px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;

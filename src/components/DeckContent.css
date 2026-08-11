@@ -1,7 +1,7 @@
 .main-content-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
   padding: 2rem 2rem 0 2rem;
   gap: 1rem;
@@ -10,7 +10,6 @@
 .main-content-header .deck-back-button {
   display: inline-flex;
   align-items: center;
-  justify-self: left;
   gap: 0.5rem;
   font-size: 12px !important;
   padding: 8px 16px !important;
@@ -40,7 +39,6 @@
   font-weight: 500 !important;
   font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif !important;
   position: relative !important;
-  justify-self: right;
   pointer-events: auto !important;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
@@ -155,9 +153,7 @@
 
 /* Stats bar - now in header center */
 .deck-stats-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: none;
   background: #21242A !important;
   border: 1px solid rgba(140,160,190,0.08) !important;
   border-radius: 9999px;
@@ -235,7 +231,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(124, 131, 253, 0.9);
+  color: rgba(161, 94, 73, 0.8) !important;
   opacity: 0.8;
   margin-right: 0.5rem;
   flex-shrink: 0;

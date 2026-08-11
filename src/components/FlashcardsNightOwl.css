@@ -173,14 +173,7 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 }
 
 .nightowl-streak-reward-glow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #FF7A7A3D 0%, #FFA86B21 100%);
-  border: 1px solid #FF9B7A88;
-  box-shadow: 0 2px 10px #FF6B6B4D, 0 1px 2px #FFFFFF1A;
+  display: none;
 }
 
 .nightowl-streak-reward-icon {
@@ -432,6 +425,7 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 .nightowl-section.nightowl-section-upcoming-cards {
   flex: 1 1 auto;
   margin-bottom: 0;
+  display: none;
 }
 
 .nightowl-section-header {
@@ -475,6 +469,145 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   font-size: 13px;
   color: white;
   margin: 0;
+}
+
+/* Due Now & Overdue section */
+.nightowl-decks-empty {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  padding: 8px 0;
+}
+
+.nightowl-due-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-height: calc(5 * (40px + 8px));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.nightowl-due-cards-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nightowl-due-cards-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nightowl-due-cards-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+
+.nightowl-due-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 14px;
+  border-radius: 10px;
+  background: #21242A !important;
+  border: 1px solid rgba(140,160,190,0.08) !important;
+}
+
+.nightowl-due-card-question {
+  font-size: 13px;
+  color: #F7F0F0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nightowl-due-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.nightowl-due-card-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nightowl-due-card-status-unseen {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.nightowl-due-card-status-strgl {
+  background: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+}
+
+.nightowl-due-card-status-imprv {
+  background: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+}
+
+.nightowl-due-card-status-mstrd {
+  background: rgba(219, 39, 119, 0.15);
+  color: #db2777;
+}
+
+.nightowl-due-card-overdue {
+  font-size: 11px;
+  color: rgba(255, 185, 130, 0.85);
+  white-space: nowrap;
+}
+
+/* My Decks section */
+.nightowl-decks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.nightowl-deck-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.nightowl-deck-card:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.nightowl-deck-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #F7F0F0;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nightowl-deck-card-subject {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nightowl-growth-card {

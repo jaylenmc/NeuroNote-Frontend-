@@ -55,7 +55,8 @@ const FlashcardsDashboard = ({
     isTransitioning,
     refreshUserData,
     folderClosedIcon,
-    folderOpenIcon
+    folderOpenIcon,
+    onDeckClick
 }) => {
     const navigate = useNavigate();
     
@@ -64,6 +65,10 @@ const FlashcardsDashboard = ({
     const [statsLoading, setStatsLoading] = useState(() => !readStudyStatsCache());
     const [statsError, setStatsError] = useState(null);
     const [upcomingCardsSectionOpen, setUpcomingCardsSectionOpen] = useState(true);
+    const [decks, setDecks] = useState([]);
+    const [decksLoading, setDecksLoading] = useState(true);
+    const [dueCards, setDueCards] = useState([]);
+    const [dueCardsLoading, setDueCardsLoading] = useState(true);
 
     // Helper function to format time strings (HH:MM:SS format)
     const formatTime = (timeString) => {
@@ -122,10 +127,50 @@ const FlashcardsDashboard = ({
         }
     };
 
+    const fetchDecks = async () => {
+        try {
+            const response = await api.get('/flashcards/deck/');
+            setDecks(Array.isArray(response.data) ? response.data : []);
+        } catch (error) {
+            console.error('Error fetching decks:', error);
+            setDecks([]);
+        } finally {
+            setDecksLoading(false);
+        }
+    };
+
+    const fetchDueCards = async () => {
+        try {
+            const response = await api.get('/flashcards/cards/due/');
+            const data = response.data;
+            setDueCards(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching due cards:', error);
+            setDueCards([]);
+        } finally {
+            setDueCardsLoading(false);
+        }
+    };
+
+    const getOverdueLabel = (scheduledDate) => {
+        if (!scheduledDate) return 'Due now';
+        const now = new Date();
+        const due = new Date(scheduledDate);
+        const diffMs = now - due;
+        if (diffMs <= 0) return 'Due now';
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 60) return diffMins <= 1 ? 'Due now' : `${diffMins}m overdue`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours}h overdue`;
+        const diffDays = Math.floor(diffHours / 24);
+        return `${diffDays}d overdue`;
+    };
+
     // Fetch study stats from backend
     useEffect(() => {
         fetchStudyStats();
-        // Also refresh user data to get updated XP and level
+        fetchDecks();
+        fetchDueCards();
         if (refreshUserData) {
             refreshUserData();
         }
@@ -300,10 +345,6 @@ const FlashcardsDashboard = ({
                     </div>
                 </div>
 
-
-
-
-
                 <div className="nightowl-section">
                     <div className="nightowl-section-header-study-growth">
                         <h2 className="nightowl-section-title">Study Growth</h2>
@@ -328,6 +369,36 @@ const FlashcardsDashboard = ({
                             </span>
                         </div>
                     </div>
+                </div>
+
+                <div className="nightowl-section">
+                    <div className="nightowl-section-header-study-growth">
+                        <h2 className="nightowl-section-title">Due Now & Overdue</h2>
+                        <p className="nightowl-section-subtitle">Cards waiting for review</p>
+                    </div>
+                    {dueCardsLoading ? (
+                        <p className="nightowl-decks-empty">Loading...</p>
+                    ) : dueCards.length === 0 ? (
+                        <p className="nightowl-decks-empty">You're all caught up! No cards due.</p>
+                    ) : (
+                        <div className="nightowl-due-cards-list">
+                            {dueCards.map(card => (
+                                <div key={card.id} className="nightowl-due-card-item">
+                                    <span className="nightowl-due-card-question">{card.question}</span>
+                                    <div className="nightowl-due-card-meta">
+                                        <span className={`nightowl-due-card-status nightowl-due-card-status-${card.learning_status}`}>
+                                            {card.learning_status === 'unseen' ? 'Unseen'
+                                                : card.learning_status === 'strgl' ? 'Struggling'
+                                                : card.learning_status === 'imprv' ? 'Improving'
+                                                : card.learning_status === 'mstrd' ? 'Mastered'
+                                                : card.learning_status}
+                                        </span>
+                                        <span className="nightowl-due-card-overdue">{getOverdueLabel(card.scheduled_date)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Upcoming Cards Chart Section (dKYpr sync) */}

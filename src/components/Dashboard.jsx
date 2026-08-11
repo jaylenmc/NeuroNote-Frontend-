@@ -961,6 +961,7 @@ function Dashboard({ initialView }) {
                         refreshUserData={refreshUserData}
                         folderClosedIcon={closedFolderIcon}
                         folderOpenIcon={openFolderIcon}
+                        onDeckClick={handleDeckClick}
                     />
                 );
             case 'quiz':

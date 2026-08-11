@@ -11,6 +11,7 @@ import Terms from './pages/Terms';
 import './App.css'; // Import the CSS file
 import Signin from './auth/Signin';
 import Authentication from './api/OAuthSuccess';
+import StateCheck from './api/StateCheck';
 import Dashboard from './components/Dashboard';
 import StudyRoom, { STUDY_ROOM_MAIN_CONTENT_CLASS } from './components/StudyRoom';
 import StudyRoomPage from './pages/StudyRoom';
@@ -41,21 +42,15 @@ import NotificationSignup from './pages/NotificationSignup';
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const ownerEmail = 'jayzilla195@gmail.com';
-  
+
   if (loading) {
     return <div>Loading...</div>;
   }
-  
+
   if (!user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/signin" />;
   }
-  
-  // Additional safety check: verify user is the owner
-  if (user.email && user.email.toLowerCase() !== ownerEmail.toLowerCase()) {
-    return <Navigate to="/" />;
-  }
-  
+
   return children;
 };
 
@@ -78,6 +73,7 @@ function AppContent() {
       <main className={['main-content', studyRoomMainClass].filter(Boolean).join(' ')}>
         <Routes>
           <Route path='/auth/callback/' element={<Authentication />} />
+          <Route path='/auth/state/' element={<StateCheck />} />
           <Route path="/" element={<Home />} /> {/* Home page route */}
           <Route path="/about" element={<About />} /> {/* About page route */}
           <Route path="/features" element={<FeaturesPage />} />

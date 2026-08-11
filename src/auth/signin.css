@@ -94,7 +94,119 @@
 .signin-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+.signin-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.signin-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--signin-gray-500);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.signin-divider::before,
+.signin-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--signin-border);
+}
+
+.signin-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--signin-border);
+}
+
+.signin-mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--signin-gray-400);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.625rem 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.signin-mode-btn.active {
+  background: var(--signin-primary-600);
+  color: white;
+}
+
+.signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.signin-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--signin-gray-400);
+  margin-top: 0.25rem;
+}
+
+.signin-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--signin-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: white;
+  font-size: 0.9375rem;
+  font-family: inherit;
+}
+
+.signin-input:focus {
+  outline: none;
+  border-color: var(--signin-primary-500);
+}
+
+.signin-submit-btn {
+  margin-top: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 9999px;
+  background: var(--signin-primary-600);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.signin-submit-btn:hover:not(:disabled) {
+  background: var(--signin-primary-500);
+}
+
+.signin-submit-btn:disabled,
+.signin-google-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .signin-google-btn {
