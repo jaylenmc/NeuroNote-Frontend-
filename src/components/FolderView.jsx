@@ -3,6 +3,7 @@ import { FiFileText, FiEdit2, FiPlus, FiUpload, FiGrid, FiList, FiShare2, FiFold
 import { useNavigate } from 'react-router-dom';
 import deckIcon from '../assets/deck.svg';
 import testIcon from '../assets/test.svg';
+import { Separator } from './ui/separator';
 import { formatDateForDisplay } from '../utils/dateUtils';
 import './FolderView.css';
 
@@ -71,7 +72,7 @@ const FolderView = ({
     }, [showReminders]);
     
     // Mock reminders data - in real app, this would come from props or API
-    const folderReminders = selectedFolder.reminders || [
+    const folderReminders = selectedFolder?.reminders || [
         {
             id: 1,
             title: "Review study materials",
@@ -139,17 +140,17 @@ const FolderView = ({
     // Filter items based on search query
     const filteredItems = useMemo(() => {
         if (!searchQuery.trim()) {
-            return selectedFolder.items || [];
+            return selectedFolder?.items || [];
         }
         
         const query = searchQuery.toLowerCase().trim();
-        return (selectedFolder.items || []).filter(item => {
+        return (selectedFolder?.items || []).filter(item => {
             const title = item.title || item.name || '';
             const topic = item.topic || '';
             return title.toLowerCase().includes(query) || 
                    topic.toLowerCase().includes(query);
         });
-    }, [selectedFolder.items, searchQuery]);
+    }, [selectedFolder?.items, searchQuery]);
     
     const handleCreateDocument = () => {
         // Create a new document and redirect to notes editor
@@ -374,20 +375,22 @@ const FolderView = ({
                     <div className="folder-stats-grid">
                         <div className="folder-stat-item">
                             <div className="folder-stat-content">
-                                <div className="folder-stat-value">{getFolderItemCount(selectedFolder)}</div>
                                 <div className="folder-stat-label">Documents</div>
+                                <div className="folder-stat-value">{getFolderItemCount(selectedFolder)}</div>
                             </div>
                         </div>
+                        <Separator orientation="vertical" className="folder-stats-separator" />
                         <div className="folder-stat-item">
                             <div className="folder-stat-content">
-                                <div className="folder-stat-value">2 days</div>
                                 <div className="folder-stat-label">Recently Edited</div>
+                                <div className="folder-stat-value">2 days</div>
                             </div>
                         </div>
+                        <Separator orientation="vertical" className="folder-stats-separator" />
                         <div className="folder-stat-item">
                             <div className="folder-stat-content">
-                                <div className="folder-stat-value">482</div>
                                 <div className="folder-stat-label">Avg. Words Per Note</div>
+                                <div className="folder-stat-value">482</div>
                             </div>
                         </div>
                     </div>

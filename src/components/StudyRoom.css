@@ -1,41 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
+/* Shell: `STUDY_ROOM_MAIN_CONTENT_CLASS` on `<main>` for /study-room* (see App.jsx) */
+.main-content.study-room-main-content {
+    background: #1d1f23;
+}
+
 .study-room {
     min-height: 100vh;
-    padding: 2rem;
     position: relative;
     overflow: hidden;
-    background-color: var(--bg-primary);
+    background-color: #1d1f23;
     color: var(--text-primary);
     transition: all 0.3s ease;
 }
 
-/* Background Elements */
+/* Remove decorative background effects for a clean surface */
 .study-room::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        linear-gradient(45deg, rgba(78, 205, 196, 0.03) 25%, transparent 25%),
-        linear-gradient(-45deg, rgba(78, 205, 196, 0.03) 25%, transparent 25%);
-    background-size: 60px 60px;
-    opacity: 0.1;
-    z-index: 0;
+    content: none;
 }
 
 .study-room::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(78, 205, 196, 0.05) 0%, transparent 50%);
-    animation: particleFloat 20s ease-in-out infinite;
-    z-index: 0;
+    content: none;
 }
 
 .particles-container {
@@ -70,94 +55,43 @@
     justify-content: space-between;
 }
 
-/* Individual button styles - no inheritance */
-.study-room-back-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    color: #fff;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.study-room-back-button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.study-room-theme-toggle-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    color: #fff;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.study-room-theme-toggle-button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
+/* Header buttons — same warm Night Owl family, soft so they don’t dominate */
+.study-room-back-button,
 .study-room-timer-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    color: #fff;
-    transition: all 0.3s ease;
-    font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px !important;
+  padding: 8px 16px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #a0aec0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif !important;
+  position: relative !important;
+  pointer-events: auto !important;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 
+.study-room-back-button:hover,
 .study-room-timer-button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.3);
+    /* Slightly lighter than base rgba(161, 94, 73, 0.30) */
+    background: rgba(161, 94, 73, 0.4);
+    border-color: rgba(161, 94, 73, 0.45);
+    color: #ffffff !important;
 }
 
-.study-room-study-mode-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    color: #fff;
-    transition: all 0.3s ease;
-    font-weight: 500;
+.study-room-back-button:hover::before,
+.study-room-timer-button:hover::before {
+    left: 100%;
 }
 
-.study-room-study-mode-button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.study-room-study-mode-button.active {
-    background: rgba(124, 131, 253, 0.2);
-    border-color: rgba(124, 131, 253, 0.5);
-    color: #7c83fd;
-}
-
-
-.study-room-header h1,
-.study-room-header button,
-.study-room-header .header-controls {
-    color: #fff !important;
+.study-room-back-button:active,
+.study-room-timer-button:active {
+    background: rgba(161, 94, 73, 0.16);
+    box-shadow: none;
 }
 
 .study-room-header h1 {
@@ -168,7 +102,7 @@
 
 .study-room-subtitle {
     font-size: 16px;
-    color: #a0aec0;
+    color: white;
     text-align: center;
     margin-bottom: 32px;
     line-height: 1.5;
@@ -1024,10 +958,10 @@
 
 /* 1. Card Depth & Texture */
 .study-room-card {
-  background:  #20242D !important;
+  background:  #21242A !important;
   border-radius: 0!important;
-  box-shadow: 0 12px 26px rgba(6, 8, 12, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.01);
-  border: 1px solid rgb(37, 37, 37) !important;
+  box-shadow: 0 12px 26px rgba(6, 8, 12, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(140,160,190,0.08) !important;
   transition: transform 0.2s;
   padding: 24px;
   display: flex;
@@ -1058,6 +992,19 @@
   color: #68d391;
 }
 
+.study-room-card-quiz-icon.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-size: 22px;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-weight: normal;
+  font-style: normal;
+  color: lightgray !important;
+  transition: color 0.2s;
+}
+.study-room-card:hover .study-room-card-quiz-icon {
+  color: lightgray !important;
+}
+
 /* 3. Typography Adjustments */
 .study-room-header {
   text-align: center;
@@ -1076,6 +1023,7 @@
   font-weight: 700;
   margin: 0;
   display: flex;
+  color: #F7F0F0 !important;
   align-items: center;
   gap: 0.5rem;
 }
@@ -1086,7 +1034,7 @@
 .study-room-subtitle {
   text-align: center;
   font-size: 16px;
-  color: #a0aec0;
+  color: white;
   margin-bottom: 32px;
   max-width: 600px;
   margin-left: auto;
@@ -1095,22 +1043,28 @@
 
 /* 4. Button Consistency - Individual styling like deck_view_back_button */
 .study-room-ghost-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    color: #fff;
-    transition: all 0.3s ease;
-    font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px !important;
+  padding: 8px 16px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #a0aec0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif !important;
+  position: relative !important;
+  pointer-events: auto !important;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 
 .study-room-ghost-button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.3);
+    /* Slightly lighter than base rgba(161, 94, 73, 0.30) — match header buttons */
+    background: rgba(161, 94, 73, 0.4);
+    border-color: rgba(161, 94, 73, 0.45);
+    color: #ffffff !important;
 }
 
 .study-room-ghost-button:disabled {
@@ -1143,7 +1097,7 @@
 }
 
 .study-room-import-modal-content {
-    background: #1E1E1E;
+    background: #1d1f23;
     border-radius: 24px;
     padding: 32px;
     min-width: 340px;
@@ -1173,16 +1127,24 @@
     gap: 16px;
 }
 
+.study-room-import-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+}
+
 .study-room-import-modal-title {
     margin: 0;
-    font-size: 18px;
+    font-size: 25px;
     font-weight: 600;
-    color: #fff;
+    color: #F7F0F0 !important;
     line-height: 1.2;
 }
 
 .study-room-import-modal-description {
-    color: #9ca3af;
+    color: white;
     font-size: 14px;
     line-height: 1.4;
     font-weight: 400;
@@ -1195,8 +1157,8 @@
 }
 
 .study-room-import-modal-button {
-    background: #252525;
-    border: 1px solid #333;
+    background: #21242A !important;
+    border: 1px solid rgba(140,160,190,0.08) !important;
     border-radius: 12px;
     padding: 16px;
     min-height: 80px;
@@ -1214,24 +1176,9 @@
     overflow: hidden;
 }
 
-.study-room-import-modal-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
 .study-room-import-modal-button:hover {
     background: #2E2E2E;
     border-color: #404040;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .study-room-import-modal-button:hover::before {
@@ -1305,22 +1252,23 @@
 }
 
 .study-room-import-modal-cancel-button {
-    width: 100%;
-    background: #2B2B2B;
-    border: none;
-    color: #d1d5db;
-    padding: 12px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    font-size: 14px;
+  width: 100%;
+  margin-top: 1rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 160, 190, 0.08);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px 12px;
+  background: #272b32;
 }
 
 .study-room-import-modal-cancel-button:hover {
-    background: #363636;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.06);
 }
 
 .study-room-import-modal-folder-list {
@@ -1553,7 +1501,9 @@
 } 
 
 .study-room-card:hover {
-  background: #23283a !important;
+  /* Slightly lighter than base #21242A */
+  background: #2a2f37 !important;
+  border-color: rgba(140, 160, 190, 0.12) !important;
   box-shadow: none !important;
   filter: none !important;
 }
@@ -1565,7 +1515,8 @@
 }
 
 .study-room-card.locked:hover {
-  background: #23283a !important;
+  background: #2a2f37 !important;
+  border-color: rgba(140, 160, 190, 0.12) !important;
   box-shadow: none !important;
   filter: none !important;
 }
@@ -1592,10 +1543,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 24px 0 12px 0;
+  margin: 24px 0 24px 0;
 }
 .pinned-resources-header h3 {
-  color: #fff;
+  color: #F7F0F0;
   font-size: 20px;
   font-weight: 600;
   margin: 0;
@@ -1608,9 +1559,9 @@
 }
 /* Debug and ensure pinned resource styles work */
 .pinned-resources-section .pinned-resources-grid .pinned-resource-card {
-  background: #23272f !important;
+  background: #21242A !important;
   border-radius: 12px !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(140,160,190,0.08) !important;
   padding: 20px !important;
   display: flex !important;
   flex-direction: column !important;
@@ -1631,24 +1582,27 @@
 .pinned-resources-section .pinned-resources-grid .pinned-resource-pin-btn {
   font-size: 12px !important;
   padding: 4px 8px !important;
-  background: rgba(124, 131, 253, 0.1) !important;
-  color: #7c83fd !important;
-  border: 1px solid #7c83fd !important;
-  border-radius: 6px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #a0aec0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
   cursor: pointer !important;
   font-weight: 500 !important;
+  font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif !important;
   position: relative !important;
   pointer-events: auto !important;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 
 .pinned-resources-section .pinned-resources-grid .pinned-resource-pin-btn:hover {
-  background: #7c83fd !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #e2e8f0 !important;
 }
 
 .pinned-resources-section .pinned-resources-grid .pinned-resource-pin-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(124, 131, 253, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .pinned-resource-title {
@@ -1686,125 +1640,14 @@
   flex-shrink: 0;
 }
 
-/* Resource Content Overlay */
-.resource-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  animation: overlayFadeIn 0.3s ease-out;
+.study-room-pinned-resource-pdf-icon svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+  flex-shrink: 0;
 }
 
-.overlay-content {
-  background: #1E1E1E;
-  border-radius: 16px;
-  border: 1px solid #2A2A2A;
-  border-top: 3px solid #7c83fd;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
-  max-width: 90vw;
-  max-height: 90vh;
-  width: 80%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  backdrop-filter: blur(8px);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.overlay-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.overlay-header h3 {
-  color: white;
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: #a0aec0;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s ease;
-}
-
-.close-btn:hover {
-  color: #fff;
-}
-
-.overlay-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32px;
-}
-
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: #a0aec0;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid #7c83fd;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes overlayFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(8px);
-  }
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.document-content h4,
-.link-content h4,
-.file-content h4 {
+.document-content h4 {
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -1867,67 +1710,6 @@
   border-radius: 16px;
   font-size: 14px;
   font-weight: 500;
-}
-
-.link-url {
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.link-url::before {
-  content: '🔗';
-  font-size: 14px;
-  color: #7c83fd;
-  flex-shrink: 0;
-}
-
-.link-url a {
-  color: #7c83fd;
-  text-decoration: none;
-  word-break: break-all;
-  line-height: 1.4;
-}
-
-.link-url a:hover {
-  text-decoration: underline;
-}
-
-.video-embed {
-  border-radius: 16px;
-  overflow: hidden;
-  background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  width: 100%;
-  aspect-ratio: 16/9;
-  margin-bottom: 24px;
-}
-
-.video-embed iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 16px;
-}
-
-.link-preview {
-  text-align: center;
-  color: #a0aec0;
-  padding: 40px 20px;
-}
-
-.file-viewer {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.file-download {
-  text-align: center;
-  padding: 40px 20px;
-  color: #e2e8f0;
 }
 
 .download-btn {

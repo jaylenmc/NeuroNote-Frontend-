@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import Home from './Home';  // Import the Home page component
 import About from './About'; // Import the About page component
-import LandingNavbar from './components/landing/LandingNavbar';
 import Pricing from './pages/Pricing';
 import FeaturesPage from './pages/Features';
 import Contact from './pages/Contact';
@@ -12,8 +11,9 @@ import Terms from './pages/Terms';
 import './App.css'; // Import the CSS file
 import Signin from './auth/Signin';
 import Authentication from './api/OAuthSuccess';
+import StateCheck from './api/StateCheck';
 import Dashboard from './components/Dashboard';
-import StudyRoom from './components/StudyRoom';
+import StudyRoom, { STUDY_ROOM_MAIN_CONTENT_CLASS } from './components/StudyRoom';
 import StudyRoomPage from './pages/StudyRoom';
 import DeckContent from './components/DeckContent';
 import { useAuth, AuthProvider } from './auth/AuthContext'; // or wherever it's defined
@@ -38,34 +38,31 @@ import QuizResultsPage from './pages/QuizResultsPage';
 import NightOwlFlashcardsPage from './pages/NightOwlFlashcardsPage';
 import NotesEditorPage from './pages/NotesEditorPage';
 import NotificationSignup from './pages/NotificationSignup';
+import BrainLoader from './components/BrainLoader';
+import './api/OAuthSuccess.css';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const ownerEmail = 'jayzilla195@gmail.com';
-  
+
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="auth-loading-container">
+        <BrainLoader size={80} label="Loading" />
+      </div>
+    );
   }
-  
+
   if (!user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/signin" />;
   }
-  
-  // Additional safety check: verify user is the owner
-  if (user.email && user.email.toLowerCase() !== ownerEmail.toLowerCase()) {
-    return <Navigate to="/" />;
-  }
-  
+
   return children;
 };
 
 // AppContent wrapper to use location
 function AppContent() {
   const location = useLocation();
-  const showNavbar = location.pathname !== '/' && !['/dashboard', '/signin', '/auth/callback/', '/chat', '/login', '/register', '/quiz', '/progress', '/study-groups', '/achievements', '/notes-editor'].some(route =>
-    location.pathname.startsWith(route)
-  );
 
   // Set default title if no page-specific title is set
   useEffect(() => {
@@ -74,12 +71,15 @@ function AppContent() {
     }
   }, [location.pathname]);
 
+  const studyRoomMainClass =
+    location.pathname.startsWith('/study-room') ? STUDY_ROOM_MAIN_CONTENT_CLASS : '';
+
   return (
     <>
-      {showNavbar && <LandingNavbar />}
-      <main className="main-content">
+      <main className={['main-content', studyRoomMainClass].filter(Boolean).join(' ')}>
         <Routes>
           <Route path='/auth/callback/' element={<Authentication />} />
+          <Route path='/auth/state/' element={<StateCheck />} />
           <Route path="/" element={<Home />} /> {/* Home page route */}
           <Route path="/about" element={<About />} /> {/* About page route */}
           <Route path="/features" element={<FeaturesPage />} />
@@ -176,6 +176,14 @@ function AppContent() {
           <Route path="/achievements" element={<Achievements />} />
           <Route 
             path="/quiz/create" 
+            element={
+              <ProtectedRoute>
+                <QuizCreatePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/quiz/:quizId/edit" 
             element={
               <ProtectedRoute>
                 <QuizCreatePage />

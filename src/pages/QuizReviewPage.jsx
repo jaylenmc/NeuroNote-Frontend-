@@ -67,6 +67,7 @@ const QuizReviewPage = () => {
           </button>
         </div>
         <div className="quiz-take-navbar-center-fixed">
+          <div className="quiz-take-navbar-title">{quizTitle}</div>
           <div className="quiz-take-progress-container">
             <div className="quiz-take-progress-bar">
               <div 
@@ -74,11 +75,10 @@ const QuizReviewPage = () => {
                 style={{ width: `${((activeQuestion + 1) / totalQuestions) * 100}%` }}
               />
             </div>
-            <span className="quiz-take-questions-left">{activeQuestion + 1}/{totalQuestions}</span>
           </div>
         </div>
         <div className="quiz-take-navbar-right">
-          <div className="quiz-take-navbar-title">{quizTitle}</div>
+          <span className="quiz-take-navbar-total">{totalQuestions} {totalQuestions === 1 ? 'question' : 'questions'}</span>
         </div>
       </nav>
 

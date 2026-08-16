@@ -767,11 +767,6 @@ const NotesEditorPage = () => {
                  <button onClick={() => handleRemoveTag(noteTags[0])}><FiX /></button>
                </div>
              )}
-             {noteTags.length === 0 && (
-               <button className="add-single-tag-btn" onClick={() => setShowTagInput(true)}>
-                 <FiTag /> Add Tag
-               </button>
-             )}
              {showTagInput && (
                 <input
                   type="text"
@@ -806,9 +801,6 @@ const NotesEditorPage = () => {
                   )}
                 </div>
               )}
-              <button className={`publish-btn ${isPublished ? 'published' : ''}`} onClick={handlePublish} style={isPublished ? { minWidth: 140, width: 140, maxWidth: 140 } : {}}>
-                <FiGlobe size={22} style={{marginRight: 6}} />{isPublished ? 'Published' : 'Publish'}
-            </button>
               <button className="save-btn" onClick={() => handleSave()} disabled={isSaving}>
                 <FiSave size={22} style={{marginRight: 6}} />{isSaving ? 'Saving...' : 'Save'}
             </button>

@@ -26,10 +26,27 @@ html.nightowl-root-bg, body.nightowl-root-bg {
   box-sizing: border-box;
 }
 
-.nightowl-flashcards-bg {
-  min-height: 100vh;
+.nightowl-page-shell {
   width: 100%;
-  background: none;
+  min-height: 100vh;
+}
+
+/* Launchpad: let parent (main area) pass height so sections can flex */
+.dashboard-container .tabs-content-container:has(.nightowl-flashcards-bg) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+.nightowl-flashcards-bg {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  background: #1d1f23;
   position: relative;
   overflow-x: visible;
   overflow-y: visible;
@@ -37,41 +54,23 @@ html.nightowl-root-bg, body.nightowl-root-bg {
 }
 
 .nightowl-flashcards-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    linear-gradient(45deg, rgba(78, 205, 196, 0.03) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(78, 205, 196, 0.03) 25%, transparent 25%);
-  background-size: 60px 60px;
-  opacity: 0.1;
-  z-index: 0;
+  content: none;
 }
 
 .nightowl-flashcards-bg::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(78, 205, 196, 0.05) 0%, transparent 50%);
-  animation: particleFloat 20s ease-in-out infinite;
-  z-index: 0;
+  content: none;
 }
 
 .nightowl-flashcards-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 24px 48px 24px;
+  width: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   overflow-x: visible;
   overflow-y: visible;
-  min-height: 100vh;
+  min-height: 0;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
@@ -90,7 +89,7 @@ html.nightowl-root-bg, body.nightowl-root-bg {
 body.nightowl-root-bg .dashboard-container,
 body.nightowl-root-bg .main-area,
 body.nightowl-root-bg .content-section {
-  background: none !important;
+  background: #1d1f23;
   box-shadow: none !important;
 }
 
@@ -107,17 +106,26 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   border-color: var(--nightowl-panel-border) !important;
 }
 
-.main-area {
-  padding-bottom: 0px !important;
-  padding-top: 0px !important;
-}
-
 .nightowl-header-row {
   display: flex;
   align-items: center;
   gap: 24px;
-  margin-bottom: 16px;
   justify-content: space-between;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.nightowl-hero-shell {
+  background: #21242A;
+  border: 1px solid rgba(140,160,190,0.08);
+  border-radius: 16px;
+  padding: 20px 20px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .nightowl-header-content {
@@ -126,10 +134,16 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   gap: 8px;
 }
 
+.nightowl-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .nightowl-header-title {
   font-family: 'Poppins', 'Geist', 'IBM Plex Sans', Arial, sans-serif;
-  font-size: 1.8rem;
-  color: var(--nightowl-text-main);
+  font-size: 1.6rem;
+  color: #F7F0F0;
   font-weight: 700;
   letter-spacing: 0.03em;
   margin: 0;
@@ -140,33 +154,37 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 .nightowl-header-subtitle-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   cursor: default;
 }
 
 .nightowl-header-sub {
-  color: var(--nightowl-text-steel);
-  font-size: 1rem;
+  color: white;
+  font-size: 14px;
   letter-spacing: 0.01em;
   margin: 0;
 }
 
 .nightowl-streak-badge {
-  background: rgba(255, 107, 107, 0.15);
-  color: #ff6b6b;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 107, 107, 0.2);
+  background: transparent;
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-/* Motivation Section */
-.nightowl-motivation-section {
-  margin-bottom: 20px;
+.nightowl-streak-reward-glow {
+  display: none;
+}
+
+.nightowl-streak-reward-icon {
+  color: #FFD9B3;
+}
+
+.nightowl-streak-reward-count {
+  color: #FFE4E4;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .nightowl-motivation-card {
@@ -262,82 +280,57 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 
 /* Sticky Notes */
 .nightowl-sticky-notes {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-top: 20px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0;
+  margin-top: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .nightowl-sticky-note {
-  background: var(--nightowl-bg-card);
-  border-radius: 14px 14px 0 0;
-  padding: 16px;
-  box-shadow: 0 12px 26px rgba(6, 8, 12, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--nightowl-card-border-soft);
-  position: relative;
-  transform: rotate(-1deg);
-  transition: all 0.3s ease;
-  min-height: 170px;
+  flex: 1 1 0;
+  min-height: 92px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
-.nightowl-sticky-note:nth-child(even) {
-  transform: rotate(1deg);
-}
-
-.nightowl-sticky-note:hover {
-  background: var(--nightowl-bg-hover);
-  transform: rotate(0deg) scale(1.05);
-  box-shadow: 0 24px 40px rgba(8, 10, 16, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  z-index: 10;
-}
-
-.nightowl-sticky-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  cursor: default;
-}
-
-.nightowl-sticky-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
 .nightowl-sticky-title {
-  font-size: 0.75rem;
+  font-size: 11px;
   font-weight: 500;
-  color: var(--nightowl-text-main);
+  color: #B6C2D1;
   text-transform: none;
   letter-spacing: 0.3px;
-  opacity: 0.8;
+  opacity: 1;
+  margin-bottom: .5rem;
 }
 
 .nightowl-sticky-value {
-  font-size: 2rem;
+  font-size: 24px;
   font-weight: 700;
-  color: var(--nightowl-text-main);
+  color: #F3F6FB;
   line-height: 1;
 }
 
 /* Smaller text for time values in sticky notes */
 .nightowl-sticky-note .nightowl-sticky-value {
-  font-size: 1.2rem;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.2;
+}
+
+.nightowl-sticky-separator.ui-separator-vertical {
+  width: 1px;
+  align-self: stretch;
+  min-height: 92px;
+  background: rgba(140,160,190,0.20);
 }
 
 /* Sticky Note Icon Badge Colors */
@@ -416,32 +409,250 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 
 /* Section Headers */
 .nightowl-section {
-  margin-top: 20px;
-  margin-bottom: 32px;
+  width: 100%;
+  background: #21242A;
+  border: 1px solid var(--nightowl-card-border-soft);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 16px;
+  margin-top: 16px;
+  padding-bottom: 0px;
+}
+
+/* Grow to fill remaining column height (Launchpad / full-viewport layout) */
+.nightowl-section.nightowl-section-upcoming-cards {
+  flex: 1 1 auto;
+  margin-bottom: 0;
+  display: none;
 }
 
 .nightowl-section-header {
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 1rem;
+  padding-bottom: 0;
+  border-bottom: none;
   cursor: default;
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.nightowl-section-header-study-growth {
+  padding-bottom: 0;
+  border-bottom: none;
+  cursor: default;
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  flex-direction: column;
+}
+
+.nightowl-upcoming-chart-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .nightowl-section-title {
-  font-size: 1.4rem;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--nightowl-text-main);
-  margin: 0 0 4px 0;
+  color: #F7F0F0;
+  margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 
 .nightowl-section-subtitle {
-  font-size: 0.9rem;
-  color: var(--nightowl-text-steel);
+  font-size: 13px;
+  color: white;
   margin: 0;
-  font-weight: 400;
+}
+
+/* Due Now & Overdue section */
+.nightowl-decks-empty {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  padding: 8px 0;
+}
+
+.nightowl-due-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-height: calc(5 * (40px + 8px));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.nightowl-due-cards-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nightowl-due-cards-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nightowl-due-cards-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+
+.nightowl-due-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 14px;
+  border-radius: 10px;
+  background: #21242A !important;
+  border: 1px solid rgba(140,160,190,0.08) !important;
+}
+
+.nightowl-due-card-question {
+  font-size: 13px;
+  color: #F7F0F0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nightowl-due-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.nightowl-due-card-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nightowl-due-card-status-unseen {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.nightowl-due-card-status-strgl {
+  background: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+}
+
+.nightowl-due-card-status-imprv {
+  background: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+}
+
+.nightowl-due-card-status-mstrd {
+  background: rgba(219, 39, 119, 0.15);
+  color: #db2777;
+}
+
+.nightowl-due-card-overdue {
+  font-size: 11px;
+  color: rgba(255, 185, 130, 0.85);
+  white-space: nowrap;
+}
+
+/* My Decks section */
+.nightowl-decks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.nightowl-deck-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.nightowl-deck-card:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.nightowl-deck-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #F7F0F0;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nightowl-deck-card-subject {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nightowl-growth-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: transparent;
+}
+
+.nightowl-growth-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--nightowl-bg-hover);
+  overflow: hidden;
+}
+
+.nightowl-growth-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #A15E49;
+}
+
+.nightowl-growth-meta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.nightowl-growth-level {
+  color: #FAF8F8;
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: 0 0 8px rgba(217, 214, 214, 0.35);
+}
+
+.nightowl-growth-next {
+  color: #FAF8F8;
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: 0 0 8px rgba(217, 214, 214, 0.35);
 }
 
 /* Leaderboard Widget */
@@ -906,117 +1117,81 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 
 /* Upcoming Cards Chart Section */
 .nightowl-upcoming-chart-container {
-  background: var(--nightowl-bg-panel);
-  border-radius: 18px;
-  padding: 24px;
-  border: 1px solid var(--nightowl-card-border-soft);
-  box-shadow: var(--nightowl-card-shadow), var(--nightowl-card-inner);
-  backdrop-filter: blur(12px);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .nightowl-upcoming-chart-header {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.nightowl-upcoming-stats {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: default;
-}
-
-.nightowl-upcoming-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nightowl-upcoming-stat-label {
-  color: var(--nightowl-text-steel);
-  font-size: 0.9rem;
-  font-weight: 400;
-}
-
-.nightowl-upcoming-stat-value {
-  color: var(--nightowl-text-main);
-  font-size: 1.1rem;
-  font-weight: 600;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .nightowl-upcoming-date-range {
-  color: var(--nightowl-text-muted);
-  font-size: 0.85rem;
+  color: #D9D6D6;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.nightowl-upcoming-average {
+  color: #F3F6FB;
+  font-size: 14px;
   font-weight: 400;
 }
 
 .nightowl-upcoming-chart-content {
   position: relative;
-  height: 200px;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-/* Horizontal gridlines aligned with y-axis labels */
-.nightowl-upcoming-grid {
-  position: absolute;
-  top: 0;
-  right: 30px; /* leave space for y labels */
-  left: 0;
-  height: 120px; /* must match .nightowl-upcoming-chart-bars height */
-  pointer-events: none;
-  z-index: 1;
-}
-
-.nightowl-upcoming-gridline {
-  position: absolute;
-  left: 0;
-  right: 40px; /* stop before the y-axis label column */
-  height: 1px;
-  background: rgba(255, 255, 255, 0.12);
+  height: auto;
 }
 
 .nightowl-upcoming-chart-bars {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  height: 120px;
-  padding: 0 40px 0 0;
+  flex: 1 1 auto;
+  min-height: 230px;
+  height: 100%;
+  padding: 0 8px;
+  gap: 10px;
   position: relative;
-  flex: 1;
-  z-index: 2;
+  width: 100%;
+}
+
+/* Browser fullscreen: use as much vertical space as possible for the chart */
+:fullscreen .nightowl-upcoming-chart-bars,
+:-webkit-full-screen .nightowl-upcoming-chart-bars {
+  min-height: max(230px, min(70vh, 900px));
+}
+
+.nightowl-upcoming-bar {
+  background: #D9D6D6;
+  min-width: 12px;
+}
+
+.nightowl-upcoming-bar-flex {
+  flex: 1 1 0;
+}
+
+.nightowl-upcoming-bar-fixed {
+  flex: 0 0 auto;
 }
 
 .nightowl-upcoming-y-axis {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 120px;
-  width: 30px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-right: 8px;
-}
-
-.nightowl-upcoming-y-label {
-  color: var(--nightowl-text-steel);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1;
+  display: none;
 }
 
 .nightowl-upcoming-x-labels {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 40px 0 0;
-  height: 40px;
-  align-items: flex-start;
-  cursor: default;
+  display: none;
 }
 
 .nightowl-upcoming-x-label {
@@ -1226,25 +1401,23 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 
 
 .nightowl-studyroom-btn {
-  background: linear-gradient(135deg, rgba(124, 131, 253, 0.1) 0%, rgba(124, 131, 253, 0.05) 100%);
-  border: 1px solid rgba(124, 131, 253, 0.3);
-  color: #7c83fd;
+  background: rgba(161,94,73,0.32);
+  border: 1px solid rgba(161,94,73,0.72);
+  color: #FFF7F3;
   border-radius: 12px;
   padding: 12px 24px;
-  font-size: 1rem;
+  font-size: 14px;
   font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   transition: all 0.3s ease;
   cursor: pointer;
-  margin-left: 18px;
-  margin-top: 2px;
   position: relative;
   overflow: hidden;
 }
 
 .nightowl-studyroom-btn:hover {
-  border-color: rgba(124, 131, 253, 0.4);
-  color: #9ca3fd;
+  border-color: rgba(161,94,73,0.82);
+  color: #FFFFFF;
 }
 
 .nightowl-studyroom-btn:hover::before {
@@ -1253,13 +1426,18 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
 
 .nightowl-studyroom-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(124, 131, 253, 0.2);
+  box-shadow: 0 2px 10px rgba(161, 94, 73, 0.32);
 }
 
 @media (max-width: 700px) {
   .nightowl-flashcards-content {
     padding: 20px 16px 32px 16px;
     gap: 20px;
+  }
+
+  .nightowl-hero-shell {
+    padding: 16px;
+    gap: 12px;
   }
   
   .nightowl-header-row {
@@ -1315,8 +1493,12 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   }
   
   .nightowl-sticky-notes {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .nightowl-sticky-separator.ui-separator-vertical {
+    display: none;
   }
   
   .nightowl-sticky-note {
@@ -1369,39 +1551,24 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   }
   
   .nightowl-upcoming-chart-content {
-    height: 160px;
-  }
-  
-  .nightowl-upcoming-grid {
-    height: 100px;
-    right: 25px;
-    z-index: 1;
+    height: auto;
   }
 
   .nightowl-upcoming-chart-bars {
-    height: 100px;
-    padding: 0 30px 0 0;
-    z-index: 2;
-  }
-  
-  .nightowl-upcoming-y-axis {
-    height: 100px;
-    width: 25px;
+    flex: 0 0 auto;
+    min-height: 140px;
+    height: 140px;
+    padding: 0 4px;
+    gap: 8px;
   }
   
   .nightowl-upcoming-bar {
-    max-width: 20px;
-    min-width: 12px;
+    min-width: 10px;
     min-height: 6px;
   }
-  
-  .nightowl-upcoming-x-labels {
-    padding: 8px 30px 0 0;
-    height: 30px;
-  }
-  
-  .nightowl-upcoming-x-label {
-    font-size: 0.7rem;
+
+  .nightowl-upcoming-bar-fixed {
+    width: 72px !important;
   }
 }
 
@@ -1776,12 +1943,3 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
     transform: scale(1) translateY(0);
   }
 }
-
-@keyframes particleFloat {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(20px, 20px);
-  }
-} 

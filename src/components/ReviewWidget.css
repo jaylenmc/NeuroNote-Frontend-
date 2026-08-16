@@ -1,7 +1,6 @@
 /* Page Container and Layout */
 .review-page-container {
   min-height: 100vh;
-  padding: 2rem 1rem;
   overflow-y: auto;
 }
 
@@ -111,6 +110,12 @@
   transform: translateY(-1px);
 }
 
+.tab-bar-with-filter.enhanced-tab-bar .tab:not(.active) {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .tab.active {
   background: rgba(55, 55, 55, 0.9);
   color: #e5e5e5;
@@ -126,28 +131,27 @@
   line-height: 1;
 }
 
-/* Category-specific tab colors */
 .tab.active[data-category="overdue"] {
-  background: rgba(239, 68, 68, 0.15) !important;
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(226, 63, 68, 0.15) !important;
+  color: #e23f44 !important;
+  border: 1px solid rgba(226, 63, 68, 0.3);
 }
 
 .tab.active[data-category="dueNow"] {
   background: rgba(245, 158, 11, 0.15) !important;
-  color: #f59e0b;
+  color: #f59e0b !important;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .tab.active[data-category="dueSoon"] {
-  background: rgba(59, 130, 246, 0.15) !important;
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(142, 171, 201, 0.15) !important;
+  color: #8eabc9 !important;
+  border: 1px solid rgba(142, 171, 201, 0.3);
 }
 
 .tab.active[data-category="upcoming"] {
   background: rgba(107, 114, 128, 0.15) !important;
-  color: #6b7280;
+  color: #6b7280 !important;
   border: 1px solid rgba(107, 114, 128, 0.3);
 }
 
@@ -171,25 +175,26 @@
   max-height: calc(2 * (200px + 1.25rem) + 1rem); /* Height for 2 cards + gaps + padding */
   overflow-y: auto;
   padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 155, 165, 0.65) rgba(255, 255, 255, 0.06);
 }
 
-/* Custom scrollbar for scrollable card list */
 .scrollable-card-list::-webkit-scrollbar {
   width: 6px;
 }
 
 .scrollable-card-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 3px;
 }
 
 .scrollable-card-list::-webkit-scrollbar-thumb {
-  background: rgba(124, 131, 253, 0.6);
+  background: rgba(148, 155, 165, 0.55);
   border-radius: 3px;
 }
 
 .scrollable-card-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(124, 131, 253, 0.8);
+  background: rgba(148, 155, 165, 0.8);
 }
 
 /* Enhanced Card Items */
@@ -202,7 +207,7 @@
   padding: 1.25rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(140,160,190,0.08) !important;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 200px;
   position: relative;
@@ -232,19 +237,22 @@
 .card-deck-top {
   width: fit-content;
   text-align: center;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #7C83FD;
-  background: rgba(124, 131, 253, 0.1);
-  border-radius: 9999px;
-  padding: 0.4rem 1rem;
-  margin: 0 auto 1rem auto;
-  letter-spacing: 0.01em;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 1px solid rgba(124, 131, 253, 0.2);
+  margin: 0 auto 1rem auto;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif;
+  padding: 8px 16px;
+  letter-spacing: 0.01em;
+  color: #a0aec0;
+  background: #2a2c30;
+  border: 1px solid rgba(140, 160, 190, 0.08);
+  border-radius: 8px;
+  position: relative;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .card-deck-icon {
@@ -365,7 +373,7 @@
 
 .action-panel-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .action-panel-title {
@@ -390,16 +398,15 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 2rem;
-  background: #7c83fd;
-  color: white;
-  border: none;
+  padding: 14px 28px;
+  background: rgba(161, 94, 73, 0.3) !important;
+  color: rgba(255, 247, 243, 0.88) !important;
+  border: 1px solid rgba(161, 94, 73, 0.28) !important;
   border-radius: 12px;
   font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(124, 131, 253, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -427,44 +434,51 @@
 
 .due-soon-toggle {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.2s ease;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  text-align: center;
 }
 
 .due-soon-toggle:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
-.due-soon-toggle input[type="checkbox"] {
-  margin: 0;
-  width: 16px;
-  height: 16px;
-  accent-color: #7c83fd;
-  cursor: pointer;
-  border-radius: 3px;
-}
-
-.toggle-content {
-  flex: 1;
+.due-soon-toggle-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.toggle-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+.due-soon-checkbox {
+  flex-shrink: 0;
 }
 
-.toggle-hint {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-style: italic;
+.due-soon-toggle-label {
+  line-height: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.due-soon-toggle-hint {
+  margin: 0;
+  line-height: 1.35;
+  text-align: center;
+  max-width: 28rem;
 }
 
 .session-summary {
@@ -706,7 +720,7 @@
   border-radius: 12px;
   padding: 0.5rem 2rem;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -793,7 +807,7 @@
 .review-session-title {
   font-size: 2.2rem;
   font-weight: 700;
-  color: white;
+  color: #F7F0F0;
   margin: 0 0 0.5rem 0;
   letter-spacing: 0.01em;
   display: flex;
@@ -806,15 +820,8 @@
   gap: 0.75rem;
 }
 
-.brain-icon {
-  font-size: 2rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-}
-
 .review-session-subtitle {
   font-size: 1.1rem;
-  color: #bdbdbd;
+  color: white;
   font-weight: 400;
 }

@@ -104,7 +104,7 @@ const CreateDeckModal = memo(({ showCreateModal, handleCloseModal, handleCreateD
             <div className="deck-view-modal-content" onClick={e => e.stopPropagation()}>
                 <div className="deck-view-modal-header">
                     <div className="deck-view-modal-icon">
-                        <Plus size={32} />
+                        <span className="material-symbols-outlined">playing_cards</span>
                     </div>
                     <h3>Create New Deck</h3>
                     <button 
@@ -491,9 +491,7 @@ const StudyDecks = () => {
                         >
                             {/* Icon circle */}
                             <div className="studydeck-icon-circle">
-                                <span className="studydeck-icon">
-                                    {React.createElement(getSubjectIcon(deck.subject), { size: 32 })}
-                                </span>
+                                <span className="material-symbols-outlined studydeck-icon">stacks</span>
                             </div>
                             {/* Title */}
                             <div className="studydeck-title">{deck.title}</div>
@@ -503,13 +501,13 @@ const StudyDecks = () => {
                             <div className="studydeck-metrics">
                                 <div className="studydeck-metric-row">
                                     <span className="studydeck-metric-label">
-                                        <BookOpen size={16} style={{ color: '#7c3aed' }}/> Cards
+                                        <BookOpen size={16} /> Cards
                                     </span>
                                     <span className="studydeck-metric-value">{deck.cards?.length || 0}</span>
                                 </div>
                                 <div className="studydeck-metric-row">
                                     <span className="studydeck-metric-label">
-                                        <CheckCircle size={16} style={{ color: '#f59e42' }}/> Reviewed
+                                        <CheckCircle size={16} /> Reviewed
                                     </span>
                                     <span className="studydeck-metric-value">{deck.cards?.filter(c => c.last_review_date)?.length || 0}</span>
                                 </div>
@@ -526,16 +524,6 @@ const StudyDecks = () => {
                                     }}
                                 />
                             </div>
-                            {/* Review button */}
-                            <button
-                                className="studydeck-review-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeckClick(deck.id);
-                                }}
-                            >
-                                <CheckCircle size={18} style={{marginRight: 8}}/> Review Now
-                            </button>
                         </div>
                        ))
                    ) : (

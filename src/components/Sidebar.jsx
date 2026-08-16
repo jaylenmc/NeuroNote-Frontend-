@@ -1,8 +1,15 @@
 import React from 'react';
-import { FiHome, FiBook, FiPlus, FiSettings, FiLogOut, FiAward, FiUsers, FiFileText, FiBookOpen, FiFile } from 'react-icons/fi';
+import { FiPlus, FiSettings, FiLogOut, FiFileText, FiBookOpen, FiFile } from 'react-icons/fi';
+import { FaFolder, FaFolderOpen } from 'react-icons/fa';
 import { Lock } from 'lucide-react';
-import closedFolderIcon from '../assets/ClosedFolder.svg';
-import openFolderIcon from '../assets/OpenFolder.svg';
+
+/** Solid filled folder glyphs (FA) — use currentColor so sidebar hover/active styles apply */
+const SidebarFolderIcon = ({ expanded, size, className = '' }) =>
+    expanded ? (
+        <FaFolderOpen className={className} size={size} aria-hidden={true} />
+    ) : (
+        <FaFolder className={className} size={size} aria-hidden={true} />
+    );
 
 const Sidebar = ({
     user,
@@ -95,9 +102,9 @@ const Sidebar = ({
                                 }, 100);
                             }}
                         >
-                            <img 
-                                src={closedFolderIcon} 
-                                alt="subfolder" 
+                            <SidebarFolderIcon
+                                expanded={!!expandedFolders[subfolder.id]}
+                                size={12}
                                 className="flyout-folder-icon"
                             />
                             <span className="flyout-folder-name" title={subfolder.name}>
@@ -152,14 +159,13 @@ const Sidebar = ({
                                 className={`folder-expand-btn${expandedFolders[subfolder.id] ? ' expanded' : ''}`}
                                 onClick={(e) => { e.stopPropagation(); toggleFolder(subfolder.id, e); }}
                             >
-                                {expandedFolders[subfolder.id] ? 'v' : '>'}
+                                <span className="material-symbols-outlined">keyboard_arrow_right</span>
                             </button>
                         )}
-                        <img 
-                            src={useFlyout ? closedFolderIcon : (expandedFolders[subfolder.id] ? openFolderIcon : closedFolderIcon)} 
-                            alt="subfolder" 
-                            className="folder-icon"
-                            style={{ width: '14px', height: '14px' }}
+                        <SidebarFolderIcon
+                            expanded={!!expandedFolders[subfolder.id]}
+                            size={14}
+                            className="folder-icon folder-icon-filled"
                         />
                         <span className="folder-name" title={subfolder.name}>
                             {subfolder.name.length > Math.max(8 - depth, 5) ? 
@@ -202,9 +208,9 @@ const Sidebar = ({
                             className={`folders-flyout-item ${selectedFolder?.id === folder.id && activeView === 'folder' ? 'active' : ''}`}
                             onClick={(e) => handleFolderClick(folder.id, e)}
                         >
-                            <img 
-                                src={expandedFolders[folder.id] ? openFolderIcon : closedFolderIcon} 
-                                alt="folder" 
+                            <SidebarFolderIcon
+                                expanded={!!expandedFolders[folder.id]}
+                                size={16}
                                 className="folders-flyout-icon"
                             />
                             <span className="folders-flyout-name" title={folder.name}>
@@ -245,7 +251,7 @@ const Sidebar = ({
         }
     };
     return (
-        <div className={`dashboard-sidebar ${activeView === 'dashboard' ? 'dashboard-home-active' : ''}`}>
+        <div className="dashboard-sidebar">
             <div className="sidebar-top">
                 <div className="workspace-header">
                     <div className="user-profile" onClick={() => setShowDropdown(!showDropdown)}>
@@ -254,7 +260,6 @@ const Sidebar = ({
                         </div>
                         <div className="user-info">
                             <div className="user-email">{user?.email}</div>
-                            <div className="workspace-name">Personal</div>
                         </div>
                     </div>
                     {showDropdown && (
@@ -276,36 +281,31 @@ const Sidebar = ({
             </div>
 
             <div className="sidebar-content">
-                <div 
-                    className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
-                    onClick={() => navigate('/dashboard')}
-                >
-                    <FiHome className="nav-icon" />
-                    <span>Home</span>
-                </div>
-                <div 
-                    className={`nav-item ${location.pathname === '/night-owl-flashcards' ? 'active' : ''}`}
-                    onClick={() => navigate('/night-owl-flashcards')}
-                >
-                    <FiBook className="nav-icon" />
-                    <span>Flashcards</span>
-                </div>
-                <div 
-                    className={`nav-item ${location.pathname === '/achievements' ? 'active' : ''}`}
-                    onClick={() => navigate('/achievements')}
-                >
-                    <FiAward className="nav-icon" />
-                    <span>Achievements</span>
-                </div>
-                <div 
-                    className={`nav-item locked ${location.pathname === '/study-groups' ? 'active' : ''}`}
-                    onClick={handleStudyGroupsClick}
-                >
-                    <div className="nav-item-lock-overlay">
-                        <Lock size={12} color="#ff6b6b" />
+                <div className="sidebar-nav-items">
+                    <div 
+                        className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                        onClick={() => navigate('/dashboard')}
+                    >
+                        <span className="material-symbols-outlined nav-icon">home</span>
+                        <span>Home</span>
                     </div>
-                    <FiUsers className="nav-icon" />
-                    <span>Study Groups</span>
+                    <div 
+                        className={`nav-item ${location.pathname === '/night-owl-flashcards' ? 'active' : ''}`}
+                        onClick={() => navigate('/night-owl-flashcards')}
+                    >
+                        <span className="material-symbols-outlined nav-icon">cards_stack</span>
+                        <span>Flashcards</span>
+                    </div>
+                    <div 
+                        className={`nav-item locked ${location.pathname === '/study-groups' ? 'active' : ''}`}
+                        onClick={handleStudyGroupsClick}
+                    >
+                        <div className="nav-item-lock-overlay">
+                            <Lock size={12} color="#ff6b6b" />
+                        </div>
+                        <span className="material-symbols-outlined nav-icon">group</span>
+                        <span>Study Groups</span>
+                    </div>
                 </div>
                 <div className="folders-section">
                     <div className="folders-header">
@@ -315,7 +315,7 @@ const Sidebar = ({
                         </button>
                     </div>
                     <div className="folders-list">
-                        {(shouldShowFoldersFlyout() ? folders.slice(0, MAX_VISIBLE_FOLDERS) : folders).map(folder => (
+                        {(shouldShowFoldersFlyout() ? folders.slice(0, MAX_VISIBLE_FOLDERS) : folders).map((folder, index, visibleFolders) => (
                             <React.Fragment key={folder.id}>
                                 <div 
                                     className={`folder-item ${selectedFolder?.id === folder.id && activeView === 'folder' ? 'active' : ''}`}
@@ -325,12 +325,12 @@ const Sidebar = ({
                                         className={`folder-expand-btn ${expandedFolders[folder.id] ? 'expanded' : ''}`}
                                         onClick={(e) => toggleFolder(folder.id, e)}
                                     >
-                                        &gt;
+                                        <span className="material-symbols-outlined">keyboard_arrow_right</span>
                                     </button>
-                                    <img 
-                                        src={expandedFolders[folder.id] ? openFolderIcon : closedFolderIcon} 
-                                        alt="folder" 
-                                        className="folder-icon"
+                                    <SidebarFolderIcon
+                                        expanded={!!expandedFolders[folder.id]}
+                                        size={20}
+                                        className="folder-icon folder-icon-filled"
                                     />
                                     <span className="folder-name" title={folder.name}>{folder.name}</span>
                                 </div>
@@ -354,14 +354,13 @@ const Sidebar = ({
                                                                 className={`folder-expand-btn${expandedFolders[subfolder.id] ? ' expanded' : ''}`}
                                                                 onClick={(e) => { e.stopPropagation(); toggleFolder(subfolder.id, e); }}
                                                             >
-                                                                {expandedFolders[subfolder.id] ? 'v' : '>'}
+                                                                <span className="material-symbols-outlined">keyboard_arrow_right</span>
                                                             </button>
                                                         )}
-                                                        <img 
-                                                            src={useFlyout ? closedFolderIcon : (expandedFolders[subfolder.id] ? openFolderIcon : closedFolderIcon)} 
-                                                            alt="subfolder" 
-                                                            className="folder-icon"
-                                                            style={{ width: '14px', height: '14px' }}
+                                                        <SidebarFolderIcon
+                                                            expanded={!!expandedFolders[subfolder.id]}
+                                                            size={14}
+                                                            className="folder-icon folder-icon-filled"
                                                         />
                                                         <span className="folder-name" title={subfolder.name}>
                                                             {subfolder.name.length > 10 ? subfolder.name.slice(0, 7) + '...' : subfolder.name}
@@ -384,6 +383,7 @@ const Sidebar = ({
                                         {folder.items && folder.items.length > 0 && renderFolderItems(folder)}
                                     </div>
                                 )}
+                                {index < visibleFolders.length - 1 && <div className="folder-separator" />}
                             </React.Fragment>
                         ))}
                         

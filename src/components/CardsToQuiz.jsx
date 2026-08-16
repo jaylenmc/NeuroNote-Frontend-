@@ -173,18 +173,18 @@ const CardsToQuiz = ({ reviewedCards, onBack }) => {
             </button>
           </div>
           <div className="quiz-take-navbar-center-fixed">
-                          <div className="quiz-take-progress-container">
-                <div className="quiz-take-progress-bar">
-                  <div 
-                    className="quiz-take-progress-fill" 
-                    style={{ width: `${((currentResultIndex + 1) / quizResults.length) * 100}%` }}
-                  />
-                </div>
-                <span className="quiz-take-questions-left">{currentResultIndex + 1}/{quizResults.length}</span>
+            <div className="quiz-take-navbar-title">Quiz Results</div>
+            <div className="quiz-take-progress-container">
+              <div className="quiz-take-progress-bar">
+                <div 
+                  className="quiz-take-progress-fill" 
+                  style={{ width: `${((currentResultIndex + 1) / quizResults.length) * 100}%` }}
+                />
               </div>
+            </div>
           </div>
           <div className="quiz-take-navbar-right">
-            <div className="quiz-take-navbar-title">Quiz Results</div>
+            <span className="quiz-take-navbar-total">{quizResults.length} {quizResults.length === 1 ? 'question' : 'questions'}</span>
           </div>
         </nav>
 

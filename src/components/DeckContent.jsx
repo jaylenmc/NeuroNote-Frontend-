@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiEdit2, FiTrash2, FiPlus, FiSearch, FiStar, FiClock, FiTag, FiArrowLeft, FiX, FiFilter, FiCheck, FiZap, FiEdit3 } from 'react-icons/fi';
-import { Book } from 'lucide-react';
 import './DeckContent.css';
 import { formatDateForDisplay, formatDateTimeForDisplay, convertLocalDateToBackend } from '../utils/dateUtils';
 import api from '../api/axios';
@@ -56,6 +55,28 @@ export default function DeckContent() {
   const [generating, setGenerating] = useState(false);
   const [showClaudeGenerator, setShowClaudeGenerator] = useState(false);
   const generatedInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!showClaudeGenerator) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setShowClaudeGenerator(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [showClaudeGenerator]);
+
+  useEffect(() => {
+    if (!showClaudeGenerator) return;
+    const t = requestAnimationFrame(() => {
+      generatedInputRef.current?.focus();
+    });
+    return () => cancelAnimationFrame(t);
+  }, [showClaudeGenerator]);
   
   const [savedGenerated, setSavedGenerated] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -547,46 +568,27 @@ export default function DeckContent() {
      <div className="main-content-header">
            <button className="deck-back-button" onClick={() => navigate('/study-room/decks')}><FiArrowLeft /> Back</button>
           
-          {/* Stats Bar - In the middle of header */}
-          <div className="deck-stats-bar">
-            <div className="stat-inline">
-              <span className="stat-piece stat-review"><span className="stat-emoji">⏱</span> <span className="stat-key">Avg. Review:</span> <span className="stat-val">3.2s</span></span>
-              <span className="stat-sep">|</span>
-              <span className="stat-piece stat-cards"><span className="stat-emoji">🃏</span> <span className="stat-key">Cards Due:</span> <span className="stat-val">5</span></span>
-              <span className="stat-sep">|</span>
-              {cards.length > 0 && deck && (() => {
-                const total = cards.length;
-                const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
-                return (
-                  <span className="stat-piece stat-mastered"><span className="stat-emoji">🌱</span> <span className="stat-key">Mastered:</span> <span className="stat-val">{mastered}/{total}</span></span>
-                );
-              })()}
-              <span className="stat-sep">|</span>
-              <span className="stat-piece stat-next"><span className="stat-emoji">⏰</span> <span className="stat-key">Next Due:</span> <span className="stat-val">2h 15m</span></span>
-            </div>
-          </div>
-          
           <button className="add-card-btn" onClick={() => setShowAdd(true)} disabled={!deck}><FiPlus /> Add New Card</button>
         </div>
       <div className="deck-content-page">
-        <div className="deck-header">
-          <div className="deck-header-content">
+        <div className="deck-content-study-header">
+          <div className="deck-content-study-header-content">
             {/* Left Side (Content Info) */}
             <div className="deck-info-section">
-              <div className="deck-header-info">
+              <div className="deck-content-study-header-info">
                 <div className="deck-info-left">
                   <div className="deck-title-section">
                     <div className="deck-title-with-icon">
                       <div className="deck-title-left">
-                        <Book className="deck-emoji" />
-                        <h1 className="deck-title" data-full-title={deck?.title || 'Deck'}>{deck?.title || 'Deck'}</h1>
+                        <span className="material-symbols-outlined deck-emoji">stacks</span>
+                        <h1 className="deck-content-deck-title" data-full-title={deck?.title || 'Deck'}>
+                          {deck?.title || 'Deck'}
+                        </h1>
                       </div>
                     </div>
-                    <span className="deck-subject-badge">{deck?.subject || 'No subject'}</span>
-                    <div className="deck-last-updated">Last updated 2 days ago</div>
                     <div className="deck-title-actions">
                       <button 
-                        className="deck-header-btn" 
+                        className="deck-content-study-header-btn" 
                         title="Edit Deck" 
                         disabled={!deck}
                         onClick={() => {
@@ -601,7 +603,7 @@ export default function DeckContent() {
                         Edit Deck
                       </button>
                       <button 
-                        className="deck-header-btn deck-delete-btn" 
+                        className="deck-content-study-header-btn deck-content-study-delete-btn" 
                         title="Delete Deck" 
                         disabled={!deck}
                         onClick={handleDeleteDeck}
@@ -613,86 +615,9 @@ export default function DeckContent() {
                   </div>
                 </div>
               </div>
-
-              
             </div>
-
-            {/* Right Side (Progress circle) */}
-            {cards.length > 0 && deck && (() => {
-              const total = cards.length;
-              const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
-              // Use the mastery_progress from the backend API response
-              const masteredPct = Math.round(deck.mastery_progress || 0);
-              const circumference = 2 * Math.PI * 60; // radius of 60px
-              const strokeDasharray = circumference;
-              const strokeDashoffset = circumference - (masteredPct / 100) * circumference;
-              
-              return (
-                <div className="deck-info-right">
-                  <div className="mastery-progress-container">
-                    <div className="mastery-progress-header">
-                      <div className="mastery-progress-label">Mastery Progress</div>
-                    </div>
-                    <div className="circular-progress-wrapper">
-                      <div className="circular-progress">
-                        <svg className="circular-progress-svg" width="160" height="160">
-                          {/* Background circle */}
-                          <circle
-                            className="circular-progress-bg"
-                            cx="80"
-                            cy="80"
-                            r="60"
-                            fill="none"
-                            stroke="rgba(255, 255, 255, 0.1)"
-                            strokeWidth="8"
-                          />
-                          {/* Progress circle */}
-                          <circle
-                            className="circular-progress-fill"
-                            cx="80"
-                            cy="80"
-                            r="60"
-                            fill="none"
-                            stroke="#7c3aed"
-                            strokeWidth="8"
-                            strokeLinecap="round"
-                            strokeDasharray={strokeDasharray}
-                            strokeDashoffset={strokeDashoffset}
-                            transform="rotate(-90 80 80)"
-                          />
-                        </svg>
-                        <div className="circular-progress-text">
-                          <div className="circular-progress-percentage">{masteredPct}%</div>
-                          <div className="circular-progress-label">Mastered</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Mastery Stats - Under Progress Bar */}
-                    {cards.length > 0 && deck && (() => {
-                      const total = cards.length;
-                      const mastered = cards.filter(c => c.learning_status === 'mstrd').length;
-                      
-                      return (
-                        <div className="mastery-stats">
-                          <div className="mastery-stat">
-                            <span>Mastered:</span>
-                            <span className="mastery-stat-value">{mastered}</span>
-                          </div>
-                          <div className="mastery-stat">
-                            <span>Total:</span>
-                            <span className="mastery-stat-value">{total}</span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              );
-            })()}
           </div>
         </div>
-        
         <div className="deck-search-filter">
           <div className="deck-search-bar">
             <input
@@ -740,56 +665,95 @@ export default function DeckContent() {
             </div>
           </div>
           <button 
-            className="claude-toggle-btn"
-            onClick={() => setShowClaudeGenerator(!showClaudeGenerator)}
-            title={showClaudeGenerator ? "Hide Claude Generator" : "Show Claude Generator"}
+            type="button"
+            className={`claude-toggle-btn${showClaudeGenerator ? ' active' : ''}`}
+            onClick={() => setShowClaudeGenerator(true)}
+            title="Open AI flashcard generator"
           >
             <FiZap size={16} />
-            {showClaudeGenerator ? "Close" : "Generate"}
+            Generate
           </button>
         </div>
-        <div className={`claude-flashcard-generator ${!showClaudeGenerator ? 'hidden' : ''}`}>
-          <h3 className="claude-generator-title">Generate Flashcards</h3>
-          <textarea
-            ref={generatedInputRef}
-            value={generatedPrompt}
-            onChange={e => setGeneratedPrompt(e.target.value)}
-            placeholder="Enter a topic, chapter, or concept to generate flashcards..."
-            rows={3}
-            className="claude-generator-textarea"
-          />
-          <button
-            className="claude-generator-btn"
-            onClick={handleGenerateFlashcards}
-            disabled={generating || !generatedPrompt.trim()}
-            style={{ display: generatedCards.length > 0 && !savedGenerated ? 'none' : undefined }}
+        {showClaudeGenerator && (
+          <div
+            className="claude-generator-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="claude-generator-modal-title"
+            onClick={() => setShowClaudeGenerator(false)}
           >
-            {generating ? 'Generating...' : 'Generate Flashcards'}
-          </button>
-          {error && <div className="claude-generator-error">{error}</div>}
-          {generatedCards.length > 0 && !savedGenerated && (
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-              <button className="submit-button" style={{ background: '#7c83fd', color: '#fff', border: 'none' }} onClick={() => {
-                setCards([...generatedCards.map(card => ({
-                  ...card,
-                  question: card.front || card.question,
-                  answer: card.back || card.answer
-                })), ...cards]);
-                setGeneratedCards([]);
-                setSavedGenerated(true);
-                setGeneratedPrompt('');
-              }}>
-                Save
-              </button>
-              <button className="cancel-button" onClick={() => {
-                setGeneratedCards([]);
-                setSavedGenerated(false);
-              }}>
-                Cancel
-              </button>
+            <div
+              className="claude-generator-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="claude-generator-modal-header">
+                <h3 id="claude-generator-modal-title" className="claude-generator-title">
+                  Generate Flashcards
+                </h3>
+                <button
+                  type="button"
+                  className="claude-generator-modal-close"
+                  onClick={() => setShowClaudeGenerator(false)}
+                  aria-label="Close"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+              <div className="claude-flashcard-generator claude-flashcard-generator--modal">
+                <textarea
+                  ref={generatedInputRef}
+                  value={generatedPrompt}
+                  onChange={e => setGeneratedPrompt(e.target.value)}
+                  placeholder="Enter a topic, chapter, or concept to generate flashcards..."
+                  rows={4}
+                  className="claude-generator-textarea"
+                />
+                <button
+                  type="button"
+                  className="claude-generator-btn"
+                  onClick={handleGenerateFlashcards}
+                  disabled={generating || !generatedPrompt.trim()}
+                  style={{ display: generatedCards.length > 0 && !savedGenerated ? 'none' : undefined }}
+                >
+                  {generating ? 'Generating...' : 'Generate Flashcards'}
+                </button>
+                {error && <div className="claude-generator-error">{error}</div>}
+                {generatedCards.length > 0 && !savedGenerated && (
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                    <button
+                      type="button"
+                      className="submit-button"
+                      style={{ background: '#7c83fd', color: '#fff', border: 'none' }}
+                      onClick={() => {
+                        setCards([...generatedCards.map(card => ({
+                          ...card,
+                          question: card.front || card.question,
+                          answer: card.back || card.answer
+                        })), ...cards]);
+                        setGeneratedCards([]);
+                        setSavedGenerated(true);
+                        setGeneratedPrompt('');
+                        setShowClaudeGenerator(false);
+                      }}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className="cancel-button"
+                      onClick={() => {
+                        setGeneratedCards([]);
+                        setSavedGenerated(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         {cards.length === 0 && generatedCards.length === 0 && (
           <div className="empty-state">
             <div className="empty-state-message">

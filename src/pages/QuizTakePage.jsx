@@ -1,12 +1,22 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { FiArrowLeft, FiChevronRight, FiEdit3, FiSmile, FiMeh, FiFrown, FiClock, FiCheckCircle, FiXCircle, FiChevronLeft } from 'react-icons/fi';
 import './QuizTakePage.css';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../components/ui/tooltip';
 
 const QuizTakePage = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state || {};
+  const isTimed = Boolean(locationState.timed && locationState.timeLimitMinutes > 0);
+  const timeLimitMinutes = locationState.timeLimitMinutes || 10;
   const [quizTitle, setQuizTitle] = useState('');
   const [questions, setQuestions] = useState([]);
   const [activeQuestion, setActiveQuestion] = useState(0);
@@ -29,15 +39,27 @@ const QuizTakePage = () => {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [currentNote, setCurrentNote] = useState('');
   const [showConfidenceMeter, setShowConfidenceMeter] = useState(false);
-  const [paceProgress, setPaceProgress] = useState(0);
   const [visitedQuestions, setVisitedQuestions] = useState(new Set()); // Track visited questions
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [cardDisplaySeconds, setCardDisplaySeconds] = useState(0); // total time on current card (resumes when revisiting)
+  const [overallElapsedSeconds, setOverallElapsedSeconds] = useState(0);
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(() =>
+    isTimed ? Math.max(60, Math.min(7200, (timeLimitMinutes || 10) * 60)) : null
+  );
   
   const idleTimeoutRef = useRef(null);
+  const timeUpCalledRef = useRef(false);
+  const countdownIntervalRef = useRef(null);
   const ambientIntervalRef = useRef(null);
+  const cardStartTimeRef = useRef(Date.now());
+  const cardBaseSecondsRef = useRef(0); // accumulated seconds for current card from previous visits
+  const cardTimerIntervalRef = useRef(null);
+  const perCardSecondsRef = useRef({}); // questionId -> total seconds (this session)
+  const prevActiveQuestionRef = useRef(null);
+  const overallStartTimeRef = useRef(null);
+  const overallTimerIntervalRef = useRef(null);
+  const quizSessionKeyRef = useRef(null); // for localStorage key when saving after answer
   const [flipExplanation, setFlipExplanation] = useState(false);
   const correctOptionRef = useRef(null);
-  const tooltipTimeout = useRef();
 
   // Detect review mode by checking if the path ends with /review
   const reviewMode = window.location.pathname.endsWith('/review');
@@ -63,11 +85,6 @@ const QuizTakePage = () => {
       setAmbientPulse(prev => (prev + 1) % 100);
     }, 100);
 
-    // Pace progress simulation
-    const paceInterval = setInterval(() => {
-      setPaceProgress(prev => Math.min(prev + 0.5, 100));
-    }, 1000);
-
     // Track user activity
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
     events.forEach(event => document.addEventListener(event, handleActivity));
@@ -78,9 +95,54 @@ const QuizTakePage = () => {
       events.forEach(event => document.removeEventListener(event, handleActivity));
       if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
       if (ambientIntervalRef.current) clearInterval(ambientIntervalRef.current);
-      clearInterval(paceInterval);
     };
   }, []);
+
+  // Per-card timer: save time for previous card, resume time for new card (including revisits)
+  useEffect(() => {
+    const questionList = reviewMode ? userAnswersData : questions;
+    const prevIdx = prevActiveQuestionRef.current;
+    const prevQuestion = questionList?.[prevIdx];
+    const prevQuestionId = prevQuestion?.id;
+
+    // Save accumulated time for the card we're leaving
+    if (prevQuestionId != null) {
+      const currentElapsed = Math.floor((Date.now() - cardStartTimeRef.current) / 1000);
+      const total = cardBaseSecondsRef.current + currentElapsed;
+      perCardSecondsRef.current[prevQuestionId] = total;
+    }
+
+    // Load base time for the card we're entering (resumes when revisiting)
+    const currentQuestionId = currentQuestion?.id;
+    cardBaseSecondsRef.current = currentQuestionId != null ? (perCardSecondsRef.current[currentQuestionId] ?? 0) : 0;
+    cardStartTimeRef.current = Date.now();
+    setCardDisplaySeconds(cardBaseSecondsRef.current);
+    prevActiveQuestionRef.current = activeQuestion;
+
+    if (cardTimerIntervalRef.current) clearInterval(cardTimerIntervalRef.current);
+    cardTimerIntervalRef.current = setInterval(() => {
+      setCardDisplaySeconds(cardBaseSecondsRef.current + Math.floor((Date.now() - cardStartTimeRef.current) / 1000));
+    }, 1000);
+    return () => {
+      if (cardTimerIntervalRef.current) clearInterval(cardTimerIntervalRef.current);
+    };
+  }, [activeQuestion, reviewMode, questions, userAnswersData, currentQuestion?.id]);
+
+  // Overall test timer (starts when quiz is ready, never resets)
+  useEffect(() => {
+    if (loading || (!reviewMode && questions.length === 0) || (reviewMode && !userAnswersData?.length)) return;
+    if (overallStartTimeRef.current == null) {
+      overallStartTimeRef.current = Date.now();
+      quizSessionKeyRef.current = `quiz-card-times-${quizId}-${overallStartTimeRef.current}`;
+    }
+    if (overallTimerIntervalRef.current) clearInterval(overallTimerIntervalRef.current);
+    overallTimerIntervalRef.current = setInterval(() => {
+      setOverallElapsedSeconds(Math.floor((Date.now() - overallStartTimeRef.current) / 1000));
+    }, 1000);
+    return () => {
+      if (overallTimerIntervalRef.current) clearInterval(overallTimerIntervalRef.current);
+    };
+  }, [loading, reviewMode, questions.length, userAnswersData?.length]);
 
   // Question transition effect
   useEffect(() => {
@@ -203,6 +265,42 @@ const QuizTakePage = () => {
   const totalQuestions = reviewMode ? (userAnswersData?.length || 0) : questions.length;
   const currentConfidence = confidence[currentQuestion?.id];
 
+  const quizAnsweredProgressPercent = useMemo(() => {
+    if (reviewMode || totalQuestions === 0) return 0;
+    const qType = (t) => (t && String(t).toUpperCase()) || '';
+    const answeredCount = questions.filter((q) => {
+      const v = answers[q.id];
+      if (v === undefined || v === null) return false;
+      if (qType(q.question_type) === 'WR') {
+        return String(v).trim().length > 0;
+      }
+      return true;
+    }).length;
+    return (answeredCount / totalQuestions) * 100;
+  }, [reviewMode, totalQuestions, questions, answers]);
+
+  const formatNavbarTimer = (totalSeconds) => {
+    if (totalSeconds < 60) return `${totalSeconds}s`;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / 3600);
+    if (totalSeconds < 3600) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+    if (hours === 1) return seconds > 0 ? `1hr ${minutes}m ${seconds}s` : (minutes > 0 ? `1hr ${minutes}m` : '1hr');
+    const hrsLabel = hours + 'hrs';
+    return minutes > 0 || seconds > 0 ? `${hrsLabel} ${minutes}m${seconds > 0 ? ` ${seconds}s` : ''}` : hrsLabel;
+  };
+
+  const formatCountdownRemaining = (remainingSeconds) => {
+    const h = Math.floor(remainingSeconds / 3600);
+    const m = Math.floor((remainingSeconds % 3600) / 60);
+    const s = remainingSeconds % 60;
+    const parts = [];
+    if (h > 0) parts.push(h === 1 ? '1hr' : `${h}hrs`);
+    if (m > 0) parts.push(m === 1 ? '1min' : `${m}mins`);
+    if (s > 0 && h === 0) parts.push(s === 1 ? '1s' : `${s}s`);
+    return (parts.length ? parts.join(' ') : '0s') + ' left';
+  };
+
   // Check if there are any visited but unanswered questions
   const hasUnansweredVisitedQuestions = !reviewMode && questions.length > 0 && 
     questions.some(q => visitedQuestions.has(q.id) && !answers[q.id]);
@@ -234,16 +332,27 @@ const QuizTakePage = () => {
     );
   };
 
+  // Flush current card time and persist to localStorage when user answers this card
+  const flushCardTimeAndSave = (questionId) => {
+    const currentElapsed = Math.floor((Date.now() - cardStartTimeRef.current) / 1000);
+    const total = cardBaseSecondsRef.current + currentElapsed;
+    perCardSecondsRef.current[questionId] = total;
+    cardBaseSecondsRef.current = total;
+    cardStartTimeRef.current = Date.now();
+    const key = quizSessionKeyRef.current;
+    if (key) try { localStorage.setItem(key, JSON.stringify(perCardSecondsRef.current)); } catch (_) {}
+  };
+
   const handleSelect = (qIdx, oIdx) => {
     const q = questions[qIdx];
     const selectedAnswerId = q.answerIds[oIdx];
+    flushCardTimeAndSave(q.id);
     setAnswers(a => ({ ...a, [q.id]: selectedAnswerId }));
   };
 
   const handleWrittenChange = (qIdx, value) => {
     const q = questions[qIdx];
-    // For written answers, we'll need to handle this differently
-    // For now, we'll store the text value and handle it during submission
+    flushCardTimeAndSave(q.id);
     setAnswers(a => ({ ...a, [q.id]: value }));
   };
 
@@ -253,18 +362,21 @@ const QuizTakePage = () => {
     setSubmitting(true);
     
     try {
-      // Prepare qa_ids for the new backend format
+      // Prepare qa_ids for the new backend format: { questionId: answerId }
       const qa_ids = {};
+      const qType = (t) => (t && String(t).toUpperCase()) || '';
       questions.forEach((question) => {
         const userAnswer = answers[question.id];
-        if (userAnswer !== undefined) {
-          if (question.question_type === 'MC') {
-            // For MC, userAnswer is already the answerId
-            qa_ids[question.id] = userAnswer;
-          } else if (question.question_type === 'WR') {
-            // For written answers, we need to find or create an answer
-            // For now, we'll skip written answers as they need special handling
-            console.log('Written answer handling not implemented yet');
+        const type = qType(question.question_type);
+        if (userAnswer === undefined) return;
+        if (type === 'MC') {
+          // For MC, userAnswer is already the answerId
+          qa_ids[question.id] = userAnswer;
+        } else if (type === 'WR') {
+          // For WR, backend expects an answer id; use the expected answer's id when user provided text
+          const answerStr = userAnswer != null ? String(userAnswer).trim() : '';
+          if (answerStr && question.answerIds && question.answerIds.length > 0) {
+            qa_ids[question.id] = question.answerIds[0];
           }
         }
       });
@@ -273,7 +385,8 @@ const QuizTakePage = () => {
       const token = sessionStorage.getItem('jwt_token');
       const response = await api.post('/test/review/', {
         quiz_id: parseInt(quizId),
-        qa_ids: qa_ids
+        qa_ids,
+        time_taken: overallElapsedSeconds
       }, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -284,14 +397,15 @@ const QuizTakePage = () => {
 
       console.log('Quiz submitted successfully:', response.data);
       
-      // Navigate to results page with score data
+      // Navigate to results page with score data and time taken
       navigate(`/quiz/${quizId}/results`, {
         state: {
           score: response.data.Score,
           totalQuestions: questions.length,
           questions,
           userAnswers: answers,
-          quizTitle
+          quizTitle,
+          timeTakenSeconds: overallElapsedSeconds
         }
       });
     } catch (err) {
@@ -300,6 +414,31 @@ const QuizTakePage = () => {
       setSubmitting(false);
     }
   };
+
+  // Timed quiz: countdown and auto-submit when time runs out
+  useEffect(() => {
+    if (reviewMode || !isTimed || timeRemainingSeconds === null || loading || questions.length === 0) {
+      return;
+    }
+    if (timeRemainingSeconds <= 0) {
+      if (!timeUpCalledRef.current) {
+        timeUpCalledRef.current = true;
+        handleSubmit();
+      }
+      return;
+    }
+    const id = setInterval(() => {
+      setTimeRemainingSeconds(prev => {
+        if (prev === null || prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+    countdownIntervalRef.current = id;
+    return () => {
+      clearInterval(id);
+      countdownIntervalRef.current = null;
+    };
+  }, [reviewMode, isTimed, loading, questions.length, timeRemainingSeconds]);
 
   useEffect(() => {
     if (correctOptionRef.current && currentQuestion) {
@@ -312,14 +451,6 @@ const QuizTakePage = () => {
       }
     }
   }, [currentQuestion, activeQuestion]);
-
-  const handleTooltipEnter = () => {
-    clearTimeout(tooltipTimeout.current);
-    setShowTooltip(true);
-  };
-  const handleTooltipLeave = () => {
-    tooltipTimeout.current = setTimeout(() => setShowTooltip(false), 250);
-  };
 
   if (loading) return <div className="quiz-review-bg"><div className="loading">Loading quiz...</div></div>;
   if (error) return <div className="quiz-review-bg"><div className="error-message">{error}</div></div>;
@@ -403,16 +534,10 @@ const QuizTakePage = () => {
           <div className="quiz-review-question">{currentQuestion?.question_input}</div>
           <div className="quiz-review-subtext">Question {activeQuestion + 1} of {totalQuestions}</div>
           
-          {/* Pace indicator */}
+          {/* Time spent on card */}
           <div className="quiz-review-pace-indicator">
             <FiClock />
-            <div className="pace-bar">
-              <div 
-                className="pace-fill" 
-                style={{ width: `${paceProgress}%` }}
-              />
-            </div>
-            <span>Pace: {Math.round(paceProgress)}%</span>
+            <span>Time spent on card: {Math.floor(cardDisplaySeconds / 60)}:{(cardDisplaySeconds % 60).toString().padStart(2, '0')}</span>
           </div>
           
           <div className="quiz-review-options">
@@ -575,18 +700,25 @@ const QuizTakePage = () => {
           </button>
         </div>
         <div className="quiz-take-navbar-center-fixed">
+          <div className="quiz-take-navbar-title">{quizTitle}</div>
           <div className="quiz-take-progress-container">
             <div className="quiz-take-progress-bar">
               <div 
                 className="quiz-take-progress-fill" 
-                style={{ width: `${((activeQuestion + 1) / totalQuestions) * 100}%` }}
+                style={{ width: `${quizAnsweredProgressPercent}%` }}
               />
             </div>
-            <span className="quiz-take-questions-left">{activeQuestion + 1}/{totalQuestions}</span>
           </div>
         </div>
         <div className="quiz-take-navbar-right">
-          <div className="quiz-take-navbar-title">{quizTitle}</div>
+          <span className="quiz-take-navbar-total">{totalQuestions} {totalQuestions === 1 ? 'question' : 'questions'}</span>
+          {isTimed && timeRemainingSeconds !== null ? (
+            <span className={`quiz-take-navbar-timer quiz-take-navbar-countdown${timeRemainingSeconds <= 60 ? ' quiz-take-navbar-countdown-low' : ''}`}>
+              {formatCountdownRemaining(timeRemainingSeconds)}
+            </span>
+          ) : (
+            <span className="quiz-take-navbar-timer">{formatNavbarTimer(overallElapsedSeconds)}</span>
+          )}
         </div>
       </nav>
 
@@ -595,23 +727,18 @@ const QuizTakePage = () => {
         <div className="quiz-take-question-card">
           {/* Warning indicator if there are visited but unanswered questions */}
           {hasUnansweredVisitedQuestions && (
-            <div
-              className="quiz-take-warning-indicator"
-              onMouseEnter={handleTooltipEnter}
-              onMouseLeave={handleTooltipLeave}
-            >
-              <span>!</span>
-              <div
-                className={`quiz-take-tooltip${showTooltip ? ' visible' : ''}`}
-                onMouseEnter={handleTooltipEnter}
-                onMouseLeave={handleTooltipLeave}
-              >
-                <div className="quiz-take-tooltip-arrow"></div>
-                <div className="quiz-take-tooltip-content">
+            <TooltipProvider delayDuration={0} skipDelayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="quiz-take-warning-indicator" tabIndex={0} role="button">
+                    <span>!</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center" sideOffset={8}>
                   {getUnansweredQuestionsList()}
-                </div>
-              </div>
-            </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           
           <div className="quiz-take-question-header">Question {activeQuestion + 1}</div>
@@ -620,8 +747,8 @@ const QuizTakePage = () => {
             </div>
             
           <div className="quiz-take-pace-display">
-            <span className="quiz-take-pace-label">Pace:</span>
-            <span className="quiz-take-pace-number">{Math.round(paceProgress)}</span>
+            <span className="quiz-take-pace-label">Time spent on card:</span>
+            <span className="quiz-take-pace-number">{Math.floor(cardDisplaySeconds / 60)}:{(cardDisplaySeconds % 60).toString().padStart(2, '0')}</span>
           </div>
           
           <div className="quiz-take-options-list">
@@ -652,8 +779,19 @@ const QuizTakePage = () => {
                     </button>
                   );
               })
+            ) : (currentQuestion && String(currentQuestion.question_type || '').toUpperCase() === 'WR' ? (
+              // Test mode - written question: textarea for user to type answer
+              <div className="quiz-take-option" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                <textarea
+                  placeholder="Type your answer..."
+                  value={answers[currentQuestion.id] != null ? String(answers[currentQuestion.id]) : ''}
+                  onChange={(e) => handleWrittenChange(activeQuestion, e.target.value)}
+                  rows={4}
+                  style={{ width: '100%', background: 'transparent', border: 'none', color: 'inherit', outline: 'none', resize: 'vertical', fontFamily: 'inherit', fontSize: '1rem', padding: 0 }}
+                />
+              </div>
             ) : (
-              // Test mode - show interactive questions
+              // Test mode - multiple choice: show options as buttons
               currentQuestion?.options?.map((option, oIdx) => {
                     const selectedAnswerId = currentQuestion.answerIds[oIdx];
                 const isSelected = answers[currentQuestion.id] === selectedAnswerId;
@@ -674,7 +812,7 @@ const QuizTakePage = () => {
                       </button>
                     );
               })
-            )}
+            ))}
           </div>
         </div>
       </div>

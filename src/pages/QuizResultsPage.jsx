@@ -9,7 +9,7 @@ const QuizResultsPage = () => {
   const { quizId } = useParams();
   
   // Get results data from navigation state
-  const { score, totalQuestions, questions, userAnswers, quizTitle } = location.state || {};
+  const { score, totalQuestions, questions, userAnswers, quizTitle, timeTakenSeconds } = location.state || {};
 
   // Calculate correct answers from score
   const correctAnswers = Math.round((score / 100) * totalQuestions);
@@ -39,18 +39,31 @@ const QuizResultsPage = () => {
     return 'Keep practicing!';
   };
 
+  const formatTimeTaken = (totalSeconds) => {
+    if (totalSeconds == null || totalSeconds < 0) return null;
+    if (totalSeconds < 60) return `${totalSeconds}s`;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / 3600);
+    if (totalSeconds < 3600) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+    if (hours === 1) return minutes > 0 ? `1hr ${minutes}m` : '1hr';
+    return minutes > 0 ? `${hours}hrs ${minutes}m` : `${hours}hrs`;
+  };
+
   const getWrongQuestions = () => {
     if (!questions || !userAnswers) return [];
-    
+    const qType = (t) => (t && String(t).toUpperCase()) || '';
     return questions.filter((question) => {
       const userAnswer = userAnswers[question.id];
-      if (question.question_type === 'MC') {
+      const type = qType(question.question_type);
+      if (type === 'MC') {
         // For MC, check if user selected the correct answer
-        const correctAnswerId = question.answerIds[question.correctIdx];
+        const correctAnswerId = question.answerIds?.[question.correctIdx];
         return userAnswer !== correctAnswerId;
       }
-      // For WR, consider wrong if no answer provided
-      return !userAnswer || !userAnswer.trim();
+      // For WR, consider wrong if no answer provided (userAnswer may be string or other)
+      const answerStr = userAnswer != null ? String(userAnswer) : '';
+      return !answerStr.trim();
     });
   };
 
@@ -97,6 +110,12 @@ const QuizResultsPage = () => {
               <div className="quiz-results-score-details">
                 You got {correctAnswers} out of {totalQuestions} questions correct
               </div>
+              {timeTakenSeconds != null && formatTimeTaken(timeTakenSeconds) && (
+                <div className="quiz-results-time-taken">
+                  <span className="material-symbols-outlined quiz-results-time-icon">pace</span>
+                  <span>Completed in: {formatTimeTaken(timeTakenSeconds)}</span>
+                </div>
+              )}
             </div>
 
             {/* Performance Breakdown */}
@@ -124,30 +143,41 @@ const QuizResultsPage = () => {
               </div>
             </div>
 
-            {/* Wrong Questions Summary */}
-            {wrongQuestions.length > 0 && (
-              <div className="quiz-results-review-section">
-                <h3 className="quiz-results-section-title">
-                  Questions to Review ({wrongQuestions.length})
-                </h3>
-                <div className="quiz-results-review-card">
-                  <div className="quiz-results-review-message">
-                    You missed {wrongQuestions.length} question{wrongQuestions.length !== 1 ? 's' : ''}
-                  </div>
-                  <div className="quiz-results-review-subtext">
-                    Review these questions to improve your understanding
-                  </div>
-                  <div className="quiz-results-missed-questions">
-                    {wrongQuestions.map((question, index) => (
-                      <div key={question.id} className="quiz-results-missed-question-item">
-                        <span className="quiz-results-question-number">Q{questions.indexOf(question) + 1}:</span>
-                        <span className="quiz-results-question-text">{question.prompt}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* Wrong Questions Summary - always show so section is visible after generated quiz */}
+            <div className="quiz-results-review-section">
+              <h3 className="quiz-results-section-title">
+                Questions to Review ({wrongQuestions.length})
+              </h3>
+              <div className="quiz-results-review-card">
+                {wrongQuestions.length > 0 ? (
+                  <>
+                    <div className="quiz-results-review-message">
+                      You missed {wrongQuestions.length} question{wrongQuestions.length !== 1 ? 's' : ''}
+                    </div>
+                    <div className="quiz-results-review-subtext">
+                      Review these questions to improve your understanding
+                    </div>
+                    <div className="quiz-results-missed-questions">
+                      {wrongQuestions.map((question) => (
+                        <div key={question.id} className="quiz-results-missed-question-item">
+                          <span className="quiz-results-question-number">Q{questions.indexOf(question) + 1}:</span>
+                          <span className="quiz-results-question-text">{question.prompt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="quiz-results-review-message" style={{ color: '#4ecb7b' }}>
+                      You got them all!
+                    </div>
+                    <div className="quiz-results-review-subtext">
+                      No questions to review this time
+                    </div>
+                  </>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Action Buttons */}
             <div className="quiz-results-action-buttons">

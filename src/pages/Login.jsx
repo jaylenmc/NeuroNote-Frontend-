@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../auth/AuthContext';
+import { credentialAuth, normalizeAuthResponse } from '../api/authApi';
 import './Auth.css';
 
 const Login = () => {
@@ -18,16 +19,14 @@ const Login = () => {
         setError('');
         setIsLoading(true);
 
-        // Check if user is the owner
-        const ownerEmail = 'jayzilla195@gmail.com';
-        if (email.toLowerCase() !== ownerEmail.toLowerCase()) {
-            // Non-owner: redirect to notification signup page
-            navigate('/notification-signup');
-            return;
-        }
-
         try {
-            await login(email, password);
+            const data = await credentialAuth('login', email, password);
+            if (data?.waitlist) {
+                navigate('/notification-signup');
+                return;
+            }
+            const { user, tokens } = normalizeAuthResponse(data);
+            login(user, tokens);
             navigate('/dashboard');
         } catch (error) {
             setError('Failed to log in. Please check your credentials.');

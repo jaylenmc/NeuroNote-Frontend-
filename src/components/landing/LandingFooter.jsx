@@ -18,7 +18,7 @@ function LandingFooter() {
             Join Waitlist
           </Link>
           <p className="landing-footer-about">
-            The operating system for your brain. Built for students, researchers, and lifelong learners.
+            The operating system for your brain. Built for students and lifelong learners.
           </p>
           <div className="landing-footer-social">
             <a href="https://www.tiktok.com/@myneuronote" aria-label="TikTok"><FaTiktok size={20} /></a>

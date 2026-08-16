@@ -1,0 +1,38 @@
+.study-room-pdf-viewer-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  flex: 1;
+  min-height: 0;
+}
+
+.study-room-pdf-viewer-loading,
+.study-room-pdf-viewer-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+  padding: 24px;
+}
+
+.study-room-pdf-viewer-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #7c83fd;
+  border-radius: 50%;
+  animation: study-room-pdf-viewer-spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes study-room-pdf-viewer-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

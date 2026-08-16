@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import { FiAlertCircle, FiClock, FiCalendar, FiStar, FiBook, FiAlertTriangle, FiChevronDown, FiX, FiPlus, FiEye } from 'react-icons/fi';
 import './ReviewWidget.css';
+import { Checkbox } from './ui/checkbox';
 import brainPng from '../assets/brain.png';
 import api from '../api/axios';
 import { formatDateForDisplay, formatDateTimeForDisplay, convertBackendDateToLocal, isBackendDateToday, isBackendDatePast, isBackendDateFuture, isBackendDateTimeDueToday, isBackendDateTimeOverdue, isBackendDateTimeUpcoming, isBackendDateTimeDueNow, isBackendDateTimeLaterToday, isBackendDateTimeDueSoon, getTimeDifference, getOverdueTimeDifference, formatTimeForCardDisplay } from '../utils/dateUtils';
@@ -699,24 +700,27 @@ const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
           </button>
         </div>
         
-        {/* Show due soon toggle for all deck selections */}
-          <div className="review-options">
-            <label className="due-soon-toggle">
-              <input
-                type="checkbox"
+        <div className="review-options">
+          <div className="due-soon-toggle">
+            <div className="due-soon-toggle-row">
+              <Checkbox
+                id="review-include-due-soon"
+                className="due-soon-checkbox"
                 checked={includeDueSoon}
-                onChange={(e) => setIncludeDueSoon(e.target.checked)}
+                onCheckedChange={(v) => setIncludeDueSoon(v === true)}
               />
-              <div className="toggle-content">
-                <span className="toggle-label">
-                  Include "Due Soon" cards ({dueSoonCards} available)
-                </span>
-                <span className="toggle-hint">
-                  Study ahead - may affect memory retention
-                </span>
-              </div>
-            </label>
+              <label
+                htmlFor="review-include-due-soon"
+                className="due-soon-toggle-label cursor-pointer text-sm font-medium text-white/85"
+              >
+                Include &quot;Due Soon&quot; cards ({dueSoonCards} available)
+              </label>
+            </div>
+            <p className="due-soon-toggle-hint text-sm text-white/45">
+              Study ahead — may affect memory retention
+            </p>
           </div>
+        </div>
         
       </div>
     );

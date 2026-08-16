@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+
+- Never inherit style from other css files
+- Always make custom css style for each file
+- Features in the specific jsx file should only use the styles in the corresponding css file
+- With every single named element make the name file specific by prepending the file name before the actual name to avoid inheritance
+- If you see any css style being inherited please remove the inheritance by changing the name to a file specific name, if the css style is lost restore it by rebuilding the style from scratch
