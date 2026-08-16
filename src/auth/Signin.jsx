@@ -59,7 +59,6 @@ function Signin() {
 
     return (
         <div className="signin-page">
-            <Link to="/" className="signin-back">← Back to home</Link>
             <div className="signin-container">
                 <div className="signin-box">
                     <div className="signin-branding">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Zap, Share2, Clock } from 'lucide-react';
+import { Share2, Clock, Search } from 'lucide-react';
 
 function FeatureCard({ title, description, icon, className }) {
   return (
@@ -39,7 +39,7 @@ function LandingFeatures() {
           <FeatureCard
             className="span-2"
             title="Active Recall & Spaced Repetition"
-            description="Our algorithm schedules reviews at the exact moment you're about to forget. This guarantees long-term retention with minimum effort."
+            description="Categorize flashcards into buckets tiering from 1-4 which affects prioritization of flashcards to review in your next study session. Allowing you to study on your time in the most affective way possible."
             icon={<Clock size={24} color="#a78bfa" />}
           />
 
@@ -51,15 +51,10 @@ function LandingFeatures() {
           />
 
           <FeatureCard
-            title="AI Summarization"
-            description="Upload PDFs or lectures. Our AI instantly generates concise summaries and flashcards."
-            icon={<Brain size={24} color="#f472b6" />}
-          />
-
-          <FeatureCard
-            title="Focus Modes"
-            description="Block distractions with built-in Pomodoro timers and ambient soundscapes tailored for deep work."
-            icon={<Zap size={24} color="#facc15" />}
+            className="span-2"
+            title="Research & Synthesis"
+            description="Practice structured web research by crafting precise search queries and receiving AI feedback on their quality. Review the articles, summarize each source, and synthesize your findings into a clear, evidence based conclusion."
+            icon={<Search size={24} color="#34d399" />}
           />
         </div>
       </div>
