@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { normalizeAuthResponse } from './authApi';
 import { useAuth } from '../auth/AuthContext';
+import BrainLoader from '../components/BrainLoader';
 import './OAuthSuccess.css';
 
 function Authentication() {
@@ -69,7 +70,7 @@ function Authentication() {
 
   return (
     <div className="auth-loading-container">
-      <h1 className="auth-loading-title">NEURONOTE</h1>
+      <BrainLoader size={80} label="Loading" />
     </div>
   );
 }

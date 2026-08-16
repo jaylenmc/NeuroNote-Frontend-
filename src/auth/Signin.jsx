@@ -41,6 +41,10 @@ function Signin() {
 
         try {
             const data = await credentialAuth(authMode, email, password);
+            if (data?.waitlist) {
+                navigate('/notification-signup');
+                return;
+            }
             const { user, tokens } = normalizeAuthResponse(data);
             login(user, tokens);
             navigate('/dashboard');

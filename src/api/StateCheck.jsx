@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { completeGoogleAuth } from './authApi';
+import BrainLoader from '../components/BrainLoader';
 import './OAuthSuccess.css';
 
 function StateCheck() {
@@ -44,6 +45,10 @@ function StateCheck() {
     const finishAuth = async () => {
       try {
         const data = await completeGoogleAuth(code);
+        if (data?.waitlist) {
+          navigate('/notification-signup', { replace: true });
+          return;
+        }
         sessionStorage.setItem('pending_auth', JSON.stringify(data));
 
         const callbackUrl = import.meta.env.VITE_FRONTEND_URL || '/auth/callback/';
@@ -61,8 +66,7 @@ function StateCheck() {
 
   return (
     <div className="auth-loading-container">
-      <h1 className="auth-loading-title">NEURONOTE</h1>
-      <p>Completing sign in...</p>
+      <BrainLoader size={80} label="Completing sign in" />
     </div>
   );
 }

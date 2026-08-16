@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../auth/AuthContext';
+import { credentialAuth, normalizeAuthResponse } from '../api/authApi';
 import './Auth.css';
 
 const Register = () => {
@@ -12,7 +13,7 @@ const Register = () => {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { isDarkMode } = useTheme();
-    const { register } = useAuth();
+    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -23,18 +24,16 @@ const Register = () => {
             return;
         }
 
-        // Check if user is the owner
-        const ownerEmail = 'jayzilla195@gmail.com';
-        if (email.toLowerCase() !== ownerEmail.toLowerCase()) {
-            // Non-owner: redirect to notification signup page
-            navigate('/notification-signup');
-            return;
-        }
-
         setIsLoading(true);
 
         try {
-            await register(email, password);
+            const data = await credentialAuth('signup', email, password);
+            if (data?.waitlist) {
+                navigate('/notification-signup');
+                return;
+            }
+            const { user, tokens } = normalizeAuthResponse(data);
+            login(user, tokens);
             navigate('/dashboard');
         } catch (error) {
             setError('Failed to create an account. Please try again.');

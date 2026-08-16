@@ -18,6 +18,9 @@ export const buildGoogleOAuthUrl = (state) => {
   }).toString()}`;
 };
 
+export const isWaitlistAuthResponse = (data) =>
+  Boolean(data?.Message && !data?.jwt_data && !data?.user);
+
 export const completeGoogleAuth = async (code) => {
   const backendUrl = import.meta.env.VITE_BACKEND_DEV_REDIRECT_URI;
   if (!backendUrl) {
@@ -26,9 +29,16 @@ export const completeGoogleAuth = async (code) => {
 
   try {
     const response = await axios.get(backendUrl, { params: { code } });
-    return response.data;
+    const data = response.data;
+    if (isWaitlistAuthResponse(data)) {
+      return { waitlist: true, message: data.Message };
+    }
+    return data;
   } catch (err) {
     const data = err.response?.data;
+    if (isWaitlistAuthResponse(data)) {
+      return { waitlist: true, message: data.Message };
+    }
     const message =
       data?.detail ||
       data?.error ||
@@ -40,7 +50,11 @@ export const completeGoogleAuth = async (code) => {
 
 export const credentialAuth = async (type, email, password) => {
   const response = await api.post(`/auth/auth/?type=${type}`, { email, password });
-  return response.data;
+  const data = response.data;
+  if (isWaitlistAuthResponse(data)) {
+    return { waitlist: true, message: data.Message };
+  }
+  return data;
 };
 
 export const normalizeAuthResponse = (data) => {

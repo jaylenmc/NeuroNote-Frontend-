@@ -38,13 +38,19 @@ import QuizResultsPage from './pages/QuizResultsPage';
 import NightOwlFlashcardsPage from './pages/NightOwlFlashcardsPage';
 import NotesEditorPage from './pages/NotesEditorPage';
 import NotificationSignup from './pages/NotificationSignup';
+import BrainLoader from './components/BrainLoader';
+import './api/OAuthSuccess.css';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="auth-loading-container">
+        <BrainLoader size={80} label="Loading" />
+      </div>
+    );
   }
 
   if (!user) {
