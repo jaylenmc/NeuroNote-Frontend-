@@ -53,7 +53,7 @@ const ChatPage = () => {
 
         try {
             const token = sessionStorage.getItem('jwt_token');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+            const apiUrl = import.meta.env.API_URL || 'http://localhost:8000/api/';
             let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
             // Ensure protocol is included
             if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {

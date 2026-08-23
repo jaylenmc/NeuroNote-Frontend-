@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Get API URL from environment variable and ensure proper format
 const getBaseURL = () => {
-  let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  let apiUrl = import.meta.env.API_URL || 'http://localhost:8000/api';
   
   // Remove trailing slash
   apiUrl = apiUrl.replace(/\/$/, '');

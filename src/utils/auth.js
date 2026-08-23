@@ -3,7 +3,7 @@ import axios from 'axios';
 const OAUTH_STATE_COOKIE = 'oauth_state';
 
 const getApiUrl = () => {
-    let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+    let apiUrl = import.meta.env.API_URL || 'http://localhost:8000/api/';
     apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
     if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
         apiUrl = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')

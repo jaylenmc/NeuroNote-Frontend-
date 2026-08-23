@@ -66,7 +66,7 @@ const StudyGroups = () => {
     if (!newRoomName.trim() || !newRoomSubject.trim()) return;
     const token = sessionStorage.getItem('jwt_token');
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+      const apiUrl = import.meta.env.API_URL || 'http://localhost:8000/api/';
       let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
       // Ensure protocol is included
       if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
@@ -121,7 +121,7 @@ const StudyGroups = () => {
     if (!roomId.trim()) return;
     const token = sessionStorage.getItem('jwt_token');
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+      const apiUrl = import.meta.env.API_URL || 'http://localhost:8000/api/';
       let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
       // Ensure protocol is included
       if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
