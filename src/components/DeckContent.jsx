@@ -5,7 +5,7 @@ import './DeckContent.css';
 import { formatDateForDisplay, formatDateTimeForDisplay, convertLocalDateToBackend } from '../utils/dateUtils';
 import api from '../api/axios';
 
-const API_URL = import.meta.env.API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function DeckContent() {
   const [showBack, setShowBack] = useState(false);

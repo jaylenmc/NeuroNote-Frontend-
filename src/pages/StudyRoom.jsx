@@ -238,7 +238,7 @@ const StudyRoom = () => {
   }, [notesContent]);
 
   useEffect(() => {
-    const apiUrl = import.meta.env.API_URL || 'http://localhost:8000/api/';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
     // Convert HTTP/HTTPS URL to WebSocket URL (ws/wss)
     let wsUrl;
     if (apiUrl.startsWith('https://')) {

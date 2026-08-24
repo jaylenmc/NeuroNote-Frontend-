@@ -2,13 +2,13 @@ import axios from 'axios';
 import api from './axios';
 
 export const buildGoogleOAuthUrl = (state) => {
-  const redirectUri = import.meta.env.FRONTEND_STATE_CHECK;
+  const redirectUri = import.meta.env.VITE_FRONTEND_STATE_CHECK;
   if (!redirectUri) {
     throw new Error('FRONTEND_STATE_CHECK is not configured');
   }
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({
-    client_id: import.meta.env.GOOGLE_CLIENT_ID,
+    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
     response_type: 'code',
     scope: 'openid email',
@@ -22,7 +22,7 @@ export const isWaitlistAuthResponse = (data) =>
   Boolean(data?.Message && !data?.jwt_data && !data?.user);
 
 export const completeGoogleAuth = async (code) => {
-  const backendUrl = import.meta.env.BACKEND_DEV_REDIRECT_URI;
+  const backendUrl = import.meta.env.VITE_BACKEND_DEV_REDIRECT_URI;
   if (!backendUrl) {
     throw new Error('BACKEND_DEV_REDIRECT_URI is not configured');
   }

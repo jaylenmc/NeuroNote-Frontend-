@@ -51,7 +51,7 @@ function StateCheck() {
         }
         sessionStorage.setItem('pending_auth', JSON.stringify(data));
 
-        const callbackUrl = import.meta.env.FRONTEND_URL || '/auth/callback/';
+        const callbackUrl = import.meta.env.VITE_FRONTEND_URL || '/auth/callback/';
         const callbackPath = callbackUrl.startsWith('http')
           ? new URL(callbackUrl).pathname
           : callbackUrl;
