@@ -45,8 +45,11 @@ function StateCheck() {
     const finishAuth = async () => {
       try {
         const data = await completeGoogleAuth(code);
-        if (data?.waitlist) {
-          navigate('/notification-signup', { replace: true });
+        if (typeof data?.waitlist === 'boolean') {
+          navigate('/notification-signup', {
+            replace: true,
+            state: { waitlist: data.waitlist },
+          });
           return;
         }
         sessionStorage.setItem('pending_auth', JSON.stringify(data));

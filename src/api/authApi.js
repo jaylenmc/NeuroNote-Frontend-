@@ -19,7 +19,16 @@ export const buildGoogleOAuthUrl = (state) => {
 };
 
 export const isWaitlistAuthResponse = (data) =>
-  Boolean(data?.Message && !data?.jwt_data && !data?.user);
+  data != null &&
+  typeof data.waitlist === 'boolean' &&
+  Boolean(data.Message) &&
+  !data.jwt_data &&
+  !data.user;
+
+export const toWaitlistResult = (data) => ({
+  waitlist: data.waitlist,
+  message: data.Message,
+});
 
 export const completeGoogleAuth = async (code) => {
   const backendUrl = import.meta.env.VITE_BACKEND_DEV_REDIRECT_URI;
@@ -31,13 +40,13 @@ export const completeGoogleAuth = async (code) => {
     const response = await axios.get(backendUrl, { params: { code } });
     const data = response.data;
     if (isWaitlistAuthResponse(data)) {
-      return { waitlist: true, message: data.Message };
+      return toWaitlistResult(data);
     }
     return data;
   } catch (err) {
     const data = err.response?.data;
     if (isWaitlistAuthResponse(data)) {
-      return { waitlist: true, message: data.Message };
+      return toWaitlistResult(data);
     }
     const message =
       data?.detail ||
@@ -49,12 +58,20 @@ export const completeGoogleAuth = async (code) => {
 };
 
 export const credentialAuth = async (type, email, password) => {
-  const response = await api.post(`/auth/auth/?type=${type}`, { email, password });
-  const data = response.data;
-  if (isWaitlistAuthResponse(data)) {
-    return { waitlist: true, message: data.Message };
+  try {
+    const response = await api.post(`/auth/auth/?type=${type}`, { email, password });
+    const data = response.data;
+    if (isWaitlistAuthResponse(data)) {
+      return toWaitlistResult(data);
+    }
+    return data;
+  } catch (err) {
+    const data = err.response?.data;
+    if (isWaitlistAuthResponse(data)) {
+      return toWaitlistResult(data);
+    }
+    throw err;
   }
-  return data;
 };
 
 export const normalizeAuthResponse = (data) => {

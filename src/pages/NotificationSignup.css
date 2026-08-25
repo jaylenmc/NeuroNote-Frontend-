@@ -1,10 +1,38 @@
 .notification-signup-container {
-  min-height: 100vh;
+  --landing-bg: #030712;
+  position: fixed;
+  inset: 0;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F7F8FA;
+  background: var(--landing-bg);
   padding: 2rem;
+  padding-top: max(2rem, env(safe-area-inset-top));
+  padding-right: max(2rem, env(safe-area-inset-right));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  padding-left: max(2rem, env(safe-area-inset-left));
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  z-index: 1;
+}
+
+.notification-signup-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 500px;
+  height: 500px;
+  background: rgba(76, 29, 149, 0.2);
+  filter: blur(100px);
+  transform: translate(-25%, -25%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .notification-signup-card {
@@ -12,14 +40,16 @@
   max-width: 700px;
   width: 100%;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .notification-signup-icon {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7C83FD, #9AA4FF);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  color: #ffffff;
   font-size: 3rem;
   display: flex;
   align-items: center;
@@ -28,11 +58,15 @@
   font-weight: 300;
 }
 
+.notification-signup-icon--existing {
+  background: #7c3aed;
+}
+
 .notification-signup-title {
   font-family: var(--home-font-heading, 'Inter', sans-serif);
   font-size: 2rem;
   font-weight: 700;
-  color: #1A1C1F;
+  color: #ffffff;
   margin: 0 0 1rem;
   letter-spacing: -0.02em;
 }
@@ -41,16 +75,16 @@
   font-family: var(--home-font-body, 'Inter', sans-serif);
   font-size: 1.05rem;
   line-height: 1.7;
-  color: #4D5561;
+  color: #9ca3af;
   margin: 0 0 2rem;
 }
 
 .notification-signup-button {
   display: inline-block;
-  background: #7C83FD;
-  color: #FFFFFF;
+  background: #7c3aed;
+  color: #ffffff;
   padding: 0.5rem 2rem;
-  border-radius: 16px;
+  border-radius: 9999px;
   text-decoration: none;
   font-weight: 600;
   font-size: 1rem;
@@ -58,7 +92,7 @@
 }
 
 .notification-signup-button:hover {
-  background: #686fdc;
+  background: #8b5cf6;
 }
 
 @media (max-width: 768px) {
@@ -75,3 +109,12 @@
   }
 }
 
+.main-content:has(.notification-signup-container) {
+  background: #030712;
+}
+
+html:has(.notification-signup-container),
+body:has(.notification-signup-container) {
+  background: #030712;
+  overflow: hidden;
+}

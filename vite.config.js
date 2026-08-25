@@ -9,11 +9,37 @@ export default defineConfig({
     tailwindcss(),
   ],
   css: {
-    devSourcemap: true, // Keep source maps for debugging
+    devSourcemap: true,
   },
   server: {
     hmr: {
-      overlay: true, // Show error overlay
-    }
-  }
+      overlay: true,
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
+              return 'charts';
+            }
+            if (id.includes('pdfjs-dist')) {
+              return 'pdf';
+            }
+            if (id.includes('lottie-react')) {
+              return 'lottie';
+            }
+            if (
+              id.includes('react-dom') ||
+              id.includes('react-router') ||
+              id.includes('/react/')
+            ) {
+              return 'vendor';
+            }
+          }
+        },
+      },
+    },
+  },
 })

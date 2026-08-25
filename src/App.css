@@ -1,8 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-
 .hero-section {
   display: flex;
   align-items: center;
@@ -3120,16 +3115,16 @@ body {
   --secondary-purple: #A78BFA;
   --text-main: #f7f8ff;
   --text-muted: #aeb3c7;
-  --app-font-heading: 'Poppins', 'Plus Jakarta Sans', sans-serif;
-  --app-font-body: 'DM Sans', 'Outfit', sans-serif;
-  --home-font-heading: 'Poppins', 'Plus Jakarta Sans', sans-serif;
-  --home-font-body: 'DM Sans', 'Outfit', sans-serif;
-  --about-font-heading: 'Poppins', 'Plus Jakarta Sans', sans-serif;
-  --about-font-body: 'DM Sans', 'Outfit', sans-serif;
-  --features-font-heading: 'Poppins', 'Plus Jakarta Sans', sans-serif;
-  --features-font-body: 'DM Sans', 'Outfit', sans-serif;
-  --pricing-font-heading: 'Poppins', 'Plus Jakarta Sans', sans-serif;
-  --pricing-font-body: 'DM Sans', 'Outfit', sans-serif;
+  --app-font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --app-font-body: 'Inter', sans-serif;
+  --home-font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --home-font-body: 'Inter', sans-serif;
+  --about-font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --about-font-body: 'Inter', sans-serif;
+  --features-font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --features-font-body: 'Inter', sans-serif;
+  --pricing-font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --pricing-font-body: 'Inter', sans-serif;
   --accent-gradient: linear-gradient(120deg, #7c3aed, #5ab3ff);
 
   /* Light theme variables for landing page */

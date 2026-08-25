@@ -28,9 +28,15 @@ function LandingHero() {
 
         <div className="landing-hero-mockup-wrap">
           <img
-            src="/mockup.png"
+            src="/mockup-800.png"
+            srcSet="/mockup-800.png 800w, /mockup-1200.png 1200w"
+            sizes="(max-width: 768px) 100vw, 1200px"
             alt="NeuroNote dashboard"
             className="landing-hero-mockup-img"
+            width={1200}
+            height={900}
+            decoding="async"
+            fetchPriority="high"
           />
         </div>
       </div>

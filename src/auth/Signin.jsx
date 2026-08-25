@@ -41,8 +41,8 @@ function Signin() {
 
         try {
             const data = await credentialAuth(authMode, email, password);
-            if (data?.waitlist) {
-                navigate('/notification-signup');
+            if (typeof data?.waitlist === 'boolean') {
+                navigate('/notification-signup', { state: { waitlist: data.waitlist } });
                 return;
             }
             const { user, tokens } = normalizeAuthResponse(data);
