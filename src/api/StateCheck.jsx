@@ -58,9 +58,9 @@ function StateCheck() {
         const callbackPath = callbackUrl.startsWith('http')
           ? new URL(callbackUrl).pathname
           : callbackUrl;
-        navigate(callbackPath, { replace: true });
+        navigate(callbackUrl, { replace: true });
       } catch (err) {
-        redirectToSignin(err.message || 'Google authentication failed. Please try again.');
+        redirectToSignin(err.message || 'Google authentication failed.');
       }
     };
 
