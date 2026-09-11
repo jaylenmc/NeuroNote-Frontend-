@@ -21,19 +21,48 @@ export const buildGoogleOAuthUrl = (state) => {
 export const isWaitlistAuthResponse = (data) =>
   data != null &&
   typeof data.waitlist === 'boolean' &&
-  Boolean(data.Message) &&
+  Boolean(data.Message ?? data.message) &&
   !data.jwt_data &&
-  !data.user;
+  !data.user &&
+  data.access == null &&
+  data.refresh == null;
+
+export const isWaitlistFlowResult = (data) =>
+  data != null &&
+  typeof data.waitlist === 'boolean' &&
+  Boolean(data.message ?? data.Message) &&
+  data.user == null &&
+  data.jwt_data == null;
 
 export const toWaitlistResult = (data) => ({
   waitlist: data.waitlist,
-  message: data.Message,
+  message: data.Message ?? data.message,
 });
 
+const normalizeGoogleAuthPayload = (data) => {
+  if (!data || data.jwt_data) {
+    return data;
+  }
+
+  if (data.user && (data.access || data.refresh)) {
+    return {
+      ...data,
+      jwt_data: {
+        access: data.access,
+        refresh: data.refresh,
+      },
+    };
+  }
+
+  return data;
+};
+
 export const completeGoogleAuth = async (code) => {
-  const backendUrl = import.meta.env.VITE_BACKEND_DEV_REDIRECT_URI;
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_GOOGLE_URI ||
+    import.meta.env.VITE_BACKEND_DEV_REDIRECT_URI;
   if (!backendUrl) {
-    throw new Error('BACKEND_DEV_REDIRECT_URI is not configured');
+    throw new Error('VITE_BACKEND_GOOGLE_URI is not configured');
   }
 
   try {
@@ -42,7 +71,7 @@ export const completeGoogleAuth = async (code) => {
     if (isWaitlistAuthResponse(data)) {
       return toWaitlistResult(data);
     }
-    return data;
+    return normalizeGoogleAuthPayload(data);
   } catch (err) {
     const data = err.response?.data;
     if (isWaitlistAuthResponse(data)) {
@@ -75,7 +104,11 @@ export const credentialAuth = async (type, email, password) => {
 };
 
 export const normalizeAuthResponse = (data) => {
-  const { user, jwt_data: jwtData } = data;
+  const user = data.user;
+  const jwtData = data.jwt_data ?? {
+    access: data.access,
+    refresh: data.refresh,
+  };
 
   return {
     user,

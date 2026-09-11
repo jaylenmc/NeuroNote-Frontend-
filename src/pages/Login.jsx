@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../auth/AuthContext';
-import { credentialAuth, normalizeAuthResponse } from '../api/authApi';
+import { credentialAuth, normalizeAuthResponse, isWaitlistFlowResult } from '../api/authApi';
 import './Auth.css';
 
 const Login = () => {
@@ -21,7 +21,7 @@ const Login = () => {
 
         try {
             const data = await credentialAuth('login', email, password);
-            if (typeof data?.waitlist === 'boolean') {
+            if (isWaitlistFlowResult(data)) {
                 navigate('/notification-signup', { state: { waitlist: data.waitlist } });
                 return;
             }

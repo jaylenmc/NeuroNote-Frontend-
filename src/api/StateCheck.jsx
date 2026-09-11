@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { completeGoogleAuth } from './authApi';
+import { completeGoogleAuth, isWaitlistFlowResult } from './authApi';
 import BrainLoader from '../components/BrainLoader';
 import './OAuthSuccess.css';
 
@@ -45,7 +45,7 @@ function StateCheck() {
     const finishAuth = async () => {
       try {
         const data = await completeGoogleAuth(code);
-        if (typeof data?.waitlist === 'boolean') {
+        if (isWaitlistFlowResult(data)) {
           navigate('/notification-signup', {
             replace: true,
             state: { waitlist: data.waitlist },
@@ -58,7 +58,7 @@ function StateCheck() {
         const callbackPath = callbackUrl.startsWith('http')
           ? new URL(callbackUrl).pathname
           : callbackUrl;
-        navigate(callbackUrl, { replace: true });
+        navigate(callbackPath, { replace: true });
       } catch (err) {
         redirectToSignin(err.message || 'Google authentication failed.');
       }
