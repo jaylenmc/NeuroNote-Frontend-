@@ -1,7 +1,5 @@
 import axios from 'axios';
 
-const OAUTH_STATE_COOKIE = 'oauth_state';
-
 const getApiUrl = () => {
     let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
     apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
@@ -51,42 +49,3 @@ export const handleApiError = async (error) => {
     }
     throw error;
 };
-
-export function generateState(length = 32) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    return Array.from(crypto.getRandomValues(new Uint8Array(length)))
-        .map(x => chars[x % chars.length])
-        .join('');
-}
-
-function getCookieDomain() {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return null;
-    }
-    const parts = hostname.split('.');
-    if (parts.length >= 2) {
-        return `.${parts.slice(-2).join('.')}`;
-    }
-    return null;
-}
-
-function buildCookieAttributes(maxAgeSeconds) {
-    const secure = window.location.protocol === 'https:';
-    const domain = getCookieDomain();
-    let attributes = `path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
-    if (secure) {
-        attributes += '; Secure';
-    }
-    if (domain) {
-        attributes += `; domain=${domain}`;
-    }
-    return attributes;
-}
-
-export function clearOAuthStateCookie() {
-    const attributes = buildCookieAttributes(0);
-    document.cookie = `${OAUTH_STATE_COOKIE}=; ${attributes}`;
-}
-
-export default generateState;

@@ -17,7 +17,6 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Signin = lazy(() => import('./auth/Signin'));
 const Authentication = lazy(() => import('./api/OAuthSuccess'));
-const StateCheck = lazy(() => import('./api/StateCheck'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const StudyRoom = lazy(() => import('./components/StudyRoom'));
 const StudyRoomPage = lazy(() => import('./pages/StudyRoom'));
@@ -73,7 +72,6 @@ function AppContent() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path='/auth/callback/' element={<Authentication />} />
-          <Route path='/auth/state/' element={<StateCheck />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<FeaturesPage />} />

@@ -1,10 +1,9 @@
-import axios from 'axios';
 import api from './axios';
 
-export const buildGoogleOAuthUrl = (state) => {
-  const redirectUri = import.meta.env.VITE_FRONTEND_STATE_CHECK;
+export const buildGoogleOAuthUrl = () => {
+  const redirectUri = import.meta.env.VITE_FRONTEND_URL;
   if (!redirectUri) {
-    throw new Error('FRONTEND_STATE_CHECK is not configured');
+    throw new Error('VITE_FRONTEND_URL is not configured');
   }
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({
@@ -14,7 +13,6 @@ export const buildGoogleOAuthUrl = (state) => {
     scope: 'openid email',
     access_type: 'offline',
     prompt: 'consent',
-    state,
   }).toString()}`;
 };
 
@@ -58,23 +56,16 @@ const normalizeGoogleAuthPayload = (data) => {
 };
 
 export const completeGoogleAuth = async (code) => {
-  const backendUrl =
-    import.meta.env.VITE_BACKEND_GOOGLE_URI ||
-    import.meta.env.VITE_BACKEND_DEV_REDIRECT_URI;
-  if (!backendUrl) {
-    throw new Error('VITE_BACKEND_GOOGLE_URI is not configured');
-  }
-
   try {
-    const response = await axios.get(backendUrl, { params: { code } });
+    const response = await api.get('/auth/google/', { params: { code } });
     const data = response.data;
-    if (isWaitlistAuthResponse(data)) {
+    if (isWaitlistAuthResponse(data) || typeof data?.waitlist === 'boolean') {
       return toWaitlistResult(data);
     }
     return normalizeGoogleAuthPayload(data);
   } catch (err) {
     const data = err.response?.data;
-    if (isWaitlistAuthResponse(data)) {
+    if (isWaitlistAuthResponse(data) || typeof data?.waitlist === 'boolean') {
       return toWaitlistResult(data);
     }
     const message =
@@ -82,7 +73,9 @@ export const completeGoogleAuth = async (code) => {
       data?.error ||
       data?.Message ||
       'Google authentication failed. Please try again.';
-    throw new Error(typeof message === 'string' ? message : 'Google authentication failed. Please try again.');
+    throw new Error(
+      typeof message === 'string' ? message : 'Google authentication failed. Please try again.'
+    );
   }
 };
 

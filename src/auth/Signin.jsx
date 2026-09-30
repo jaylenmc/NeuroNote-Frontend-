@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, redirect, useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import './signin.css';
 import { buildGoogleOAuthUrl, credentialAuth, normalizeAuthResponse, isWaitlistFlowResult } from '../api/authApi';
 import { useAuth } from './AuthContext';
-import { generateState } from "../utils/auth.js"
 
 function Signin() {
     const navigate = useNavigate();
@@ -25,9 +24,7 @@ function Signin() {
 
     const handleGoogleSignIn = () => {
         try {
-            const state = generateState();
-            sessionStorage.setItem("state", state);
-            window.location.href = buildGoogleOAuthUrl(state);
+            window.location.href = buildGoogleOAuthUrl();
         } catch (err) {
             console.error(err);
             setError('Configuration error: Backend redirect URI not set.');
