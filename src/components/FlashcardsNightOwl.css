@@ -19,11 +19,19 @@
 
 html.nightowl-root-bg, body.nightowl-root-bg {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   background: var(--nightowl-bg-main) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.nightowl-root-bg::-webkit-scrollbar,
+body.nightowl-root-bg::-webkit-scrollbar {
+  display: none;
 }
 
 .nightowl-page-shell {
@@ -149,20 +157,6 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   margin: 0;
   width: fit-content;
   cursor: default;
-}
-
-.nightowl-header-subtitle-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: default;
-}
-
-.nightowl-header-sub {
-  color: white;
-  font-size: 14px;
-  letter-spacing: 0.01em;
-  margin: 0;
 }
 
 .nightowl-streak-badge {
@@ -448,6 +442,22 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   flex-direction: column;
 }
 
+.nightowl-section-header-due-cards {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.nightowl-section-header-due-cards-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .nightowl-upcoming-chart-header-right {
   display: flex;
   flex-direction: column;
@@ -471,7 +481,52 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   margin: 0;
 }
 
-/* Due Now & Overdue section */
+/* Grow to fill remaining Launchpad column when due cards are present */
+.nightowl-section.nightowl-section-due-cards {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.nightowl-section.nightowl-section-due-cards .nightowl-due-cards-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.nightowl-section-empty {
+  width: 100%;
+  margin-top: 16px;
+  padding: 2rem 1.25rem;
+  border-radius: 16px;
+  border: 1px dashed var(--nightowl-card-border-soft);
+  background: rgba(33, 36, 42, 0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  min-height: 45%;
+  box-sizing: border-box;
+}
+
+.nightowl-section-empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.nightowl-section-empty-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nightowl-text-steel);
+  margin: 0;
+  max-width: 28rem;
+  line-height: 1.5;
+}
+
 .nightowl-decks-empty {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
@@ -479,15 +534,108 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   padding: 8px 0;
 }
 
-.nightowl-due-cards-list {
+/* Skeleton / ghost loaders for nightowl-section content */
+@keyframes nightowl-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.nightowl-skeleton {
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: nightowl-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.nightowl-section-skeleton {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
-  max-height: calc(5 * (40px + 8px));
+}
+
+.nightowl-section-skeleton--due {
+  gap: 8px;
+}
+
+.nightowl-skeleton-growth-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.nightowl-skeleton-line {
+  height: 12px;
+}
+
+.nightowl-skeleton-line--short {
+  width: 88px;
+  height: 13px;
+  border-radius: 6px;
+}
+
+.nightowl-skeleton-line--section-title {
+  width: min(160px, 55%);
+  height: 20px;
+  border-radius: 6px;
+}
+
+.nightowl-skeleton-line--section-subtitle {
+  width: min(220px, 75%);
+  height: 13px;
+  border-radius: 6px;
+}
+
+.nightowl-skeleton-line--percent {
+  display: inline-block;
+  width: 40px;
+  height: 16px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.nightowl-skeleton-line--pill-sm {
+  width: 56px;
+  height: 10px;
+  border-radius: 6px;
+}
+
+.nightowl-skeleton-line--dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nightowl-skeleton-line--mini-question {
+  width: 100%;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.nightowl-due-cards-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-height: min(240px, 42vh);
   overflow-y: auto;
+  align-content: start;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.nightowl-due-cards-list--loading {
+  pointer-events: none;
 }
 
 .nightowl-due-cards-list::-webkit-scrollbar {
@@ -503,67 +651,73 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   border-radius: 999px;
 }
 
-.nightowl-due-card-item {
+.nightowl-due-card-mini {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 15px 14px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 11px;
   border-radius: 10px;
-  background: #21242A !important;
-  border: 1px solid rgba(140,160,190,0.08) !important;
+  background: #21242a !important;
+  border: 1px solid rgba(140, 160, 190, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
 }
 
-.nightowl-due-card-question {
-  font-size: 13px;
-  color: #F7F0F0;
-  flex: 1;
+.nightowl-due-cards-list--loading .nightowl-due-card-mini {
+  border: 1px solid rgba(140, 160, 190, 0.08);
+  background: rgba(33, 36, 42, 0.65) !important;
+  box-shadow: none;
+}
+
+.nightowl-due-card-mini-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nightowl-due-card-mini-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.nightowl-due-card-mini-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.nightowl-due-card-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.nightowl-due-card-mini-question {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #f7f0f0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.nightowl-section-due-cards .nightowl-study-queue-btn {
+  margin-top: 0;
+  align-self: flex-start;
   flex-shrink: 0;
 }
 
-.nightowl-due-card-status {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 999px;
-  text-transform: capitalize;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.nightowl-due-card-status-unseen {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-}
-
-.nightowl-due-card-status-strgl {
-  background: rgba(244, 63, 94, 0.15);
-  color: #f43f5e;
-}
-
-.nightowl-due-card-status-imprv {
-  background: rgba(167, 139, 250, 0.15);
-  color: #a78bfa;
-}
-
-.nightowl-due-card-status-mstrd {
-  background: rgba(219, 39, 119, 0.15);
-  color: #db2777;
-}
-
-.nightowl-due-card-overdue {
-  font-size: 11px;
-  color: rgba(255, 185, 130, 0.85);
-  white-space: nowrap;
+.nightowl-section-empty .nightowl-study-queue-btn {
+  margin-top: 1rem;
+  align-self: center;
 }
 
 /* My Decks section */
@@ -610,6 +764,27 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   text-overflow: ellipsis;
 }
 
+.nightowl-growth-header {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nightowl-growth-header .nightowl-section-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.nightowl-growth-percent {
+  flex-shrink: 0;
+  color: white;
+  font-size: .9rem;
+  font-weight: 600;
+  line-height: 1.25;
+  padding-top: 2px;
+}
+
 .nightowl-growth-card {
   width: 100%;
   display: flex;
@@ -636,23 +811,15 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   margin-bottom: 20px;
 }
 
 .nightowl-growth-level {
-  color: #FAF8F8;
-  font-size: 13px;
+  color: white;
+  font-size: .95rem;
   font-weight: 500;
-  text-shadow: 0 0 8px rgba(217, 214, 214, 0.35);
-}
-
-.nightowl-growth-next {
-  color: #FAF8F8;
-  font-size: 13px;
-  font-weight: 500;
-  text-shadow: 0 0 8px rgba(217, 214, 214, 0.35);
 }
 
 /* Leaderboard Widget */
@@ -1448,12 +1615,6 @@ body:has(.nightowl-flashcards-bg) .folder-item:hover,
   
   .nightowl-header-title {
     font-size: 1.5rem;
-  }
-  
-  .nightowl-header-subtitle-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
   }
   
   .nightowl-motivation-card {

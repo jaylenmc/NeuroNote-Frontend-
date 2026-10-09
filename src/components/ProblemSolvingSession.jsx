@@ -268,7 +268,7 @@ const ProblemSolvingSession = ({
       setCurrentStep('socratic');
     } else if (currentStep === 'socratic') {
       // Complete the understanding session
-      onRatingSelect(5); // High rating for completing all steps
+      onRatingSelect(4); // Easy
     }
   };
 

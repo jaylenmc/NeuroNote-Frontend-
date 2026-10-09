@@ -1,12 +1,36 @@
 .review-page {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
   background: #1d1f23;
   color: var(--text-color);
   padding: 2rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.review-page::-webkit-scrollbar {
+  display: none;
+}
+
+/* Review hub: hide global purple document scrollbar while this page is mounted */
+html:has(.review-page),
+html:has(.review-page) body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html:has(.review-page)::-webkit-scrollbar,
+html:has(.review-page) body::-webkit-scrollbar {
+  display: none;
 }
 
 .review-header {
-  max-width: 1200px;
+  min-width: 100%;
   margin: 0 auto 2rem;
 }
 
@@ -45,6 +69,11 @@
 .review-content {
   max-width: 1200px;
   margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
 }
 
 /* Study Method Button Styles */
@@ -208,7 +237,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 12px;
-  padding: 8px 16px;
+  padding: 11px 16px;
   background: rgba(255, 255, 255, 0.06);
   color: #a0aec0;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -238,10 +267,7 @@
   color: #a0aec0 !important;
   border: 1px solid rgba(140,160,190,0.08) !important;
   border-radius: 8px !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
   font-family: 'Poppins', 'IBM Plex Sans', Arial, sans-serif !important;
-  padding: 8px 16px !important;
   box-shadow: none !important;
 }
 
@@ -256,6 +282,15 @@
   background: rgba(255, 255, 255, 0.07) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: none !important;
+}
+
+.review-page .tab-bar-with-filter.enhanced-tab-bar .tab.active {
+  background: rgba(114, 72, 60, 0.3) !important;
+  color: rgba(255, 247, 243, 0.88) !important;
+  border: 1px solid rgba(135, 89, 75, 0.28) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  transform: none;
 }
 
 .deck-dropdown-menu {

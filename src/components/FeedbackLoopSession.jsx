@@ -389,7 +389,7 @@ const FeedbackLoopSession = ({
       console.error('Error saving doing-feedback reflections:', error);
     }
 
-    onRatingSelect(4);
+    onRatingSelect(3);
   };
 
   const handleCompleteExercise = async () => {
@@ -423,7 +423,7 @@ const FeedbackLoopSession = ({
       setTimeout(() => {
         setShowCompletionOverlay(false);
         setIsCompletionFadingOut(false);
-        onRatingSelect(4); // Default rating for feedback loop completion
+        onRatingSelect(3); // Good
       }, 300);
     }, 2000);
   };

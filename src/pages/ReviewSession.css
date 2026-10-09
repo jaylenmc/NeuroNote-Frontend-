@@ -1,5 +1,6 @@
 html, body, #root {
-  width: 100vw;
+  max-width: 100%;
+  overflow-x: hidden;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -11,10 +12,31 @@ html, body, #root {
 
 .review-session {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
   background: #1d1f23;
   position: relative;
   display: flex;
   flex-direction: column;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.review-session::-webkit-scrollbar {
+  display: none;
+}
+
+html:has(.review-session),
+html:has(.review-session) body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html:has(.review-session)::-webkit-scrollbar,
+html:has(.review-session) body::-webkit-scrollbar {
+  display: none;
 }
 
 
@@ -112,8 +134,8 @@ html, body, #root {
 .session-complete-confetti {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 100000;
   animation: sessionCompleteConfettiDrop 0.55s ease-out forwards;
@@ -145,6 +167,12 @@ html, body, #root {
   overflow-x: hidden;
   overflow-y: auto;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.session-complete-page::-webkit-scrollbar {
+  display: none;
 }
 
 .session-complete {
@@ -174,7 +202,7 @@ html, body, #root {
   margin-bottom: 2rem;
 }
 
-/* Session complete: cards whose learning status changed (deck-style ribbon + animation) — full width below hero */
+/* Session complete: cards whose learning status changed — full width below hero */
 .session-complete-status-section {
   width: 100%;
   max-width: none;
@@ -210,9 +238,9 @@ html, body, #root {
 
 .session-complete-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   justify-content: center;
-  gap: 1.25rem;
+  gap: 0.65rem;
   margin: 0.5rem auto 0;
   width: 100%;
   max-width: none;
@@ -220,15 +248,21 @@ html, body, #root {
   justify-items: stretch;
 }
 
+@media (min-width: 1100px) {
+  .session-complete-cards-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
 .session-complete-mini-card {
   position: relative;
   background: #21242a;
   border: 1px solid rgba(140, 160, 190, 0.08);
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: default;
-  padding: 2.85rem 1rem 1rem 1rem;
-  min-height: 8.5rem;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+  padding: 2rem 1rem 2rem;
+  min-height: 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -236,110 +270,57 @@ html, body, #root {
   box-shadow: 0 6px 22px #21242a;
 }
 
-.session-complete-ribbon-wrap {
+.session-complete-status-dot {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 44px;
-  pointer-events: none;
-}
-
-.session-complete-ribbon-stack {
-  position: absolute;
-  left: 14px;
-  top: 0;
-  width: 28px;
-  height: 44px;
-}
-
-.session-complete-ribbon-layer {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 28px;
-  height: 44px;
-  clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-/* Match deck / StudyRoom ribbon gradients */
-.session-complete-ribbon-layer[data-status='unseen'] {
-  background: linear-gradient(180deg, #60a5fa 60%, #38bdf8 100%);
-}
-.session-complete-ribbon-layer[data-status='strgl'] {
-  background: linear-gradient(180deg, #f87171 60%, #f43f5e 100%);
-}
-.session-complete-ribbon-layer[data-status='imprv'] {
-  background: linear-gradient(180deg, #a78bfa 60%, #7c3aed 100%);
-}
-.session-complete-ribbon-layer[data-status='mstrd'] {
-  background: linear-gradient(180deg, #a21caf 60%, #db2777 100%);
-}
-
-.session-complete-ribbon-from {
-  z-index: 2;
-  animation: sessionCompleteRibbonCrossfade 3.2s ease-in-out infinite alternate;
-  animation-delay: var(--ribbon-delay, 0s);
-}
-
-.session-complete-ribbon-to {
+  top: 8px;
+  left: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
   z-index: 1;
 }
 
-@keyframes sessionCompleteRibbonCrossfade {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .session-complete-ribbon-from {
-    animation: none;
-    opacity: 0;
-  }
-}
-
 .session-complete-mini-card-inner {
-  padding-left: 0.15rem;
+  padding-left: 0.1rem;
+  padding-top: 0.15rem;
 }
 
 .session-complete-mini-card-label {
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.42);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.2rem;
 }
 
 .session-complete-mini-card-text {
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   color: #f3f6fb;
-  line-height: 1.45;
+  line-height: 1.35;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 
 .session-complete-status-shift {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.85rem;
-  font-size: 0.82rem;
+  gap: 0.2rem;
+  margin-top: 0.45rem;
+  font-size: 0.65rem;
 }
 
 .session-complete-status-pill {
-  padding: 0.22rem 0.55rem;
-  border-radius: 6px;
+  padding: .4rem .4rem;
+  border-radius: 4px;
   font-weight: 600;
   border: 1px solid transparent;
+  line-height: 1.2;
 }
 
 .session-complete-status-pill--from {
@@ -348,26 +329,32 @@ html, body, #root {
   color: #fff;
 }
 
-/* "To" pill only — matches ribbon palette */
-.session-complete-status-pill--to[data-status='unseen'] {
+/* "To" pill — bucket palette */
+.session-complete-status-pill--to[data-status='bkt_0'] {
   background: linear-gradient(135deg, rgba(96, 165, 250, 0.22), rgba(56, 189, 248, 0.14));
   border-color: rgba(56, 189, 248, 0.45);
   color: #bae6fd;
 }
 
-.session-complete-status-pill--to[data-status='strgl'] {
+.session-complete-status-pill--to[data-status='bkt_1'] {
   background: linear-gradient(135deg, rgba(248, 113, 113, 0.2), rgba(244, 63, 94, 0.12));
   border-color: rgba(244, 63, 94, 0.42);
   color: #fecdd3;
 }
 
-.session-complete-status-pill--to[data-status='imprv'] {
+.session-complete-status-pill--to[data-status='bkt_2'] {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 66, 0.12));
+  border-color: rgba(245, 158, 66, 0.42);
+  color: #fde68a;
+}
+
+.session-complete-status-pill--to[data-status='bkt_3'] {
   background: linear-gradient(135deg, rgba(167, 139, 250, 0.22), rgba(124, 58, 237, 0.14));
   border-color: rgba(124, 58, 237, 0.4);
   color: #e9d5ff;
 }
 
-.session-complete-status-pill--to[data-status='mstrd'] {
+.session-complete-status-pill--to[data-status='bkt_4'] {
   background: linear-gradient(135deg, rgba(162, 28, 175, 0.2), rgba(219, 39, 119, 0.12));
   border-color: rgba(219, 39, 119, 0.42);
   color: #fce7f3;
@@ -376,6 +363,7 @@ html, body, #root {
 .session-complete-status-arrow {
   color: rgba(255, 255, 255, 0.4);
   font-weight: 700;
+  font-size: 0.6rem;
 }
 
 .session-stats {
@@ -464,18 +452,23 @@ html, body, #root {
 
 /* Header */
 .review-header-flashcards {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   border-radius: 1rem;
-  padding: 2rem 6rem 2rem 6rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
+  min-width: 0;
+  justify-self: start;
 }
 
 /* Header Center - Layer Indicator and Progress Counter */
@@ -484,7 +477,8 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  width: 100%;
+  min-width: 0;
+  justify-self: center;
 }
 
 .layer-toggle-group {
@@ -808,7 +802,8 @@ html, body, #root {
   gap: 12px;
   position: relative;
   justify-content: flex-end;
-  width: 100%;
+  min-width: 0;
+  justify-self: end;
   min-width: 0;
   max-width: 100%;
   overflow: visible;
@@ -905,6 +900,15 @@ html, body, #root {
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
+}
+
+.timer-display-pill.timer-warning {
+  border-color: rgba(244, 63, 94, 0.55) !important;
+  background: rgba(244, 63, 94, 0.12) !important;
+}
+
+.timer-display-pill.timer-warning .timer-text {
+  color: #fda4af;
 }
 
 @keyframes slideDown {
@@ -1085,11 +1089,12 @@ html, body, #root {
   min-width: 400px;
   max-width: 600px;
   height: 300px;
-  perspective: 1000px;
+  perspective: 1200px;
   cursor: pointer;
-  background: var(--card-background) !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
-  border: 1px solid var(--border-color) !important;
+  overflow: hidden;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
   backdrop-filter: none !important;
   flex-shrink: 0;
 }
@@ -1099,7 +1104,7 @@ html, body, #root {
   width: 100%;
   height: 100%;
   text-align: center;
-  transition: transform 0.6s;
+  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
   transform-style: preserve-3d;
 }
 
@@ -1125,9 +1130,9 @@ html, body, #root {
 .flashcard-front,
 .flashcard-back {
   position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1135,13 +1140,20 @@ html, body, #root {
   padding: 2rem;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(140,160,190,0.08) !important;
+  border: 1px solid rgba(140, 160, 190, 0.08) !important;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.flashcard-front {
+  transform: rotateY(0deg) translateZ(1px);
 }
 
 .flashcard-back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
 }
 
 .flashcard-front h3,
@@ -1176,9 +1188,13 @@ html, body, #root {
   margin: 0 auto;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 1rem;
   width: 100%;
-  margin-bottom: 2.5rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 1rem;
+  margin-bottom: 5rem;
 }
 
 .rating-btn {
@@ -1543,11 +1559,12 @@ html, body, #root {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 3rem;
-    flex: 0 1 auto;
-    height: auto;
+    flex: 1;
     min-height: 0;
-    max-height: calc(100vh - 160px);
+    max-height: none;
     overflow: visible;
+    justify-content: center;
+    align-items: center;
   }
   
   .flashcard-section {
@@ -1557,7 +1574,8 @@ html, body, #root {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
   }
   
   /* Make flashcard bigger for full screen */
@@ -1603,7 +1621,7 @@ html, body, #root {
 :fullscreen .review-session .flashcard-section,
 :-webkit-full-screen .review-session .flashcard-section {
   height: auto;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 :fullscreen .review-session .flashcard-container,
@@ -1782,6 +1800,7 @@ html, body, #root {
   }
   
   .review-header-flashcards {
+    display: flex;
     flex-direction: column;
     gap: 1rem;
     min-height: auto;
@@ -1943,11 +1962,12 @@ html, body, #root {
   width: 100%;
   margin: 0 auto;
   padding: 0 20px;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   transition: all 0.3s ease;
   flex: 1;
-  height: calc(100vh - 120px);
-  overflow: hidden;
+  min-height: 0;
+  overflow: visible;
   border: none;
   outline: none;
   box-sizing: border-box;
@@ -1961,7 +1981,9 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   width: 100%;
-  justify-content: flex-start;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
   align-items: center;
   min-width: 0;
   overflow: visible;
@@ -1985,22 +2007,6 @@ html, body, #root {
   }
 }
 
-.ai-toggle-btn {
-  background: rgba(161, 94, 73, 0.3) !important;
-  color: rgba(255, 247, 243, 0.88) !important;
-  padding: 12px 24px;
-  border: 1px solid rgba(161, 94, 73, 0.28);
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 1.5rem;
-  transition: all 0.3s ease;
-}
-
 .ai-toggle-btn:hover {
   background: rgba(161, 94, 73, 0.4) !important;
   border-color: rgba(161, 94, 73, 0.42) !important;
@@ -2011,10 +2017,6 @@ html, body, #root {
   background: rgba(124, 131, 253, 0.25);
   border-color: #7c83fd;
   box-shadow: 0 0 0 4px rgba(124, 131, 253, 0.1);
-}
-
-.ai-toggle-btn svg {
-  font-size: 18px;
 }
 
 /* Prevent body scroll when AI panel is open */
@@ -2113,20 +2115,12 @@ body.ai-panel-open {
   flex: 1;
   overflow-y: auto;
   margin-bottom: 20px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .ai-conversation-scrollable::-webkit-scrollbar {
-  width: 8px;
-}
-
-
-.ai-conversation-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(124, 131, 253, 0.3);
-  border-radius: 4px;
-}
-
-.ai-conversation-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(124, 131, 253, 0.5);
+  display: none;
 }
 
 
@@ -2360,7 +2354,8 @@ body.ai-panel-open {
   }
 
   .ai-assistant-panel {
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
     height: 100vh;
     right: 0;
     top: 0;
@@ -2371,7 +2366,8 @@ body.ai-panel-open {
 
 @media (max-width: 768px) {
   .ai-assistant-panel {
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
     height: 100vh;
     right: 0;
     top: 0;

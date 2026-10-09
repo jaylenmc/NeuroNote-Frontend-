@@ -21,10 +21,6 @@ import NewFolderModal from './modals/NewFolderModal';
 import NewSubfolderModal from './modals/NewSubfolderModal';
 import DashboardHome from './DashboardHome';
 import QuizView from './QuizView';
-import ReviewCards from './ReviewCards';
-import Calendar from './Calendar';
-import ReviewCardsDashboard from './ReviewCardsDashboard';
-
 // Import styles
 import './Dashboard.css';
 import './FlashcardsNightOwl.css';
@@ -84,8 +80,7 @@ function Dashboard({ initialView }) {
     const [showNewCardModal, setShowNewCardModal] = useState(false);
     const [newCard, setNewCard] = useState({
         question: '',
-        answer: '',
-        scheduled_date: ''
+        answer: ''
     });
     const [navHistory, setNavHistory] = useState([{ view: 'dashboard', folder: null, deck: null }]);
     const [currentNavIndex, setCurrentNavIndex] = useState(0);
@@ -117,13 +112,10 @@ function Dashboard({ initialView }) {
         ]
     });
     const [isMounted, setIsMounted] = useState(true);
-    const [selectedReview, setSelectedReview] = useState(null);
     const [showFlashcardTabs, setShowFlashcardTabs] = useState(true);
     const [selectedDocument, setSelectedDocument] = useState(null);
     const [documents, setDocuments] = useState([]);
     const [decks, setDecks] = useState([]);
-    const [dueTodayCount, setDueTodayCount] = useState(0);
-    const [upcomingCards, setUpcomingCards] = useState([]);
     const [viewMode, setViewMode] = useState('grid');
     const [showNewItemDropdown, setShowNewItemDropdown] = useState(false);
     const fileInputRef = useRef(null);
@@ -214,29 +206,6 @@ function Dashboard({ initialView }) {
         }));
     };
 
-    // Mock data for progress tracking
-    const [reviewProgress] = useState({
-        last7Days: {
-            correct: 45,
-            incorrect: 15,
-            total: 60,
-            accuracy: 75
-        },
-        needsReview: [
-            { topic: 'Biology', count: 8 },
-            { topic: 'Chemistry', count: 5 },
-            { topic: 'Physics', count: 3 }
-        ]
-    });
-
-    const [quizProgress] = useState({
-        topics: [
-            { name: 'Biology', score: 75, needsWork: true },
-            { name: 'Chemistry', score: 90, needsWork: false },
-            { name: 'Physics', score: 65, needsWork: true }
-        ]
-    });
-
     // Utility functions
     const xpForLevel = (level) => Math.floor(100 * Math.pow(1.5, Math.max(level - 1, 0)));
     const xp = user?.xp || 0;
@@ -253,26 +222,6 @@ function Dashboard({ initialView }) {
     const fetchDeckById = async (deckId) => {
         const response = await api.get(`/flashcards/deck/${deckId}/`);
         return response.data;
-    };
-
-    const fetchFlashcardData = async () => {
-        try {
-            // Fetch due cards for today
-            const dueCardsResponse = await api.get('/flashcards/cards/due/');
-            const dueCards = dueCardsResponse.data;
-            
-            // Fetch due cards for soon (next hour)
-            const upcomingCardsResponse = await api.get('/flashcards/cards/due/?due_soon=true');
-            const upcomingCards = upcomingCardsResponse.data;
-            
-            setDueTodayCount(Array.isArray(dueCards) ? dueCards.length : 0);
-            setUpcomingCards(Array.isArray(upcomingCards) ? upcomingCards : []);
-            
-        } catch (error) {
-            console.error('Error fetching flashcard data:', error);
-            setDueTodayCount(0);
-            setUpcomingCards([]);
-        }
     };
 
     const fetchAllQuizzes = async () => {
@@ -810,7 +759,6 @@ function Dashboard({ initialView }) {
     useEffect(() => {
         setIsMounted(true);
         fetchFolders();
-        fetchFlashcardData();
         
         // Ensure reminders modal class is removed on mount
         document.body.classList.remove('reminders-modal-open');
@@ -952,16 +900,8 @@ function Dashboard({ initialView }) {
             case 'flashcards':
                 return (
                     <FlashcardsDashboard
-                        selectedReview={selectedReview}
-                        setSelectedReview={setSelectedReview}
-                        dueTodayCount={dueTodayCount}
-                        upcomingCards={upcomingCards}
-                        reviewProgress={reviewProgress}
                         isTransitioning={isTransitioning}
                         refreshUserData={refreshUserData}
-                        folderClosedIcon={closedFolderIcon}
-                        folderOpenIcon={openFolderIcon}
-                        onDeckClick={handleDeckClick}
                     />
                 );
             case 'quiz':

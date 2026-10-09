@@ -55,17 +55,22 @@ const normalizeGoogleAuthPayload = (data) => {
   return data;
 };
 
+export const isAuthenticatedAuthResponse = (data) =>
+  data != null &&
+  data.user != null &&
+  Boolean(data.jwt_data?.access ?? data.access);
+
 export const completeGoogleAuth = async (code) => {
   try {
     const response = await api.get('/auth/google/', { params: { code } });
     const data = response.data;
-    if (isWaitlistAuthResponse(data) || typeof data?.waitlist === 'boolean') {
+    if (isWaitlistAuthResponse(data)) {
       return toWaitlistResult(data);
     }
     return normalizeGoogleAuthPayload(data);
   } catch (err) {
     const data = err.response?.data;
-    if (isWaitlistAuthResponse(data) || typeof data?.waitlist === 'boolean') {
+    if (isWaitlistAuthResponse(data)) {
       return toWaitlistResult(data);
     }
     const message =

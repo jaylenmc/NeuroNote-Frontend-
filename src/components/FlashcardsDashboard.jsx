@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlay, FiPause, FiRotateCcw, FiSettings } from 'react-icons/fi';
 import { Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Separator } from './ui/separator';
-import blackboardBg from '../assets/Blackboard.png';
-import closedFolderIconFallback from '../assets/ClosedFolder.svg';
-import openFolderIconFallback from '../assets/OpenFolder.svg';
-import { formatDateForDisplay } from '../utils/dateUtils';
 import api from '../api/axios';
+import { getCurrentStudyQueue } from '../api/studyQueueApi';
+import { getBucketInfo, BLACKLISTED_LABEL } from '../utils/buckets';
 import './FlashcardsNightOwl.css';
 
 const NIGHTOWL_STUDY_STATS_CACHE_KEY = 'nightowl-study-stats-v1';
@@ -46,29 +43,40 @@ const writeStudyStatsCache = (stats) => {
     }
 };
 
+const NightowlGrowthSkeleton = () => (
+    <div className="nightowl-section-skeleton" aria-hidden="true">
+        <div className="nightowl-skeleton nightowl-skeleton-growth-track" />
+        <div className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--short" />
+    </div>
+);
+
+const NightowlDueCardsSkeleton = () => (
+    <div className="nightowl-due-cards-list nightowl-due-cards-list--loading" aria-hidden="true">
+        {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="nightowl-skeleton nightowl-due-card-mini">
+                <div className="nightowl-due-card-mini-status">
+                    <div className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--dot" />
+                    <div className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--pill-sm" />
+                </div>
+                <div className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--mini-question" />
+            </div>
+        ))}
+    </div>
+);
+
 const FlashcardsDashboard = ({
-    selectedReview,
-    setSelectedReview,
-    dueTodayCount,
-    upcomingCards,
-    reviewProgress,
     isTransitioning,
-    refreshUserData,
-    folderClosedIcon,
-    folderOpenIcon,
-    onDeckClick
+    refreshUserData
 }) => {
     const navigate = useNavigate();
     
     // State for study stats
     const [studyStats, setStudyStats] = useState(() => readStudyStatsCache() || getDefaultStudyStats());
     const [statsLoading, setStatsLoading] = useState(() => !readStudyStatsCache());
-    const [statsError, setStatsError] = useState(null);
-    const [upcomingCardsSectionOpen, setUpcomingCardsSectionOpen] = useState(true);
-    const [decks, setDecks] = useState([]);
-    const [decksLoading, setDecksLoading] = useState(true);
-    const [dueCards, setDueCards] = useState([]);
-    const [dueCardsLoading, setDueCardsLoading] = useState(true);
+    const [studyQueue, setStudyQueue] = useState(null);
+    const [studyQueueLoading, setStudyQueueLoading] = useState(true);
+    const queueCards = studyQueue?.cards || [];
+    const studyableCount = queueCards.filter(card => card.slot_label !== BLACKLISTED_LABEL).length;
 
     // Helper function to format time strings (HH:MM:SS format)
     const formatTime = (timeString) => {
@@ -104,8 +112,6 @@ const FlashcardsDashboard = ({
 
     const fetchStudyStats = async () => {
         try {
-            setStatsError(null);
-            
             // Get user timezone - default to UTC if not available
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
             
@@ -120,57 +126,26 @@ const FlashcardsDashboard = ({
             writeStudyStatsCache(nextStats);
         } catch (error) {
             console.error('Error fetching study stats:', error);
-            setStatsError(error.message || 'Failed to fetch study stats');
             // Keep default values on error
         } finally {
             setStatsLoading(false);
         }
     };
 
-    const fetchDecks = async () => {
+    const fetchStudyQueue = async () => {
         try {
-            const response = await api.get('/flashcards/deck/');
-            setDecks(Array.isArray(response.data) ? response.data : []);
+            setStudyQueue(await getCurrentStudyQueue());
         } catch (error) {
-            console.error('Error fetching decks:', error);
-            setDecks([]);
+            console.error('Error fetching Study Queue:', error);
+            setStudyQueue(null);
         } finally {
-            setDecksLoading(false);
+            setStudyQueueLoading(false);
         }
     };
 
-    const fetchDueCards = async () => {
-        try {
-            const response = await api.get('/flashcards/cards/due/');
-            const data = response.data;
-            setDueCards(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error('Error fetching due cards:', error);
-            setDueCards([]);
-        } finally {
-            setDueCardsLoading(false);
-        }
-    };
-
-    const getOverdueLabel = (scheduledDate) => {
-        if (!scheduledDate) return 'Due now';
-        const now = new Date();
-        const due = new Date(scheduledDate);
-        const diffMs = now - due;
-        if (diffMs <= 0) return 'Due now';
-        const diffMins = Math.floor(diffMs / 60000);
-        if (diffMins < 60) return diffMins <= 1 ? 'Due now' : `${diffMins}m overdue`;
-        const diffHours = Math.floor(diffMins / 60);
-        if (diffHours < 24) return `${diffHours}h overdue`;
-        const diffDays = Math.floor(diffHours / 24);
-        return `${diffDays}d overdue`;
-    };
-
-    // Fetch study stats from backend
     useEffect(() => {
         fetchStudyStats();
-        fetchDecks();
-        fetchDueCards();
+        fetchStudyQueue();
         if (refreshUserData) {
             refreshUserData();
         }
@@ -207,81 +182,6 @@ const FlashcardsDashboard = ({
         studyStreak: 7 // Mock data for now
     };
 
-    // Generate motivational message based on user progress
-    const getMotivationalMessage = () => {
-        const xpToNextLevel = userProgress.xpForNextLevel - userProgress.currentXP;
-        const correctCards = reviewProgress.last7Days.correct;
-        const masteredCards = reviewProgress.last7Days.incorrect; // Using incorrect as mastered for demo
-        
-        // Level up messages
-        if (xpToNextLevel <= 10) {
-            return {
-                message: `Almost there! Just ${xpToNextLevel} XP to Level ${userProgress.level + 1} 🎉`,
-                type: 'level-up'
-            };
-        } else if (xpToNextLevel <= 20) {
-            return {
-                message: `Keep it up, you're only ${xpToNextLevel} XP away from Level ${userProgress.level + 1} 🎉`,
-                type: 'level-up'
-            };
-        }
-        
-        // High performance messages
-        if (correctCards >= 15) {
-            return {
-                message: `Incredible! ${correctCards} cards mastered — you're a study champion!`,
-                type: 'level-up'
-            };
-        } else if (correctCards >= 10) {
-            return {
-                message: `You mastered ${masteredCards} cards — almost leaderboard ready 👑`,
-                type: 'level-up'
-            };
-        }
-        
-        // Streak messages
-        if (stats.studyStreak >= 7) {
-            return {
-                message: `Wow! ${stats.studyStreak} days strong — you're unstoppable! 🔥`,
-                type: 'streak'
-            };
-        } else if (stats.studyStreak >= 3) {
-            return {
-                message: `Amazing ${stats.studyStreak}-day streak! You're on fire 🔥`,
-                type: 'streak'
-            };
-        }
-        
-        // Motivation messages
-        if (dueTodayCount >= 10) {
-            return {
-                message: `Big day ahead! ${dueTodayCount} cards waiting — let's dominate! 💪`,
-                type: 'motivation'
-            };
-        } else if (dueTodayCount > 0) {
-            return {
-                message: `You have ${dueTodayCount} cards due today — let's crush them! 💪`,
-                type: 'motivation'
-            };
-        }
-        
-        // Encouragement messages
-        const encouragementMessages = [
-            "Ready to level up your learning? Let's dive in! 🚀",
-            "Time to unlock your potential — let's study! ⭐",
-            "Your brain is a muscle — let's flex it! 🧠",
-            "Every card mastered is a step closer to greatness! 🌟"
-        ];
-        
-        const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
-        return {
-            message: randomMessage,
-            type: 'encouragement'
-        };
-    };
-
-    const motivationalData = getMotivationalMessage();
-
     const handleStudyRoomClick = () => {
         navigate('/study-room');
     };
@@ -299,9 +199,6 @@ const FlashcardsDashboard = ({
                                         <span className="nightowl-streak-reward-count">{stats.studyStreak}</span>
                                     </span>
                                 </span>
-                            </div>
-                            <div className="nightowl-header-subtitle-row">
-                                <p className="nightowl-header-sub">Study smarter, not harder</p>
                             </div>
                         </div>
                         <button 
@@ -345,61 +242,132 @@ const FlashcardsDashboard = ({
                     </div>
                 </div>
 
-                <div className="nightowl-section">
-                    <div className="nightowl-section-header-study-growth">
-                        <h2 className="nightowl-section-title">Study Growth</h2>
-                        <p className="nightowl-section-subtitle">XP progress this week</p>
+                <div className="nightowl-section" aria-busy={statsLoading}>
+                    <div className="nightowl-section-header-study-growth nightowl-growth-header">
+                        {statsLoading ? (
+                            <>
+                                <span
+                                    className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--section-title"
+                                    aria-hidden="true"
+                                />
+                                <span
+                                    className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--percent"
+                                    aria-hidden="true"
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="nightowl-section-title">Study Growth</h2>
+                                <span className="nightowl-growth-percent">
+                                    {Math.round(userProgress.progressPercentage)}%
+                                </span>
+                            </>
+                        )}
                     </div>
-                    <div className="nightowl-growth-card">
-                        <div className="nightowl-growth-track">
-                            <div
-                                className="nightowl-growth-fill"
-                                style={{
-                                    width: `${Math.max(
-                                        8,
-                                        Math.min(100, Math.round(userProgress.progressPercentage)),
-                                    )}%`,
-                                }}
-                            />
-                        </div>
-                        <div className="nightowl-growth-meta">
-                            <span className="nightowl-growth-level">Level {userProgress.level}</span>
-                            <span className="nightowl-growth-next">
-                                {Math.round(userProgress.progressPercentage)}% to Level {userProgress.level + 1}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="nightowl-section">
-                    <div className="nightowl-section-header-study-growth">
-                        <h2 className="nightowl-section-title">Due Now & Overdue</h2>
-                        <p className="nightowl-section-subtitle">Cards waiting for review</p>
-                    </div>
-                    {dueCardsLoading ? (
-                        <p className="nightowl-decks-empty">Loading...</p>
-                    ) : dueCards.length === 0 ? (
-                        <p className="nightowl-decks-empty">You're all caught up! No cards due.</p>
+                    {statsLoading ? (
+                        <NightowlGrowthSkeleton />
                     ) : (
-                        <div className="nightowl-due-cards-list">
-                            {dueCards.map(card => (
-                                <div key={card.id} className="nightowl-due-card-item">
-                                    <span className="nightowl-due-card-question">{card.question}</span>
-                                    <div className="nightowl-due-card-meta">
-                                        <span className={`nightowl-due-card-status nightowl-due-card-status-${card.learning_status}`}>
-                                            {card.learning_status === 'unseen' ? 'Unseen'
-                                                : card.learning_status === 'strgl' ? 'Struggling'
-                                                : card.learning_status === 'imprv' ? 'Improving'
-                                                : card.learning_status === 'mstrd' ? 'Mastered'
-                                                : card.learning_status}
-                                        </span>
-                                        <span className="nightowl-due-card-overdue">{getOverdueLabel(card.scheduled_date)}</span>
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="nightowl-growth-card">
+                            <div className="nightowl-growth-track">
+                                <div
+                                    className="nightowl-growth-fill"
+                                    style={{
+                                        width: `${Math.max(
+                                            8,
+                                            Math.min(100, Math.round(userProgress.progressPercentage)),
+                                        )}%`,
+                                    }}
+                                />
+                            </div>
+                            <div className="nightowl-growth-meta">
+                                <span className="nightowl-growth-level">Level {userProgress.level}</span>
+                            </div>
                         </div>
                     )}
                 </div>
+
+                {studyQueueLoading ? (
+                    <div className="nightowl-section nightowl-section-due-cards" aria-busy="true">
+                        <div className="nightowl-section-header-study-growth">
+                            <span
+                                className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--section-title"
+                                aria-hidden="true"
+                            />
+                            <span
+                                className="nightowl-skeleton nightowl-skeleton-line nightowl-skeleton-line--section-subtitle"
+                                aria-hidden="true"
+                            />
+                        </div>
+                        <NightowlDueCardsSkeleton />
+                    </div>
+                ) : queueCards.length > 0 ? (
+                    <div className="nightowl-section nightowl-section-due-cards">
+                        <div className="nightowl-section-header-study-growth nightowl-section-header-due-cards">
+                            <div className="nightowl-section-header-due-cards-text">
+                                <h2 className="nightowl-section-title">Study Queue</h2>
+                                <p className="nightowl-section-subtitle">
+                                    {studyableCount} of {queueCards.length} cards ready to review
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                className="nightowl-studyroom-btn nightowl-study-queue-btn"
+                                onClick={() => navigate('/review')}
+                            >
+                                Open Study Queue
+                            </button>
+                        </div>
+                        <div className="nightowl-due-cards-list">
+                            {queueCards.map(card => {
+                                const isBlacklisted = card.slot_label === BLACKLISTED_LABEL;
+                                const bucket = getBucketInfo(card.bucket);
+                                const statusLabel = isBlacklisted ? BLACKLISTED_LABEL : bucket.label;
+                                const statusColor = isBlacklisted ? '#f87171' : bucket.color;
+                                const statusHint = isBlacklisted
+                                    ? 'This card is blacklisted and cannot be studied.'
+                                    : bucket.description;
+                                return (
+                                    <div
+                                        key={card.id}
+                                        className="nightowl-due-card-mini"
+                                        title={statusHint}
+                                    >
+                                        <div className="nightowl-due-card-mini-status">
+                                            <span
+                                                className="nightowl-due-card-mini-dot"
+                                                style={{ backgroundColor: statusColor }}
+                                                aria-hidden="true"
+                                            />
+                                            <span
+                                                className="nightowl-due-card-mini-label"
+                                                style={{ color: statusColor }}
+                                            >
+                                                {statusLabel}
+                                            </span>
+                                        </div>
+                                        <p className="nightowl-due-card-mini-question">{card.question}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="nightowl-section-empty" role="status">
+                        <h2 className="nightowl-section-empty-title">Study Queue</h2>
+                        <p className="nightowl-section-empty-message">
+                            {studyQueue
+                                ? "You're all caught up! No eligible cards right now."
+                                : 'No active Study Queue. Generate one from the Review page.'}
+                        </p>
+                        <button
+                            type="button"
+                            className="nightowl-studyroom-btn nightowl-study-queue-btn"
+                            onClick={() => navigate('/review')}
+                        >
+                            {studyQueue ? 'Open Study Queue' : 'Generate Study Queue'}
+                        </button>
+                    </div>
+                )}
 
                 {/* Upcoming Cards Chart Section (dKYpr sync) */}
                 <div className="nightowl-section nightowl-section-upcoming-cards">
@@ -415,23 +383,21 @@ const FlashcardsDashboard = ({
                             <span className="nightowl-upcoming-average">Average: 46 cards</span>
                         </div>
                     </div>
-                    {upcomingCardsSectionOpen && (
-                        <div className="nightowl-upcoming-chart-container">
-                            <div className="nightowl-upcoming-chart-header">
-                            </div>
-                            <div className="nightowl-upcoming-chart-content">
-                                <div className="nightowl-upcoming-chart-bars">
-                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 230 }} />
-                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 98 }} />
-                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 48 }} />
-                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 28 }} />
-                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 22 }} />
-                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 123 }} />
-                                    <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 16 }} />
-                                </div>
+                    <div className="nightowl-upcoming-chart-container">
+                        <div className="nightowl-upcoming-chart-header">
+                        </div>
+                        <div className="nightowl-upcoming-chart-content">
+                            <div className="nightowl-upcoming-chart-bars">
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 230 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 98 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 48 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 28 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 22 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-fixed" style={{ width: 179, height: 123 }} />
+                                <div className="nightowl-upcoming-bar nightowl-upcoming-bar-flex" style={{ height: 16 }} />
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 

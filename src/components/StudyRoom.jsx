@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../contexts/NotificationContext';
-import { ArrowLeft, MessageCircle, Play, Pause, RotateCcw, Settings, Coffee, Timer, Zap, FileText, Lock } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Play, Pause, RotateCcw, Settings, Coffee, Timer, Zap, FileText, Lock, Pin } from 'lucide-react';
 import {
   fetchAllResources,
   createPdfResource,
@@ -48,10 +48,8 @@ const writePinnedResourcesCache = (value) => {
 const tools = [
   { icon: null, label: 'Decks', route: '/study-room/decks', color: '#7c83fd', materialIcon: 'stacks' },
   { icon: null, label: 'Quiz', route: '/quiz', color: '#4ecdc4', materialIcon: 'quiz' },
-  { icon: null, label: 'Focus', route: '/focus', color: '#3b82f6', materialIcon: 'track_changes' }, // blue, locked card
   { icon: null, label: 'Review', route: '/review', color: '#f59e0b', materialIcon: 'cognition_2' },
-  { icon: null, label: 'Progress', route: '/progress', color: '#22c55e', materialIcon: 'azm' }, // green
-  { icon: null, label: 'Ask NeuroNote', route: '/chat', color: '#06B6D4', materialIcon: 'forum' },
+  { icon: null, label: 'Progress', route: '/progress', color: '#22c55e', materialIcon: 'azm' },
 ];
 
 const mockTasks = [
@@ -335,6 +333,9 @@ const StudyRoom = () => {
     showNotification('Coming Soon!');
   };
 
+  const hasPinnedResources =
+    pinnedResources.pdfs.length > 0 || pinnedResources.links.length > 0;
+
     return (
     <div className="study-room">
             <div className="study-room-header">
@@ -383,9 +384,7 @@ const StudyRoom = () => {
       
       <div className="study-room-grid">
                 {tools.map((tool, index) => {
-          const isFocusCard = tool.label === 'Focus';
-          const isProgressCard = tool.label === 'Progress';
-          const isLocked = isFocusCard || isProgressCard;
+          const isLocked = tool.label === 'Progress';
           return (
             <div 
               key={index} 
@@ -431,14 +430,20 @@ const StudyRoom = () => {
             </button>
           )}
         </div>
-        <div className="pinned-resources-grid">
+        <div
+          className={`pinned-resources-grid${!isLoadingPinnedResources && !hasPinnedResources ? ' pinned-resources-grid--empty' : ''}`}
+        >
           {isLoadingPinnedResources ? (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: '#a0aec0' }}>
-              Loading pinned resources...
-            </div>
-          ) : pinnedResources.pdfs.length === 0 && pinnedResources.links.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: '#a0aec0' }}>
-              No pinned resources yet. Add some to keep them handy!
+            <div className="pinned-resources-loading">Loading pinned resources...</div>
+          ) : !hasPinnedResources ? (
+            <div className="pinned-resources-empty">
+              <div className="pinned-resources-empty-icon" aria-hidden="true">
+                <Pin size={32} strokeWidth={1.5} />
+              </div>
+              <h4 className="pinned-resources-empty-title">No pinned resources yet</h4>
+              <p className="pinned-resources-empty-text">
+                Import a PDF or link above to pin it here for quick access while you study.
+              </p>
             </div>
           ) : (
             <>

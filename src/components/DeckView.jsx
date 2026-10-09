@@ -1,5 +1,6 @@
 import React from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
+import { getBucketInfo } from '../utils/buckets';
 
 const DeckView = ({
     selectedDeck,
@@ -68,11 +69,11 @@ const DeckView = ({
                                     <h4>Answer:</h4>
                                     <p>{card.answer}</p>
                                 </div>
-                                {card.scheduled_date && (
-                                    <div className="card-schedule">
-                                        <small>Due: {formatDateForDisplay(card.scheduled_date)}</small>
-                                    </div>
-                                )}
+                                <div className="card-schedule">
+                                    <small style={{ color: getBucketInfo(card.bucket).color }}>
+                                        {getBucketInfo(card.bucket).label}
+                                    </small>
+                                </div>
                             </div>
                             <div className="card-actions">
                                 <button 
@@ -115,14 +116,6 @@ const DeckView = ({
                                     onChange={(e) => setNewCard({...newCard, answer: e.target.value})}
                                     placeholder="Enter your answer..."
                                     rows={3}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Schedule Date (optional):</label>
-                                <input
-                                    type="date"
-                                    value={newCard.scheduled_date}
-                                    onChange={(e) => setNewCard({...newCard, scheduled_date: e.target.value})}
                                 />
                             </div>
                         </div>

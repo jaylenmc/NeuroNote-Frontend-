@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Flame, Footprints, Trophy } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api/axios';
+import { getDueCards } from '../api/studyQueueApi';
 import { Calendar } from './ui/calendar';
 import {
   Dialog,
@@ -99,7 +99,6 @@ const getDueMetaTone = (meta) => {
 
 const DashboardHome = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const cachedMetrics = useMemo(() => readMetricsCache(), []);
   const [metrics, setMetrics] = useState(() => cachedMetrics ?? {
     dueCount: 0,
@@ -107,43 +106,27 @@ const DashboardHome = () => {
     totalCards: 0,
   });
   const [loading, setLoading] = useState(!cachedMetrics);
-  const [isRefreshing, setIsRefreshing] = useState(Boolean(cachedMetrics));
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
-      setIsRefreshing(true);
       try {
-        const [dueRes, decksRes] = await Promise.all([
-          api.get('/flashcards/cards/due/').catch(() => ({ data: [] })),
+        const [{ cards: dueCards }, decksRes, cardsRes] = await Promise.all([
+          getDueCards().catch(() => ({ cards: [] })),
           api.get('/flashcards/deck/').catch(() => ({ data: { decks: [] } })),
+          api.get('/flashcards/cards/').catch(() => ({ data: [] })),
         ]);
-
-        const dueCards = Array.isArray(dueRes.data) ? dueRes.data : [];
 
         const decksData = decksRes.data?.decks ?? decksRes.data;
         const decksList = Array.isArray(decksData) ? decksData : [];
-
-        let sum = 0;
-        for (const deck of decksList) {
-          try {
-            const cardsRes = await api.get(`/flashcards/cards/${deck.id}/`);
-            const cards = Array.isArray(cardsRes.data)
-              ? cardsRes.data
-              : cardsRes.data?.cards ?? [];
-            sum += cards.length;
-          } catch {
-            // Keep going if one deck request fails.
-          }
-        }
 
         if (!isMounted) return;
 
         const nextMetrics = {
           dueCount: dueCards.length,
           deckCount: decksList.length,
-          totalCards: sum,
+          totalCards: Array.isArray(cardsRes.data) ? cardsRes.data.length : 0,
         };
         setMetrics(nextMetrics);
         writeMetricsCache(nextMetrics);
@@ -152,7 +135,6 @@ const DashboardHome = () => {
       } finally {
         if (isMounted) {
           setLoading(false);
-          setIsRefreshing(false);
         }
       }
     };
@@ -164,13 +146,6 @@ const DashboardHome = () => {
     };
   }, []);
 
-  const xp = user?.xp ?? 72;
-  const level = user?.level ?? 7;
-  const nextLevelXp = 1000;
-  const progressPercent = useMemo(
-    () => Math.min(100, Math.max(8, Math.round((xp / nextLevelXp) * 100))),
-    [xp],
-  );
 
   const streakCount = 6;
   const [openStreakCalendar, setOpenStreakCalendar] = useState(false);
@@ -265,7 +240,7 @@ const DashboardHome = () => {
         </article>
         <Separator orientation="vertical" />
         <article className="dh-metric">
-          <span className="dh-metric-title">Due Today</span>
+          <span className="dh-metric-title">In Study Queue</span>
           <strong>{loading ? '...' : metrics.dueCount}</strong>
         </article>
       </section>

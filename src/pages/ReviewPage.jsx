@@ -46,7 +46,6 @@ const ReviewPage = () => {
   const [decks, setDecks] = useState([]);
   const [selectedDeckId, setSelectedDeckId] = useState(null);
   const [showDeckDropdown, setShowDeckDropdown] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   // Study Method state
   const [showStudyMethodDropdown, setShowStudyMethodDropdown] = useState(false);
@@ -66,9 +65,8 @@ const ReviewPage = () => {
           decks = decksResponse.data.results;
         }
         setDecks(decks);
-        setLoading(false);
       } catch (err) {
-        setLoading(false);
+        console.error('Error fetching decks:', err);
       }
     };
     fetchDecks();
@@ -99,8 +97,6 @@ const ReviewPage = () => {
     }
     setSelectedStudyMethod(method);
     setShowStudyMethodDropdown(false);
-    // Here you could add logic to apply the study method
-    console.log('Selected study method:', method);
   };
 
   const toggleStudyMethodDropdown = () => {

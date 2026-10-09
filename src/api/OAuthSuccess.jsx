@@ -4,6 +4,7 @@ import {
   completeGoogleAuth,
   normalizeAuthResponse,
   isWaitlistFlowResult,
+  isAuthenticatedAuthResponse,
 } from './authApi';
 import { useAuth } from '../auth/AuthContext';
 import BrainLoader from '../components/BrainLoader';
@@ -49,15 +50,16 @@ function Authentication() {
       try {
         const data = await completeGoogleAuth(code);
 
-        if (typeof data?.waitlist === 'boolean' || isWaitlistFlowResult(data)) {
+        if (isWaitlistFlowResult(data)) {
           finishWaitlist(data.waitlist);
           return;
         }
 
-        const { user, tokens } = normalizeAuthResponse(data);
-        if (!user || !tokens?.access) {
+        if (!isAuthenticatedAuthResponse(data)) {
           throw new Error('Incomplete auth response');
         }
+
+        const { user, tokens } = normalizeAuthResponse(data);
         login(user, tokens);
         navigate('/dashboard', { replace: true });
       } catch (err) {

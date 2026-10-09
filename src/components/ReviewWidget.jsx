@@ -1,816 +1,475 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactDOM from 'react-dom';
-import { FiAlertCircle, FiClock, FiCalendar, FiStar, FiBook, FiAlertTriangle, FiChevronDown, FiX, FiPlus, FiEye } from 'react-icons/fi';
+import { FiPlus, FiX, FiClock, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
+import { BookOpen } from 'lucide-react';
 import './ReviewWidget.css';
 import { Checkbox } from './ui/checkbox';
-import brainPng from '../assets/brain.png';
+import BrainLoader from './BrainLoader';
 import api from '../api/axios';
-import { formatDateForDisplay, formatDateTimeForDisplay, convertBackendDateToLocal, isBackendDateToday, isBackendDatePast, isBackendDateFuture, isBackendDateTimeDueToday, isBackendDateTimeOverdue, isBackendDateTimeUpcoming, isBackendDateTimeDueNow, isBackendDateTimeLaterToday, isBackendDateTimeDueSoon, getTimeDifference, getOverdueTimeDifference, formatTimeForCardDisplay } from '../utils/dateUtils';
+import {
+  getCurrentStudyQueue,
+  startStudyQueue,
+  dismissStudyQueue,
+  addCardToStudyQueue,
+  removeCardFromStudyQueue,
+  getApiErrorMessage,
+} from '../api/studyQueueApi';
+import { getBucketInfo, BLACKLISTED_LABEL, isStudyQueueAddBlocked } from '../utils/buckets';
+import {
+  formatStudyQueueBlacklistCountdown,
+  getStudyQueueBlacklistEndsAt,
+} from '../utils/dateUtils';
+import { useNotification } from '../contexts/NotificationContext';
 
-const LoadingSpinner = () => (
-  <div style={{
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: '20px auto',
-    width: '60px',
-    height: '60px',
-    position: 'relative',
-  }}>
-    <img 
-      src={brainPng}
-      alt="Loading..." 
-      className="brain-loader"
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      }}
-    />
-  </div>
-);
+const DEFAULT_GROUP_SIZE = 20;
+const DEFAULT_TIMER_MINUTES = 10;
+
+const BlacklistedPill = ({ card, nowMs }) => {
+  const blacklistEndsAt = getStudyQueueBlacklistEndsAt(card.last_review_date);
+  const countdown = formatStudyQueueBlacklistCountdown(blacklistEndsAt, new Date(nowMs));
+  const endsTitle = blacklistEndsAt
+    ? `Available again at ${blacklistEndsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+    : 'Reviewed recently. Available again within the hour.';
+
+  return (
+    <span className="bucket-pill blacklisted-pill" title={endsTitle}>
+      <FiClock aria-hidden="true" />
+      {BLACKLISTED_LABEL}
+      {countdown && (
+        <span className="blacklisted-pill-countdown" aria-label={`Available in ${countdown}`}>
+          {countdown}
+        </span>
+      )}
+    </span>
+  );
+};
+
+const BucketDot = ({ bucket }) => {
+  const info = getBucketInfo(bucket);
+  const tooltip = `${info.label}: ${info.description}`;
+  return (
+    <span className="card-item-bucket-dot-wrap">
+      <span
+        className="card-item-bucket-dot"
+        style={{ backgroundColor: info.color }}
+        role="img"
+        aria-label={tooltip}
+        tabIndex={0}
+      />
+      <span className="card-item-bucket-dot-tooltip" role="tooltip">
+        <strong>{info.label}</strong>
+        <span>{info.description}</span>
+      </span>
+    </span>
+  );
+};
 
 const ReviewWidget = ({ decks = [], selectedDeckId, selectedStudyMethod }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overdue');
-  const [tooltip, setTooltip] = useState(null);
-  const [cards, setCards] = useState({
-    overdue: [],
-    dueNow: [],
-    dueSoon: [],
-    upcoming: []
-  });
+  const { showNotification } = useNotification();
+  const isStudyQueueMethod = !selectedStudyMethod || selectedStudyMethod.id === 'recall-retention';
+
+  const [activeTab, setActiveTab] = useState('queue');
   const [allCards, setAllCards] = useState([]);
+  const [queue, setQueue] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [newCardQuestion, setNewCardQuestion] = useState('');
-  const [newCardAnswer, setNewCardAnswer] = useState('');
-  const [newCardScheduledDate, setNewCardScheduledDate] = useState('');
-  const [showCreateCard, setShowCreateCard] = useState(false);
-  const [showEditDeck, setShowEditDeck] = useState(false);
-  const [showEditCard, setShowEditCard] = useState(false);
-  const [editingDeck, setEditingDeck] = useState(null);
-  const [editingCard, setEditingCard] = useState(null);
-  const [editDeckTitle, setEditDeckTitle] = useState('');
-  const [editDeckSubject, setEditDeckSubject] = useState('');
-  const [editCardQuestion, setEditCardQuestion] = useState('');
-  const [editCardAnswer, setEditCardAnswer] = useState('');
-  const [editCardScheduledDate, setEditCardScheduledDate] = useState('');
-  const [selectedDeck, setSelectedDeck] = useState(null);
-  const [includeDueSoon, setIncludeDueSoon] = useState(false);
-  const [hoveredTab, setHoveredTab] = useState(null);
-  const tabTooltips = {
-    overdue: 'Cards that were due for review but haven\'t been studied yet',
-    dueNow: 'Cards due for review right now (within grace period)',
-    dueSoon: 'Cards due for review in the next hour (optional preview)',
-    upcoming: 'Cards scheduled for future review',
-  };
+  const [busy, setBusy] = useState(false);
+  const [groupSize, setGroupSize] = useState(DEFAULT_GROUP_SIZE);
+  const [isTimed, setIsTimed] = useState(false);
+  const [timerMinutes, setTimerMinutes] = useState(DEFAULT_TIMER_MINUTES);
+  const [countdownNow, setCountdownNow] = useState(() => Date.now());
 
-  // Color map for underlines
-  const ratingColors = [
-    '#9E9E9E', // 0 - Blackout
-    '#F44336', // 1 - Unfamiliar
-    '#FF9800', // 2 - Familiar
-    '#FFC107', // 3 - Difficulty
-    '#8BC34A', // 4 - Hesitation
-    '#4CAF50', // 5 - Perfect
-  ];
+  const deckTitles = useMemo(
+    () => Object.fromEntries(decks.map((deck) => [Number(deck.id), deck.title])),
+    [decks]
+  );
+  const selectedDeck = decks.find((deck) => Number(deck.id) === Number(selectedDeckId)) || null;
 
-  const showNotificationMessage = (message) => {
-    setError(message);
-    setTimeout(() => setError(null), 3000);
-  };
-
-  const fetchCards = async () => {
-    try {
-      setLoading(true);
-  
-
-      // Fetch cards for each deck
-      const allCards = [];
-      for (const deck of decks) {
-        try {
-          const cardsResponse = await api.get(`/flashcards/cards/${deck.id}/`);
-          const deckCards = cardsResponse.data;
-      
-          
-          // Handle different possible card response structures
-          let cards = [];
-          if (Array.isArray(deckCards)) {
-            cards = deckCards;
-          } else if (deckCards && Array.isArray(deckCards.cards)) {
-            cards = deckCards.cards;
-          } else if (deckCards && deckCards.results) {
-            cards = deckCards.results;
-          }
-          
-          allCards.push(...cards.map(card => ({ ...card, deckTitle: deck.title, deckId: deck.id })));
-        } catch (cardErr) {
-          console.error(`Error fetching cards for deck ${deck.id}:`, cardErr);
-        }
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [cardsRes, currentQueue] = await Promise.all([
+          api.get('/flashcards/cards/'),
+          getCurrentStudyQueue(),
+        ]);
+        if (cancelled) return;
+        setAllCards(Array.isArray(cardsRes.data) ? cardsRes.data : []);
+        setQueue(currentQueue);
+      } catch (err) {
+        if (!cancelled) showNotification(getApiErrorMessage(err, 'Failed to load your cards'), 'error');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setAllCards(allCards);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-      // Sort cards into categories based on due date
-      const sortedCards = {
-        overdue: [],
-        dueNow: [],
-        dueSoon: [],
-        upcoming: []
-      };
+  useEffect(() => {
+    const intervalId = setInterval(() => setCountdownNow(Date.now()), 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
-      allCards.forEach(card => {
-        if (!card.scheduled_date) {
-          sortedCards.overdue.push(card);
-          return;
-        }
+  useEffect(() => {
+    setActiveTab(isStudyQueueMethod ? 'queue' : 'cards');
+  }, [isStudyQueueMethod]);
 
-        if (isBackendDateTimeOverdue(card.scheduled_date)) {
-          sortedCards.overdue.push(card);
-        } else if (isBackendDateTimeDueNow(card.scheduled_date)) {
-          sortedCards.dueNow.push(card);
-        } else if (isBackendDateTimeDueSoon(card.scheduled_date)) {
-          sortedCards.dueSoon.push(card);
-        } else if (isBackendDateTimeUpcoming(card.scheduled_date)) {
-          sortedCards.upcoming.push(card);
-        }
-      });
+  const queueCardIds = useMemo(() => new Set((queue?.cards || []).map((card) => card.id)), [queue]);
+  const studyableQueueCards = (queue?.cards || []).filter((card) => card.slot_label !== BLACKLISTED_LABEL);
 
-  
-      setCards(sortedCards);
-      setLoading(false);
+  const queueMatchesSelection = Boolean(
+    queue &&
+      (queue.scope === 'all_cards'
+        ? !selectedDeckId
+        : Number(queue.deck_id) === Number(selectedDeckId))
+  );
+
+  const selectedCards = useMemo(
+    () => (selectedDeckId ? allCards.filter((card) => Number(card.card_deck) === Number(selectedDeckId)) : allCards),
+    [allCards, selectedDeckId]
+  );
+
+  const addableCards = useMemo(() => {
+    if (!queue) return [];
+    return allCards.filter(
+      (card) =>
+        !queueCardIds.has(card.id) &&
+        !isStudyQueueAddBlocked(card) &&
+        (queue.scope === 'all_cards' || Number(card.card_deck) === Number(queue.deck_id))
+    );
+  }, [allCards, queue, queueCardIds]);
+
+  const scopeLabel = (deckId) => (deckId ? deckTitles[Number(deckId)] || 'Selected deck' : 'All cards');
+
+  const runQueueAction = async (action, successMessage) => {
+    setBusy(true);
+    try {
+      const updated = await action();
+      if (updated !== undefined) setQueue(updated);
+      if (successMessage) showNotification(successMessage, 'success');
     } catch (err) {
-      console.error('Error fetching cards:', err);
-      setError(err.message);
-      setLoading(false);
+      showNotification(getApiErrorMessage(err), 'error');
+    } finally {
+      setBusy(false);
     }
   };
 
-  useEffect(() => {
-    if (decks.length > 0) {
-      fetchCards();
-    }
-  }, [decks]);
+  const handleGenerateQueue = () => {
+    if (queue && !window.confirm('Replace your current Study Queue? Its progress will be discarded.')) return;
+    const size = Math.max(1, Math.min(100, Number(groupSize) || DEFAULT_GROUP_SIZE));
+    const timerSeconds = isTimed ? Math.max(1, Number(timerMinutes) || DEFAULT_TIMER_MINUTES) * 60 : null;
+    runQueueAction(
+      () =>
+        startStudyQueue({
+          deckId: selectedDeckId || null,
+          groupSize: size,
+          timerSeconds,
+          replaceExisting: Boolean(queue),
+        }),
+      queue ? 'Study Queue replaced' : 'Study Queue generated'
+    ).then(() => setActiveTab('queue'));
+  };
 
-  // Filter cards by selected deck
-  useEffect(() => {
-    if (!selectedDeckId) {
-      // Show all cards
-      const sortedCards = { overdue: [], dueNow: [], dueSoon: [], upcoming: [] };
-      allCards.forEach(card => {
-        if (!card.scheduled_date) {
-          sortedCards.overdue.push(card);
-          return;
-        }
-        if (isBackendDateTimeOverdue(card.scheduled_date)) {
-          sortedCards.overdue.push(card);
-        } else if (isBackendDateTimeDueNow(card.scheduled_date)) {
-          sortedCards.dueNow.push(card);
-        } else if (isBackendDateTimeDueSoon(card.scheduled_date)) {
-          sortedCards.dueSoon.push(card);
-        } else if (isBackendDateTimeUpcoming(card.scheduled_date)) {
-          sortedCards.upcoming.push(card);
-        }
-      });
-      setCards(sortedCards);
-    } else {
-      // Filter by deck
-      const sortedCards = { overdue: [], dueNow: [], dueSoon: [], upcoming: [] };
-      
-      allCards.filter(card => {
-        const cardDeckId = card.card_deck || card.deckId;
-        return Number(cardDeckId) === Number(selectedDeckId);
-      }).forEach(card => {
-        if (!card.scheduled_date) {
-          sortedCards.overdue.push(card);
-          return;
-        }
-        if (isBackendDateTimeOverdue(card.scheduled_date)) {
-          sortedCards.overdue.push(card);
-        } else if (isBackendDateTimeDueNow(card.scheduled_date)) {
-          sortedCards.dueNow.push(card);
-        } else if (isBackendDateTimeDueSoon(card.scheduled_date)) {
-          sortedCards.dueSoon.push(card);
-        } else if (isBackendDateTimeUpcoming(card.scheduled_date)) {
-          sortedCards.upcoming.push(card);
-        }
-      });
-      setCards(sortedCards);
+  const handleDismissQueue = () => {
+    if (!window.confirm('Dismiss your current Study Queue?')) return;
+    runQueueAction(async () => {
+      await dismissStudyQueue();
+      return null;
+    }, 'Study Queue dismissed');
+  };
+
+  const handleAddCard = (cardId) => {
+    const card = allCards.find((c) => c.id === cardId);
+    if (isStudyQueueAddBlocked(card)) {
+      showNotification('This card is blacklisted and cannot be added to the Study Queue right now.', 'error');
+      return;
     }
-  }, [selectedDeckId, allCards]);
+    runQueueAction(() => addCardToStudyQueue(cardId), 'Card added to Study Queue');
+  };
+
+  const handleRemoveCard = (cardId) => runQueueAction(() => removeCardFromStudyQueue(cardId));
 
   const handleStartReview = () => {
-    const dueCards = [...(cards.overdue || []), ...(cards.dueNow || [])];
-    
-    // Include due soon cards if the toggle is checked (for both all decks and individual decks)
-    const shouldIncludeDueSoon = includeDueSoon;
-    const totalCards = shouldIncludeDueSoon ? [...dueCards, ...(cards.dueSoon || [])] : dueCards;
-    
-    if (totalCards.length === 0) {
-  
-      setError('No cards for review today');
+    if (isStudyQueueMethod) {
+      if (!queue || studyableQueueCards.length === 0) {
+        showNotification('No cards available in your Study Queue right now', 'error');
+        return;
+      }
+      navigate('/review-session', {
+        state: {
+          selectedStudyMethod,
+          studyGroupId: queue.id,
+          timerSeconds: queue.is_timed ? queue.timer_seconds : null,
+          selectedDeck: queue.deck_id ? decks.find((deck) => Number(deck.id) === Number(queue.deck_id)) : null,
+        },
+      });
       return;
     }
 
-    // Navigate to the dedicated review session page with selected deck info
-    if (selectedDeckId) {
-      const selectedDeck = decks.find(d => d.id === selectedDeckId);
-  
-  
-      navigate('/review-session', { state: { selectedDeck, includeDueSoon, selectedStudyMethod } });
-    } else {
-  
-  
-      navigate('/review-session', { state: { includeDueSoon: shouldIncludeDueSoon, selectedStudyMethod } });
+    if (selectedCards.length === 0) {
+      showNotification('No cards to review', 'error');
+      return;
     }
+    navigate('/review-session', { state: { selectedStudyMethod, selectedDeck } });
   };
 
-  const handleCreateCard = async (e) => {
-    e.preventDefault();
-    try {
-      if (!selectedDeck) {
-        setError('Please select a deck first');
-        return;
-      }
-
-      const response = await api.post('/flashcards/cards/', {
-          question: newCardQuestion,
-          answer: newCardAnswer,
-          deck_id: selectedDeck.id,
-          scheduled_date: newCardScheduledDate
-      });
-
-      setNewCardQuestion('');
-      setNewCardAnswer('');
-      setNewCardScheduledDate('');
-      setShowCreateCard(false);
-      fetchCards(); // Refresh the cards list
-    } catch (err) {
-      console.error('Error creating card:', err);
-      setError(err.message);
-    }
-  };
-
-  const renderCreateCardModal = () => {
-    if (!showCreateCard) return null;
-    return ReactDOM.createPortal(
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>Create New Card</h2>
-          <form onSubmit={handleCreateCard}>
-            <div className="form-group">
-              <label htmlFor="question">Question:</label>
-              <textarea
-                id="question"
-                value={newCardQuestion}
-                onChange={(e) => setNewCardQuestion(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="answer">Answer:</label>
-              <textarea
-                id="answer"
-                value={newCardAnswer}
-                onChange={(e) => setNewCardAnswer(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="scheduledDate">Scheduled Review Date:</label>
-              <input
-                type="date"
-                id="scheduledDate"
-                value={newCardScheduledDate}
-                onChange={(e) => setNewCardScheduledDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]} // Set min date to today
-              />
-            </div>
-            <div className="modal-actions">
-              <button type="submit" className="submit-button">Create Card</button>
-              <button 
-                type="button" 
-                className="cancel-button"
-                onClick={() => {
-                  setShowCreateCard(false);
-                  setNewCardQuestion('');
-                  setNewCardAnswer('');
-                  setNewCardScheduledDate('');
-                  setSelectedDeck(null);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>,
-      document.body
-    );
-  };
-
-  const handleEditDeck = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await api.put(`/flashcards/deck/${editingDeck.id}/`, {
-          title: editDeckTitle,
-          subject: editDeckSubject
-      });
-
-      setShowEditDeck(false);
-      setEditingDeck(null);
-      fetchCards(); // Refresh the cards list
-    } catch (err) {
-      console.error('Error updating deck:', err);
-      setError(err.message);
-    }
-  };
-
-  const handleEditCard = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await api.put(`/flashcards/cards/update/${editingCard.card_deck}/${editingCard.id}/`, {
-          question: editCardQuestion,
-          answer: editCardAnswer,
-          scheduled_date: editCardScheduledDate
-      });
-
-      setShowEditCard(false);
-      setEditingCard(null);
-      fetchCards(); // Refresh the cards list
-    } catch (err) {
-      console.error('Error updating card:', err);
-      setError(err.message);
-    }
-  };
-
-  const renderEditDeckModal = () => {
-    if (!showEditDeck || !editingDeck) return null;
-    return ReactDOM.createPortal(
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>Edit Deck</h2>
-          <form onSubmit={handleEditDeck}>
-            <div className="form-group">
-              <label htmlFor="editDeckTitle">Title:</label>
-              <input
-                type="text"
-                id="editDeckTitle"
-                value={editDeckTitle}
-                onChange={(e) => setEditDeckTitle(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="editDeckSubject">Subject:</label>
-              <input
-                type="text"
-                id="editDeckSubject"
-                value={editDeckSubject}
-                onChange={(e) => setEditDeckSubject(e.target.value)}
-                required
-              />
-            </div>
-            <div className="modal-actions">
-              <button type="submit" className="submit-button">Save Changes</button>
-              <button 
-                type="button" 
-                className="cancel-button"
-                onClick={() => {
-                  setShowEditDeck(false);
-                  setEditingDeck(null);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>,
-      document.body
-    );
-  };
-
-  const renderEditCardModal = () => {
-    if (!showEditCard || !editingCard) return null;
-    return ReactDOM.createPortal(
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>Edit Card</h2>
-          <form onSubmit={handleEditCard}>
-            <div className="form-group">
-              <label htmlFor="editCardQuestion">Question:</label>
-              <textarea
-                id="editCardQuestion"
-                value={editCardQuestion}
-                onChange={(e) => setEditCardQuestion(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="editCardAnswer">Answer:</label>
-              <textarea
-                id="editCardAnswer"
-                value={editCardAnswer}
-                onChange={(e) => setEditCardAnswer(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="editCardScheduledDate">Scheduled Review Date:</label>
-              <input
-                type="date"
-                id="editCardScheduledDate"
-                value={editCardScheduledDate}
-                onChange={(e) => setEditCardScheduledDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            <div className="modal-actions">
-              <button type="submit" className="submit-button">Save Changes</button>
-              <button 
-                type="button" 
-                className="cancel-button"
-                onClick={() => {
-                  setShowEditCard(false);
-                  setEditingCard(null);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>,
-      document.body
-    );
-  };
-
-  // Progress summary calculation
-  const totalCards = allCards.length;
-  const reviewedToday = allCards.filter(card => card.last_reviewed_today).length;
-  const mastered = allCards.filter(card => card.learning_status === 'mstrd').length;
-  const leftToday = totalCards - reviewedToday;
-  const progressPct = totalCards ? Math.round((reviewedToday / totalCards) * 100) : 0;
-
-  if (loading) {
-    return (
-      <div className="review-widget">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="review-widget">
-        <div className="error">{error}</div>
-      </div>
-    );
-  }
-
-  const renderSummaryBadges = () => (
-    <div className="badge-row-with-filter">
-    <div className="badge-row">
-      <div 
-        className="badge overdue"
-        onMouseEnter={() => setTooltip('overdue')}
-        onMouseLeave={() => setTooltip(null)}
-      >
-        <FiAlertCircle />
-        <span>Overdue: {cards.overdue?.length || 0}</span>
-        {tooltip === 'overdue' && (
-          <div className="tooltip">
-            Cards that were due for review but haven't been studied yet
-          </div>
+  const renderCardItem = (card, index, action, { actionAtTopRight = false } = {}) => (
+    <div key={card.id} className="card-item" style={{ animationDelay: `${index * 0.05}s` }}>
+      <BucketDot bucket={card.bucket} />
+      {actionAtTopRight && action && (
+        <div className="card-item-action-top-right">{action}</div>
+      )}
+      <div className="card-deck-top">{deckTitles[Number(card.card_deck)] || 'Deck'}</div>
+      <div className="card-question-center">{card.question}</div>
+      <div className="card-due-bottom">
+        {card.slot_label === BLACKLISTED_LABEL && (
+          <BlacklistedPill card={card} nowMs={countdownNow} />
         )}
+        {card.source === 'manual' && <span className="bucket-pill manual-pill">Added</span>}
+        {!actionAtTopRight && action}
       </div>
-      <div 
-        className="badge due-now"
-        onMouseEnter={() => setTooltip('dueNow')}
-        onMouseLeave={() => setTooltip(null)}
-      >
-        <FiClock />
-        <span>Due Now: {cards.dueNow?.length || 0}</span>
-        {tooltip === 'dueNow' && (
-          <div className="tooltip">
-            Cards due for review right now (within grace period)
-          </div>
-        )}
-      </div>
-      <div 
-        className="badge due-soon"
-        onMouseEnter={() => setTooltip('dueSoon')}
-        onMouseLeave={() => setTooltip(null)}
-      >
-        <FiEye />
-        <span>Due Soon: {cards.dueSoon?.length || 0}</span>
-        {tooltip === 'dueSoon' && (
-          <div className="tooltip">
-            Cards due for review in the next hour (optional preview)
-          </div>
-        )}
-      </div>
-      <div 
-        className="badge upcoming"
-        onMouseEnter={() => setTooltip('upcoming')}
-        onMouseLeave={() => setTooltip(null)}
-      >
-        <FiCalendar />
-        <span>Upcoming: {cards.upcoming?.length || 0}</span>
-        {tooltip === 'upcoming' && (
-          <div className="tooltip">
-            Cards scheduled for future review
-          </div>
-        )}
-      </div>
-    </div>
     </div>
   );
 
-  const renderCardList = () => (
-    <div className="card-preview-section">
-      {/* Sticky Tab Bar */}
+  const renderEmpty = (title, message) => (
+    <div className="empty-state">
+      <div className="empty-icon" aria-hidden="true">
+        <BookOpen size={32} strokeWidth={1.5} />
+      </div>
+      <h3>{title}</h3>
+      <p>{message}</p>
+    </div>
+  );
+
+  const renderTabContent = () => {
+    if (activeTab === 'cards') {
+      if (selectedCards.length === 0) return renderEmpty('No cards yet', 'Add cards to a deck to start reviewing.');
+      return selectedCards.map((card, index) => renderCardItem(card, index));
+    }
+
+    if (activeTab === 'add') {
+      if (addableCards.length === 0) return renderEmpty('Nothing to add', 'Every card in this scope is already queued.');
+      return addableCards.map((card, index) =>
+        renderCardItem(
+          card,
+          index,
+          <button
+            type="button"
+            className="queue-card-action"
+            onClick={() => handleAddCard(card.id)}
+            disabled={busy}
+            title="Add to Study Queue"
+          >
+            <FiPlus />
+          </button>
+        )
+      );
+    }
+
+    if (!queue) {
+      return renderEmpty('No active Study Queue', 'Generate one below for a specific deck or all of your cards.');
+    }
+    if (queue.cards.length === 0) {
+      return renderEmpty('Your Study Queue is empty', 'No eligible cards right now. Try again later or add cards manually.');
+    }
+    return queue.cards.map((card, index) =>
+      renderCardItem(
+        card,
+        index,
+        <button
+          type="button"
+          className="queue-card-action remove"
+          onClick={() => handleRemoveCard(card.id)}
+          disabled={busy}
+          title="Remove from Study Queue"
+        >
+          <FiX />
+        </button>,
+        { actionAtTopRight: true }
+      )
+    );
+  };
+
+  const renderTabs = () => {
+    const tabs = isStudyQueueMethod
+      ? [
+          { id: 'queue', label: 'Study Queue', count: queue?.cards.length || 0 },
+          ...(queue ? [{ id: 'add', label: 'Add Cards', count: addableCards.length }] : []),
+        ]
+      : [{ id: 'cards', label: selectedDeck ? selectedDeck.title : 'All Cards', count: selectedCards.length }];
+
+    return (
       <div className="sticky-tab-container enhanced-tab-container">
-        {/* Progress summary bar removed */}
         <div className="tab-bar-with-filter enhanced-tab-bar">
           <div className="tab-bar">
-            <button 
-              className={`tab ${activeTab === 'overdue' ? 'active' : ''}`}
-              data-category="overdue"
-              onClick={() => setActiveTab('overdue')}
-              onMouseEnter={() => setHoveredTab('overdue')}
-              onMouseLeave={() => setHoveredTab(null)}
-            >
-              <span>Overdue: <span className="tab-count animated-count">{cards.overdue?.length || 0}</span></span>
-            </button>
-            <button 
-              className={`tab ${activeTab === 'dueNow' ? 'active' : ''}`}
-              data-category="dueNow"
-              onClick={() => setActiveTab('dueNow')}
-              onMouseEnter={() => setHoveredTab('dueNow')}
-              onMouseLeave={() => setHoveredTab(null)}
-            >
-              <span>Due Now: <span className="tab-count animated-count">{cards.dueNow?.length || 0}</span></span>
-            </button>
-            <button 
-              className={`tab ${activeTab === 'dueSoon' ? 'active' : ''}`}
-              data-category="dueSoon"
-              onClick={() => setActiveTab('dueSoon')}
-              onMouseEnter={() => setHoveredTab('dueSoon')}
-              onMouseLeave={() => setHoveredTab(null)}
-            >
-              <span>Due Soon: <span className="tab-count animated-count">{cards.dueSoon?.length || 0}</span></span>
-            </button>
-            <button 
-              className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`}
-              data-category="upcoming"
-              onClick={() => setActiveTab('upcoming')}
-              onMouseEnter={() => setHoveredTab('upcoming')}
-              onMouseLeave={() => setHoveredTab(null)}
-            >
-              <span>Upcoming: <span className="tab-count animated-count">{cards.upcoming?.length || 0}</span></span>
-            </button>
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`tab ${activeTab === tab.id ? 'active' : ''}`}
+                data-category={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>
+                  {tab.label}: <span className="tab-count animated-count">{tab.count}</span>
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
-      {/* Card Content */}
-      <div className="card-content-area">
-        {loading ? (
-          <div className="loading-container">
-            <LoadingSpinner />
-          </div>
-        ) : (
-          <div className="scrollable-card-list">
-            {(cards[activeTab] || []).map((card, index) => {
-              // Get ribbon color based on learning status
-              const getRibbonColor = (learningStatus) => {
-                switch (learningStatus) {
-                  case 'mstrd':
-                    return '#db2777'; // Dark pink
-                  case 'strgl':
-                    return '#f43f5e'; // Soft red
-                  case 'unseen':
-                    return '#38bdf8'; // Soft blue
-                  case 'imprv':
-                  default:
-                    return '#7c3aed'; // Muted purple
-                }
-              };
+    );
+  };
 
-              const getRibbonTooltip = (learningStatus) => {
-                switch (learningStatus) {
-                  case 'mstrd':
-                    return "Mastered: You've reviewed this card enough times to master it!";
-                  case 'strgl':
-                    return 'Struggling: More incorrect than correct answers.';
-                  case 'unseen':
-                    return 'Unseen: You have not reviewed this card yet.';
-                  case 'imprv':
-                  default:
-                    return 'In Progress: Partially reviewed.';
-                }
-              };
-
-              const ribbonColor = getRibbonColor(card.learning_status);
-              const ribbonTooltip = getRibbonTooltip(card.learning_status);
-
-              // Get deck icon based on deck title or subject
-              const getDeckIcon = (deckTitle) => {
-                const title = deckTitle.toLowerCase();
-                if (title.includes('exam') || title.includes('test')) return '📝';
-                if (title.includes('programming') || title.includes('code')) return '💻';
-                if (title.includes('language') || title.includes('spanish') || title.includes('french')) return '🗣️';
-                if (title.includes('science') || title.includes('biology') || title.includes('chemistry')) return '🔬';
-                if (title.includes('math') || title.includes('calculus') || title.includes('algebra')) return '📐';
-                if (title.includes('history') || title.includes('social')) return '📚';
-                if (title.includes('business') || title.includes('economics')) return '💼';
-                if (title.includes('art') || title.includes('design')) return '🎨';
-                if (title.includes('music')) return '🎵';
-                if (title.includes('sports') || title.includes('fitness')) return '⚽';
-                return '📖'; // Default book icon
-              };
-
-              return (
-                <div key={card.id} className="card-item" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="card-deck-top">
-                    {card.deckTitle}
-                  </div>
-                  <div className="card-question-center">
-                    {card.question}
-                  </div>
-                  <div className="card-due-bottom">
-                    <span className="card-due-date">
-                      {formatTimeForCardDisplay(card.scheduled_date, activeTab)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-            {(cards[activeTab] || []).length === 0 && (
-              <div className="empty-state">
-                <div className="empty-icon">📚</div>
-                <h3>No cards in this category</h3>
-                <p>All caught up! Check back later for new reviews.</p>
-              </div>
-            )}
-          </div>
-        )}
+  const renderQueueOptions = () => (
+    <div className="review-options">
+      <div className="due-soon-toggle queue-options">
+        <div className="due-soon-toggle-row">
+          <label htmlFor="queue-group-size" className="due-soon-toggle-label text-sm font-medium text-white/85">
+            Cards per queue
+          </label>
+          <input
+            id="queue-group-size"
+            type="number"
+            min={1}
+            max={100}
+            className="queue-number-input"
+            value={groupSize}
+            onChange={(e) => setGroupSize(e.target.value)}
+          />
+        </div>
+        <div className="due-soon-toggle-row">
+          <Checkbox
+            id="queue-timed"
+            className="due-soon-checkbox"
+            checked={isTimed}
+            onCheckedChange={(v) => setIsTimed(v === true)}
+          />
+          <label htmlFor="queue-timed" className="due-soon-toggle-label cursor-pointer text-sm font-medium text-white/85">
+            Timed session
+          </label>
+          {isTimed && (
+            <>
+              <input
+                type="number"
+                min={1}
+                max={180}
+                className="queue-number-input"
+                value={timerMinutes}
+                onChange={(e) => setTimerMinutes(e.target.value)}
+                aria-label="Timer minutes"
+              />
+              <span className="text-sm text-white/60">min</span>
+            </>
+          )}
+        </div>
+        <p className="due-soon-toggle-hint text-sm text-white/45">
+          Cards you haven&apos;t rated when the timer ends count as Complete Struggle.
+        </p>
       </div>
     </div>
   );
 
   const renderActionPanel = () => {
-    const dueCards = (cards.overdue?.length || 0) + (cards.dueNow?.length || 0);
-    const dueSoonCards = cards.dueSoon?.length || 0;
-    
-    // Include due soon cards if the toggle is checked (for both all decks and individual decks)
-    const shouldIncludeDueSoon = includeDueSoon;
-    const totalCards = shouldIncludeDueSoon ? dueCards + dueSoonCards : dueCards;
-    
+    if (!isStudyQueueMethod) {
+      return (
+        <div className="action-panel">
+          <div className="action-panel-header">
+            <h2 className="action-panel-title">Ready to study?</h2>
+            <p className="action-panel-subtitle">
+              Review {selectedDeck ? `cards in ${selectedDeck.title}` : 'all of your cards'} with {selectedStudyMethod.title}.
+            </p>
+          </div>
+          <div className="action-buttons">
+            <button type="button" className="start-review-button" onClick={handleStartReview}>
+              <span>Start Review Session ({selectedCards.length} Cards)</span>
+            </button>
+          </div>
+          <div className="review-options" />
+        </div>
+      );
+    }
+
+    const generateLabel = queue
+      ? `Replace with queue for ${scopeLabel(selectedDeckId)}`
+      : `Generate Study Queue for ${scopeLabel(selectedDeckId)}`;
+
     return (
       <div className="action-panel">
         <div className="action-panel-header">
-          <h2 className="action-panel-title">Ready to study?</h2>
+          <h2 className="action-panel-title">{queue ? 'Ready to study?' : 'Build your Study Queue'}</h2>
           <p className="action-panel-subtitle">
-            {selectedDeckId 
-              ? shouldIncludeDueSoon 
-                ? `Review overdue, due now, and due soon cards for selected deck (${dueCards} + ${dueSoonCards} preview)`
-                : `Review overdue and due now cards for selected deck (${dueCards} cards)`
-              : shouldIncludeDueSoon 
-                ? `Review overdue, due now, and due soon cards (${dueCards} + ${dueSoonCards} preview)`
-                : `Review overdue and due now cards (${dueCards} cards)`
-            }
+            {queue
+              ? `Study Queue for ${scopeLabel(queue.deck_id)}: ${studyableQueueCards.length} of ${queue.cards.length} cards available${
+                  queue.is_timed && queue.timer_seconds ? ` · ${Math.round(queue.timer_seconds / 60)} min timer` : ''
+                }`
+              : 'Cards are picked by bucket, favoring the ones you struggle with.'}
           </p>
         </div>
-        
-        <div className="action-buttons">
-          <button 
-            type="button"
-            className="start-review-button"
-            onClick={handleStartReview}
-          >
-            <span>Start Review Session ({totalCards} Cards)</span>
-          </button>
+
+        <div className="action-buttons queue-action-buttons">
+          {queue && (
+            <button
+              type="button"
+              className="start-review-button"
+              onClick={handleStartReview}
+              disabled={busy || studyableQueueCards.length === 0}
+            >
+              <span>Start Review Session ({studyableQueueCards.length} Cards)</span>
+            </button>
+          )}
+          {(!queue || !queueMatchesSelection) && (
+            <button
+              type="button"
+              className={queue ? 'queue-secondary-button' : 'start-review-button'}
+              onClick={handleGenerateQueue}
+              disabled={busy}
+            >
+              {queue ? <FiRefreshCw /> : <FiPlus />}
+              <span>{generateLabel}</span>
+            </button>
+          )}
+          {queue && (
+            <button type="button" className="queue-secondary-button danger" onClick={handleDismissQueue} disabled={busy}>
+              <FiTrash2 />
+              <span>Dismiss Queue</span>
+            </button>
+          )}
         </div>
-        
-        <div className="review-options">
-          <div className="due-soon-toggle">
-            <div className="due-soon-toggle-row">
-              <Checkbox
-                id="review-include-due-soon"
-                className="due-soon-checkbox"
-                checked={includeDueSoon}
-                onCheckedChange={(v) => setIncludeDueSoon(v === true)}
-              />
-              <label
-                htmlFor="review-include-due-soon"
-                className="due-soon-toggle-label cursor-pointer text-sm font-medium text-white/85"
-              >
-                Include &quot;Due Soon&quot; cards ({dueSoonCards} available)
-              </label>
-            </div>
-            <p className="due-soon-toggle-hint text-sm text-white/45">
-              Study ahead — may affect memory retention
-            </p>
-          </div>
-        </div>
-        
+
+        {(!queue || !queueMatchesSelection) ? renderQueueOptions() : <div className="review-options" />}
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="review-widget">
+        <div className="loading-container">
+          <BrainLoader />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="review-page-container">
       <div className="review-page-content">
         <div className="review-widget">
-          {renderCardList()}
+          <div className="card-preview-section">
+            {renderTabs()}
+            <div className="card-content-area">
+              <div className="scrollable-card-list">{renderTabContent()}</div>
+            </div>
+          </div>
           {renderActionPanel()}
-          {showCreateCard && renderCreateCardModal()}
-          {showEditDeck && renderEditDeckModal()}
-          {showEditCard && renderEditCardModal()}
         </div>
       </div>
     </div>
   );
 };
 
-// Add the style element at the end of the file
-const style = document.createElement('style');
-style.textContent = `
-  .glass-n {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .glass-n span {
-    font-size: 48px;
-    font-weight: bold;
-    color: transparent;
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.8) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    background-size: 200% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    animation: shimmer 2s infinite;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    position: relative;
-  }
-
-  .glass-n span::before {
-    content: 'N';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    color: rgba(255, 255, 255, 0.1);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  .brain-loader {
-    animation: brainPulse 2s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
-  }
-
-  @keyframes brainPulse {
-    0% {
-      transform: scale(1);
-      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
-    }
-    50% {
-      transform: scale(1.1);
-      filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
-    }
-    100% {
-      transform: scale(1);
-      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
-    }
-  }
-`;
-document.head.appendChild(style);
-
-export default ReviewWidget; 
+export default ReviewWidget;

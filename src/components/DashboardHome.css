@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap');
+
 .dh-root {
   --bg-main: #1d1f23;
   --bg-panel: #21242a;
@@ -15,6 +17,7 @@
   margin: -64px -24px;
   padding: 0rem 32px 40px;
   box-sizing: border-box;
+  font-family: 'Poppins', 'Inter', sans-serif;
 }
 
 .dh-card {
@@ -2222,7 +2225,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
-  font-family: 'poppins';
+  font-family: 'Poppins', 'Inter', sans-serif;
 }
 
 .streak-tracker-calendar-btn:hover {

@@ -274,8 +274,7 @@ const PatternRecognitionSession = ({
         setCurrentPhase('reflect');
         break;
       case 'reflect':
-        // Complete the session with high rating
-        onRatingSelect(5);
+        onRatingSelect(4); // Easy
         break;
     }
   };
