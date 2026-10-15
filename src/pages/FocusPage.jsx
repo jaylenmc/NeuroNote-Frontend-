@@ -130,9 +130,8 @@ const FocusPage = () => {
     useEffect(() => {
         const fetchDecks = async () => {
             try {
-                const response = await api.get('/flashcards/deck/');
-                const decksData = response.data?.decks || response.data || [];
-                setDecks(Array.isArray(decksData) ? decksData : []);
+                const decksData = await fetchDecks();
+                setDecks(decksData);
             } catch (err) {
                 console.error('Failed to load decks', err);
             }

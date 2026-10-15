@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Flame, Footprints, Trophy } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api/axios';
+import { fetchDecks } from '../api/deckApi';
 import { getDueCards } from '../api/studyQueueApi';
 import { Calendar } from './ui/calendar';
 import {
@@ -112,14 +113,11 @@ const DashboardHome = () => {
 
     const fetchData = async () => {
       try {
-        const [{ cards: dueCards }, decksRes, cardsRes] = await Promise.all([
+        const [{ cards: dueCards }, decksList, cardsRes] = await Promise.all([
           getDueCards().catch(() => ({ cards: [] })),
-          api.get('/flashcards/deck/').catch(() => ({ data: { decks: [] } })),
+          fetchDecks().catch(() => []),
           api.get('/flashcards/cards/').catch(() => ({ data: [] })),
         ]);
-
-        const decksData = decksRes.data?.decks ?? decksRes.data;
-        const decksList = Array.isArray(decksData) ? decksData : [];
 
         if (!isMounted) return;
 

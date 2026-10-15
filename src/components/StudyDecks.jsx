@@ -26,6 +26,13 @@ import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import './StudyDecks.css';
 import brainPng from '../assets/brain.png';
 import api from '../api/axios';
+import {
+    bulkDeleteDecks,
+    createDeck,
+    deleteDeck,
+    fetchDecks,
+    getDeckApiErrorMessage,
+} from '../api/deckApi';
 import { formatDateForDisplay, formatDateTimeForDisplay } from '../utils/dateUtils';
 
 const LoadingSpinner = () => (
@@ -161,6 +168,8 @@ const StudyDecks = () => {
     const [sortOrder, setSortOrder] = useState('asc');
     const [filterSubject, setFilterSubject] = useState('all');
     const [showSortFilter, setShowSortFilter] = useState(false);
+    const [selectMode, setSelectMode] = useState(false);
+    const [selectedDeckIds, setSelectedDeckIds] = useState(() => new Set());
     const navigate = useNavigate();
     const titleInputRef = useRef(null);
     const modalRef = useRef(null);
@@ -189,21 +198,18 @@ const StudyDecks = () => {
     const handleCreateDeck = useCallback(async (e) => {
         e.preventDefault();
         try {
-            const response = await api.post('/flashcards/deck/', newDeck);
+            await createDeck(newDeck);
             handleCloseModal();
-            await fetchDecks();
+            await loadDecks();
         } catch (err) {
-            setError(err.message);
+            setError(getDeckApiErrorMessage(err, 'Could not create deck'));
         }
     }, [newDeck, handleCloseModal]);
 
-    const fetchDecks = async () => {
+    const loadDecks = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/flashcards/deck/');
-            const data = response.data;
-            console.log('Raw deck data from API:', data);
-            const decksData = data.decks || [];
+            const decksData = await fetchDecks();
             console.log('Decks data:', decksData);
             
             // Fetch cards for each deck
@@ -230,13 +236,13 @@ const StudyDecks = () => {
             setDecks(decksWithCards);
             setLoading(false);
         } catch (err) {
-            setError(err.message);
+            setError(getDeckApiErrorMessage(err, 'Could not load decks'));
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchDecks();
+        loadDecks();
     }, []);
 
     // Handle click outside sort/filter dropdown
@@ -257,7 +263,25 @@ const StudyDecks = () => {
     }, [showSortFilter]);
 
     const handleDeckClick = (deckId) => {
+        if (selectMode) {
+            toggleDeckSelection(deckId);
+            return;
+        }
         navigate(`/study-room/deck/${deckId}`);
+    };
+
+    const toggleDeckSelection = (deckId) => {
+        setSelectedDeckIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(deckId)) next.delete(deckId);
+            else next.add(deckId);
+            return next;
+        });
+    };
+
+    const exitSelectMode = () => {
+        setSelectMode(false);
+        setSelectedDeckIds(new Set());
     };
 
     const handleDeleteDeck = async (deckId, e) => {
@@ -265,10 +289,24 @@ const StudyDecks = () => {
         if (!window.confirm('Are you sure you want to delete this deck?')) return;
 
         try {
-            await api.delete(`/flashcards/deck/${deckId}/`);
-            await fetchDecks();
+            await deleteDeck(deckId);
+            await loadDecks();
         } catch (err) {
-            setError(err.message);
+            setError(getDeckApiErrorMessage(err, 'Could not delete deck'));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        const ids = [...selectedDeckIds];
+        if (ids.length === 0) return;
+        if (!window.confirm(`Delete ${ids.length} deck(s)? This cannot be undone.`)) return;
+
+        try {
+            await bulkDeleteDecks(ids);
+            exitSelectMode();
+            await loadDecks();
+        } catch (err) {
+            setError(getDeckApiErrorMessage(err, 'Could not delete decks'));
         }
     };
 
@@ -291,9 +329,10 @@ const StudyDecks = () => {
     };
 
     const calculateMasteryProgress = (deck) => {
-        // Use the actual mastery_progress from the backend API response
-        return Math.round(deck.mastery_progress || 0);
+        return Math.round(calculateProgress(deck));
     };
+
+    const getCardCount = (deck) => deck.cards?.length ?? deck.num_of_cards ?? 0;
     
     const getMasteryColor = (progress) => {
         if (progress >= 90) return '#ec4899'; // Soft Pink - Mastered (ribbon-dark-pink)
@@ -344,8 +383,8 @@ const StudyDecks = () => {
                     bValue = b.subject.toLowerCase();
                     break;
                 case 'cards':
-                    aValue = a.cards?.length || 0;
-                    bValue = b.cards?.length || 0;
+                    aValue = getCardCount(a);
+                    bValue = getCardCount(b);
                     break;
                 case 'mastery':
                     aValue = calculateMasteryProgress(a);
@@ -464,6 +503,23 @@ const StudyDecks = () => {
                             </div>
                         )}
                     </div>
+                    <button
+                        type="button"
+                        className={`deck-view-select-decks-button ${selectMode ? 'active' : ''}`}
+                        onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+                    >
+                        {selectMode ? 'Cancel' : 'Select'}
+                    </button>
+                    {selectMode && selectedDeckIds.size > 0 && (
+                        <button
+                            type="button"
+                            className="deck-view-bulk-delete-button"
+                            onClick={handleBulkDelete}
+                        >
+                            <Trash2 size={18} />
+                            Delete ({selectedDeckIds.size})
+                        </button>
+                    )}
                     <button className="deck-view-create-deck-button" onClick={handleOpenCreateModal}>
                         <Plus size={20} />
                         Create Deck
@@ -485,10 +541,23 @@ const StudyDecks = () => {
                        getSortedAndFilteredDecks().map((deck) => (
                         <div
                             key={deck.id}
-                            className="studydeck-card"
+                            className={`studydeck-card ${selectMode && selectedDeckIds.has(deck.id) ? 'selected' : ''}`}
                             data-status={deck.status || 'in-progress'}
                             onClick={() => handleDeckClick(deck.id)}
                         >
+                            {selectMode && (
+                                <button
+                                    type="button"
+                                    className="studydeck-select-checkbox"
+                                    aria-pressed={selectedDeckIds.has(deck.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleDeckSelection(deck.id);
+                                    }}
+                                >
+                                    {selectedDeckIds.has(deck.id) ? <CheckCircle size={22} /> : <span className="studydeck-select-ring" />}
+                                </button>
+                            )}
                             {/* Icon circle */}
                             <div className="studydeck-icon-circle">
                                 <span className="material-symbols-outlined studydeck-icon">stacks</span>
@@ -503,7 +572,7 @@ const StudyDecks = () => {
                                     <span className="studydeck-metric-label">
                                         <BookOpen size={16} /> Cards
                                     </span>
-                                    <span className="studydeck-metric-value">{deck.cards?.length || 0}</span>
+                                    <span className="studydeck-metric-value">{getCardCount(deck)}</span>
                                 </div>
                                 <div className="studydeck-metric-row">
                                     <span className="studydeck-metric-label">

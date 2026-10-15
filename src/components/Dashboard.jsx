@@ -6,6 +6,7 @@ import { FiFileText, FiBookOpen, FiFile } from 'react-icons/fi';
 import closedFolderIcon from '../assets/ClosedFolder.svg';
 import openFolderIcon from '../assets/OpenFolder.svg';
 import api from '../api/axios';
+import { fetchDecks } from '../api/deckApi';
 import { formatDateForDisplay } from '../utils/dateUtils';
 
 
@@ -214,15 +215,7 @@ function Dashboard({ initialView }) {
     const progress = Math.max(0, Math.min((xp / nextLevelXp) * 100, 100));
 
     // API functions
-    const fetchAllDecks = async () => {
-        const response = await api.get('/flashcards/deck/');
-        return response.data;
-    };
-
-    const fetchDeckById = async (deckId) => {
-        const response = await api.get(`/flashcards/deck/${deckId}/`);
-        return response.data;
-    };
+    const fetchAllDecks = async () => fetchDecks();
 
     const fetchAllQuizzes = async () => {
         const response = await api.get('/test/quiz/');

@@ -5,6 +5,12 @@ import './DeckContent.css';
 import { formatDateTimeForDisplay } from '../utils/dateUtils';
 import api from '../api/axios';
 import {
+  deleteDeck,
+  fetchDeckById,
+  getDeckApiErrorMessage,
+  updateDeck,
+} from '../api/deckApi';
+import {
   getCurrentStudyQueue,
   addCardToStudyQueue,
   removeCardFromStudyQueue,
@@ -128,8 +134,7 @@ export default function DeckContent() {
 
   async function fetchDeck() {
     try {
-      const response = await api.get(`/flashcards/deck/${deckId}/`);
-      const data = response.data;
+      const data = await fetchDeckById(deckId);
       setDeck(data);
     } catch (err) {
       console.error('Error fetching deck:', err);
@@ -189,7 +194,7 @@ export default function DeckContent() {
 
   async function confirmDeleteDeck() {
     try {
-      await api.delete(`/flashcards/deck/${deckId}/`);
+      await deleteDeck(deckId);
       navigate('/study-room/decks');
     } catch (err) {
       console.error('Error deleting deck:', err);
@@ -369,16 +374,16 @@ export default function DeckContent() {
   const handleEditDeck = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/flashcards/deck/${deckId}/`, {
+      const updated = await updateDeck(deckId, {
         title: editDeckTitle,
-        subject: editDeckSubject
+        subject: editDeckSubject,
       });
-
+      setDeck(updated);
       setShowEditDeck(false);
-      fetchCards(); // Refresh the cards list
+      fetchDeck();
     } catch (err) {
       console.error('Error updating deck:', err);
-      setError(err.message);
+      setError(getDeckApiErrorMessage(err, 'Could not update deck'));
     }
   };
 

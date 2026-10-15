@@ -1135,3 +1135,55 @@
     font-size: 0.9rem;
   }
 } 
+.deck-view-select-decks-button,
+.deck-view-bulk-delete-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px !important;
+  padding: 8px 16px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #a0aec0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+}
+
+.deck-view-select-decks-button.active {
+  border-color: rgba(124, 131, 253, 0.6) !important;
+  color: #c4c8ff !important;
+}
+
+.deck-view-bulk-delete-button {
+  color: #fca5a5 !important;
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+.studydeck-card.selected {
+  outline: 2px solid rgba(124, 131, 253, 0.65);
+  outline-offset: 2px;
+}
+
+.studydeck-select-checkbox {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  background: transparent;
+  border: none;
+  color: #7c83fd;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.studydeck-select-ring {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  display: block;
+}

@@ -54,16 +54,7 @@ const ReviewPage = () => {
   useEffect(() => {
     const fetchDecks = async () => {
       try {
-        const decksResponse = await api.get('/flashcards/deck/');
-        let decks = [];
-        const responseData = decksResponse.data.decks || decksResponse.data;
-        if (responseData && Array.isArray(responseData)) {
-          decks = responseData;
-        } else if (decksResponse.data && Array.isArray(decksResponse.data.decks)) {
-          decks = decksResponse.data.decks;
-        } else if (decksResponse.data && decksResponse.data.results) {
-          decks = decksResponse.data.results;
-        }
+        const decks = await fetchDecks();
         setDecks(decks);
       } catch (err) {
         console.error('Error fetching decks:', err);
